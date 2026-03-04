@@ -1,0 +1,52 @@
+[project]
+name = "repoatlas"
+version = "0.1.0"
+description = "Portfolio intelligence for AI engineering teams. Scan repos, score health, find cross-project patterns."
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "NXTG.AI", email = "hello@nxtg.ai"},
+]
+keywords = ["developer-tools", "portfolio", "health", "scanning", "multi-repo", "devops", "cli"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Build Tools",
+    "Typing :: Typed",
+]
+dependencies = [
+    "typer[all]>=0.9.0",
+    "rich>=13.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/nxtg-ai/repoatlas"
+Repository = "https://github.com/nxtg-ai/repoatlas"
+Issues = "https://github.com/nxtg-ai/repoatlas/issues"
+
+[project.scripts]
+atlas = "atlas.cli:app"
+repoatlas = "atlas.cli:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["atlas*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
