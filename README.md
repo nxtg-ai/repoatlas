@@ -61,24 +61,16 @@ atlas status
 
 ## Features
 
-### Free
-
 - **Health scoring** — 4 dimensions (tests, git hygiene, documentation, structure) → A-F grade
 - **Tech stack detection** — Python, TypeScript, Rust, Go, Java + frameworks (FastAPI, React, Next.js, Django, etc.)
 - **Git health** — branch, commit count, dirty state, remote status
 - **Database detection** — PostgreSQL, SQLite, Redis, MongoDB, pgvector
-- **Single project scan** — `atlas add` + `atlas inspect`
-- **Up to 3 projects** in your portfolio
-
-### Pro ($49 one-time)
-
-- **Unlimited projects** — scan your entire org
 - **Cross-project intelligence** — shared deps, version mismatches, health gaps
 - **Batch add** — `atlas batch-add ~/projects` adds every repo at once
 - **Export** — markdown and JSON reports for stakeholders
-- **Priority support**
+- **Unlimited projects** — no limits, no tiers, no gates
 
-[Get Pro →](https://polar.sh/nxtg-ai/repoatlas)
+Everything is free. Everything is open source. No catches.
 
 ## What It Detects
 
@@ -111,7 +103,7 @@ Each project scores 0-100% across 4 dimensions:
 | **Documentation** (20%) | README, CLAUDE.md, NEXUS, CHANGELOG, docs/ |
 | **Structure** (25%) | CI/CD, .gitignore, package config, source organization, linting |
 
-## Cross-Project Intelligence (Pro)
+## Cross-Project Intelligence
 
 Atlas finds patterns across your repos that no single-repo tool can see:
 
@@ -135,20 +127,19 @@ Atlas finds patterns across your repos that no single-repo tool can see:
 
 ## Commands
 
-| Command | Description | Tier |
-|---------|-------------|------|
-| `atlas init` | Create a portfolio | Free |
-| `atlas add <path>` | Add a project | Free (3 max) |
-| `atlas scan` | Re-scan all projects | Free |
-| `atlas status` | Portfolio dashboard | Free |
-| `atlas inspect <name>` | Deep-dive on one project | Free |
-| `atlas remove <name>` | Remove a project | Free |
-| `atlas connections` | Cross-project patterns | Pro |
-| `atlas batch-add <dir>` | Add all repos in a directory | Pro |
-| `atlas export` | Markdown/JSON report | Pro |
-| `atlas activate <key>` | Activate Pro license | — |
-| `atlas license` | Show license status | — |
-| `atlas reset` | Delete all data | Free |
+| Command | Description |
+|---------|-------------|
+| `atlas init` | Create a portfolio |
+| `atlas add <path>` | Add a project |
+| `atlas scan` | Re-scan all projects |
+| `atlas status` | Portfolio dashboard |
+| `atlas inspect <name>` | Deep-dive on one project |
+| `atlas remove <name>` | Remove a project |
+| `atlas connections` | Cross-project patterns |
+| `atlas batch-add <dir>` | Add all repos in a directory |
+| `atlas export` | Markdown/JSON report |
+| `atlas support` | How to support this project |
+| `atlas reset` | Delete all data |
 
 ## Requirements
 
@@ -170,7 +161,7 @@ State lives in `~/.atlas/portfolio.json`. Portable, inspectable, no database.
 ## FAQ
 
 **Is this open source?**
-Yes. MIT license. Free tier is fully functional, not crippled.
+Yes. MIT license. Every feature is free. No tiers, no gates, no "upgrade to unlock."
 
 **Does it phone home?**
 No. Zero network calls. No telemetry. No analytics. Your code stays on your machine.
@@ -183,6 +174,14 @@ Each `atlas add` path is treated as one project. For monorepos, add the root.
 
 **Can I use it in CI?**
 `atlas export --format json` outputs machine-readable data. CI integration coming soon.
+
+## Support This Project
+
+Atlas is free and always will be. If it saves you time, consider supporting development:
+
+[Support Atlas →](https://polar.sh/nxtg-ai/repoatlas)
+
+Supporters get their name in `SUPPORTERS.md`, priority GitHub issues, and early access to new features.
 
 ## License
 

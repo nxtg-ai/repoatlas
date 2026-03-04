@@ -12,7 +12,6 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskPr
 
 from atlas.connections import find_connections
 from atlas.display import console, show_connections, show_project_card, show_scan_complete, show_status
-from atlas.license_manager import FREE_PROJECT_LIMIT, is_pro
 from atlas.models import Portfolio
 from atlas.scanner import scan_project
 
@@ -74,13 +73,6 @@ def add(
 
     if not project_path.is_dir():
         console.print(f"[red]Directory not found: {project_path}[/red]")
-        raise typer.Exit(1)
-
-    # Check project limit on free tier
-    if not is_pro() and len(portfolio.projects) >= FREE_PROJECT_LIMIT:
-        console.print(f"[yellow]Free tier limited to {FREE_PROJECT_LIMIT} projects.[/yellow]")
-        console.print("Upgrade to [bold cyan]Pro[/bold cyan] for unlimited projects: [link]https://polar.sh/nxtg-ai/repoatlas[/link]")
-        console.print(f"Or activate a key: [cyan]atlas activate YOUR-KEY[/cyan]")
         raise typer.Exit(1)
 
     # Check if already added
@@ -164,32 +156,17 @@ def status():
 
     show_status(portfolio)
 
-    # Cross-project intelligence (Pro only, but show teaser)
-    if is_pro():
+    # Cross-project intelligence
+    if len(portfolio.projects) > 1:
         conns = find_connections(portfolio.projects)
         if conns:
             console.print()
             show_connections(conns)
-    elif len(portfolio.projects) > 1:
-        console.print()
-        console.print(
-            "  [dim]Cross-project intelligence available with [bold]Pro[/bold] — "
-            "shared deps, version mismatches, health gaps[/dim]"
-        )
-        console.print(
-            "  [dim]Upgrade: [cyan]https://polar.sh/nxtg-ai/repoatlas[/cyan][/dim]"
-        )
 
 
 @app.command()
 def connections():
-    """Show cross-project intelligence. [Pro]"""
-    if not is_pro():
-        console.print("[yellow]Cross-project intelligence is a Pro feature.[/yellow]")
-        console.print("Upgrade: [link]https://polar.sh/nxtg-ai/repoatlas[/link]")
-        console.print(f"Or activate: [cyan]atlas activate YOUR-KEY[/cyan]")
-        raise typer.Exit(1)
-
+    """Show cross-project intelligence."""
     portfolio = _load_portfolio()
 
     if not portfolio.projects:
@@ -349,34 +326,20 @@ def export(
 
 
 @app.command()
-def activate(key: str = typer.Argument(help="Your Pro license key (ATLAS-XXXX-XXXX-XXXX-XXXX)")):
-    """Activate a Pro license."""
-    from atlas.license_manager import activate as do_activate
-    if do_activate(key):
-        console.print()
-        console.print("  [green]\u2713[/green] [bold]Pro license activated![/bold]")
-        console.print("  Unlocked: unlimited projects, cross-project intelligence, export, batch-add")
-        console.print()
-    else:
-        console.print("[red]Invalid license key.[/red]")
-        console.print("Get a key at [link]https://polar.sh/nxtg-ai/repoatlas[/link]")
-
-
-@app.command()
-def license():
-    """Show current license status."""
-    from atlas.license_manager import get_status
-    status = get_status()
+def support():
+    """Show how to support this project."""
     console.print()
-    tier_style = "bold green" if status["tier"] == "Pro" else "yellow"
-    console.print(f"  Tier:             [{tier_style}]{status['tier']}[/{tier_style}]")
-    console.print(f"  Project limit:    {status['project_limit']}")
-    console.print(f"  Cross-project:    {'Yes' if status['cross_project'] else 'No (Pro)'}")
-    console.print(f"  Export:           {'Yes' if status['export'] else 'No (Pro)'}")
-    console.print(f"  Batch add:        {'Yes' if status['batch_add'] else 'No (Pro)'}")
-    if status["tier"] == "Free":
-        console.print()
-        console.print("  Upgrade: [link]https://polar.sh/nxtg-ai/repoatlas[/link]")
+    console.print("  [bold]Atlas is 100% free and open source (MIT).[/bold]")
+    console.print()
+    console.print("  If atlas saves you time, consider supporting development:")
+    console.print()
+    console.print("    [cyan]https://polar.sh/nxtg-ai/repoatlas[/cyan]")
+    console.print()
+    console.print("  Supporters get:")
+    console.print("    [green]\u2713[/green] Name in SUPPORTERS.md")
+    console.print("    [green]\u2713[/green] Priority GitHub issues")
+    console.print("    [green]\u2713[/green] Early access to new features")
+    console.print("    [green]\u2713[/green] The good feeling of funding open source")
     console.print()
 
 
