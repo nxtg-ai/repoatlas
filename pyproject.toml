@@ -1,5 +1,5 @@
 [project]
-name = "repoatlas"
+name = "nxtg-atlas"
 version = "0.1.0"
 description = "Portfolio intelligence for AI engineering teams. Scan repos, score health, find cross-project patterns."
 requires-python = ">=3.11"
@@ -34,7 +34,7 @@ Issues = "https://github.com/nxtg-ai/repoatlas/issues"
 
 [project.scripts]
 atlas = "atlas.cli:app"
-repoatlas = "atlas.cli:app"
+nxtg-atlas = "atlas.cli:app"
 
 [project.optional-dependencies]
 dev = [

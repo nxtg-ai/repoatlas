@@ -1,13 +1,13 @@
-# Publishing repoatlas to PyPI
+# Publishing nxtg-atlas to PyPI
 
 ## Option 1: Trusted Publisher (Recommended — One-Time Setup)
 
 1. Go to https://pypi.org/manage/account/publishing/
 2. Click "Add a new pending publisher"
 3. Fill in:
-   - **PyPI Project Name**: `repoatlas`
+   - **PyPI Project Name**: `nxtg-atlas`
    - **Owner**: `nxtg-ai`
-   - **Repository**: `repoatlas`
+   - **Repository**: `nxtg-atlas`
    - **Workflow name**: `ci.yml`
    - **Environment name**: (leave blank)
 4. Click "Add"
@@ -21,7 +21,7 @@ git push origin main
 ## Option 2: Manual with API Token
 
 1. Go to https://pypi.org/manage/account/token/
-2. Create a token scoped to `repoatlas` (or all projects for first upload)
+2. Create a token scoped to `nxtg-atlas` (or all projects for first upload)
 3. Run:
 ```bash
 cd ~/projects/atlas
@@ -32,6 +32,6 @@ python3 -m twine upload dist/* -u __token__ -p pypi-YOUR-TOKEN-HERE
 ## Verify Installation
 
 ```bash
-pip install repoatlas
+pip install nxtg-atlas
 atlas --help
 ```

@@ -1,11 +1,11 @@
-# repoatlas
+# nxtg-atlas
 
 **Portfolio intelligence for AI engineering teams.**
 
 Scan your repos. Score health. Find cross-project patterns nobody else sees.
 
 ```
-pip install repoatlas
+pip install nxtg-atlas
 ```
 
 ---
