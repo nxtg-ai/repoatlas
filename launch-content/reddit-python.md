@@ -56,9 +56,9 @@ atlas status
 - Should framework detection read import statements, or is config-file-only good enough?
 - Any Typer/Rich patterns I might be missing?
 
-Zero network calls, no telemetry. MIT license.
+Zero network calls, no telemetry. MIT license. 100% free — no tiers, no limits, no feature gates.
 
 - GitHub: https://github.com/nxtg-ai/repoatlas
 - PyPI: https://pypi.org/project/nxtg-atlas/
 
-Free for up to 3 projects. $49 one-time for unlimited + cross-project intelligence (shared deps, version mismatches, health gaps).
+If atlas saves you time, consider [supporting development on Polar](https://polar.sh/nxtg-ai/repoatlas).

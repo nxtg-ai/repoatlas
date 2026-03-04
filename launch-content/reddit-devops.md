@@ -74,10 +74,11 @@ Same for the "zero tests" flag. It's easy to ship a quick prototype repo and for
 
 ## Details
 
-- Python 3.11+, MIT license, open source
+- Python 3.11+, MIT license, 100% open source — no tiers, no limits, no feature gates
 - Built with Typer + Rich + Pydantic
-- Free for up to 3 projects. $49 one-time for unlimited + cross-project intelligence.
+- Everything works: unlimited projects, cross-project intelligence, export
 - GitHub: https://github.com/nxtg-ai/repoatlas
 - PyPI: https://pypi.org/project/nxtg-atlas/
+- If atlas saves you time, consider [supporting development](https://polar.sh/nxtg-ai/repoatlas)
 
 If you manage more than a handful of repos and want a quick sanity check across all of them, give it a try. Feedback welcome -- especially on the health scoring weights.

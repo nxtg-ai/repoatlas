@@ -96,9 +96,9 @@ atlas scan ~/projects --format table
 atlas report ~/projects -o report.html
 ```
 
-Free for up to 3 projects. $49 one-time for unlimited. No subscription.
+100% free. No tiers. No limits. No feature gates. MIT licensed.
 
-MIT licensed. Works on Mac, Linux, WSL.
+Works on Mac, Linux, WSL.
 
 ---
 

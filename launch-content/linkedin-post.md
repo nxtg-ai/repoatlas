@@ -30,9 +30,11 @@ pip install nxtg-atlas
 atlas scan ~/projects --format table
 ```
 
-Free for up to 3 projects. $49 one-time unlock for unlimited — no subscription.
+100% free. No tiers, no limits, no feature gates. MIT licensed.
 
 GitHub: github.com/nxtg-ai/repoatlas
+
+If atlas saves you time, consider supporting development: polar.sh/nxtg-ai/repoatlas
 
 If you lead a team that ships from more than one repo, give it a scan. I'd genuinely like to know what it finds.
 

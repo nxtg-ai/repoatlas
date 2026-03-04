@@ -18,37 +18,41 @@ Scan repos, score health, find cross-project patterns nobody else sees.
 - 72% of enterprises use multi-agent architectures (Gartner 2026)
 - Market: $8.5B dev tools (2026) → $35B (2030)
 
-## Revenue Model — Open Core
+## Revenue Model — Sponsorware
 
-| Tier | Price | What You Get |
-|------|-------|-------------|
-| **Free** | $0 | 3 projects, health scoring, tech detection, git health, inspect |
-| **Pro** | $49 one-time | Unlimited projects, cross-project intelligence, batch-add, export |
+**100% free. No tiers, no limits, no feature gates.** Everything ships to everyone.
 
-**Why $49 one-time (not SaaS)**:
-- Developer trust — no subscription fatigue, no lock-in
-- Viral loop — low barrier → word of mouth → Pro conversions
-- Comparable: LazyGit ($0 → sponsors), Atuin ($0/$8/mo), Warp (free → enterprise)
-- One-time payment removes friction, builds goodwill
+Sustainability through voluntary sponsorship via [Polar.sh](https://polar.sh/nxtg-ai/repoatlas).
 
-## Revenue Targets
+**Why sponsorware (not open core)**:
+- Developer trust — no friction, no "you need Pro for that" moments
+- Viral loop — maximum adoption → word of mouth → organic sponsors
+- Comparable: LazyGit, Helix, Zoxide — free tools with sponsor pages that work
+- Every user gets the full product. Sponsors get gratitude, not gated features.
 
-| Month | Pro Licenses | Monthly Revenue | Cumulative |
-|-------|-------------|----------------|------------|
-| 1 | 10 | $490 | $490 |
-| 2 | 25 | $1,225 | $1,715 |
-| 3 | 50 | $2,450 | $4,165 |
-| 6 | 100 | $4,900 | $17,150 |
-| 12 | 200 | $9,800 | $52,150 |
+**Sponsor tiers** (Polar.sh):
+| Tier | Amount | Perks |
+|------|--------|-------|
+| Supporter | $5/mo or $25 one-time | Name in SPONSORS.md, Discord role |
+| Backer | $15/mo or $99 one-time | Logo in README, priority issue triage |
+| Sponsor | $49/mo or $249 one-time | Logo on GitHub + docs site, direct feedback channel |
 
-Conservative: 2% conversion rate on free installs.
+## Sustainability Targets
 
-## Payment Platform
+| Month | Sponsors | Monthly Recurring | Notes |
+|-------|----------|-------------------|-------|
+| 1 | 5 | ~$50 | Seed — early adopters |
+| 3 | 25 | ~$200 | Post-launch momentum |
+| 6 | 75 | ~$500 | Sustaining contributions |
+| 12 | 200 | ~$1,500 | Community maturity |
 
-**Polar.sh** (primary) — 4% MoR fees, developer-native, GitHub integration.
-- Backup: Lemon Squeezy (5% fees)
-- NOT Gumroad (10% — robbery)
-- NOT Stripe direct (compliance burden, tax handling)
+Goal: cover infrastructure and development time. Growth comes from adoption, not revenue pressure.
+
+## Sponsorship Platform
+
+**Polar.sh** (primary) — developer-native, GitHub integration, subscription + one-time support.
+- Backup: GitHub Sponsors (if Polar.sh reach is insufficient)
+- NOT Gumroad, NOT Stripe direct — unnecessary complexity for donation-based model
 
 ## Launch Sequence
 
@@ -120,7 +124,7 @@ The nxtg-content-engine (P-14) should generate:
    - 8 version mismatches found automatically
    - 5 shared dependencies identified
    - Zero network calls — fully local, no telemetry
-   - $0 free tier is genuinely useful, not crippled
+   - 100% free — no tiers, no limits, no feature gates
 
 ## Key Differentiators (for all content)
 
@@ -128,12 +132,12 @@ The nxtg-content-engine (P-14) should generate:
 2. **Real data, not AI hallucinations** — parses actual config files, counts real test files
 3. **Cross-project patterns** — the thing nobody else does
 4. **30 seconds** — not a 20-minute setup, not a SaaS dashboard
-5. **Open source (MIT)** — free tier works, Pro is worth it
+5. **Open source (MIT)** — 100% free, sponsorware model
 
 ## Metrics to Track
 
 - PyPI downloads (weekly)
 - GitHub stars
 - Show HN upvotes + comments
-- Pro license purchases (Polar.sh dashboard)
+- Polar.sh sponsors (count + MRR)
 - Dev.to article views + reactions

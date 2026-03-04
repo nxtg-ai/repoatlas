@@ -74,10 +74,12 @@ These are the things that bite you six months from now.
 - Python 3.11+, built with Typer + Rich
 - State is a single JSON file at `~/.atlas/portfolio.json`
 - Detects 10+ languages, 15+ frameworks, 5+ databases
-- MIT license, open source
-- Free tier: 3 projects, full health scoring. Pro ($49 one-time): unlimited projects + cross-project intelligence.
+- MIT license, 100% open source — no tiers, no limits, no feature gates
+- Everything works: unlimited projects, cross-project intelligence, export, batch-add
 
 GitHub: https://github.com/nxtg-ai/repoatlas
 PyPI: https://pypi.org/project/nxtg-atlas/
+
+If atlas saves you time, consider [supporting development](https://polar.sh/nxtg-ai/repoatlas).
 
 Happy to answer questions about the scoring algorithm, the detection heuristics, or how we're using it internally.

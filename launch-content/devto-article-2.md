@@ -150,9 +150,9 @@ None of these were emergencies. All of them were preventing future emergencies. 
 pip install nxtg-atlas
 ```
 
-Free tier: 3 projects, full health scoring, tech detection, git health analysis. Genuinely useful, not a teaser.
+Everything is free. No tiers, no limits, no feature gates. Unlimited projects, cross-project intelligence, batch-add, markdown/JSON export — all included.
 
-[Pro ($49 one-time)](https://polar.sh/nxtg-ai/repoatlas): unlimited projects, cross-project intelligence (shared deps, version mismatches, health gaps), batch-add, markdown/JSON export.
+If atlas saves you time, consider [supporting development](https://polar.sh/nxtg-ai/repoatlas).
 
 **GitHub**: [github.com/nxtg-ai/repoatlas](https://github.com/nxtg-ai/repoatlas)
 

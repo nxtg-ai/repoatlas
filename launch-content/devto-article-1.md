@@ -96,9 +96,9 @@ atlas status
 
 Five commands. Thirty seconds. You'll see your blind spots.
 
-The free tier covers 3 projects with full health scoring, tech detection, and git health. If you manage more than that, [Pro is $49 one-time](https://polar.sh/nxtg-ai/repoatlas) for unlimited projects and cross-project intelligence (shared deps, version mismatches, health gaps).
+Everything is free. No tiers, no limits, no feature gates. Unlimited projects, cross-project intelligence, export — all of it.
 
-MIT licensed. Open source. Python 3.11+.
+MIT licensed. Open source. Python 3.11+. If atlas saves you time, consider [supporting development](https://polar.sh/nxtg-ai/repoatlas).
 
 **GitHub**: [github.com/nxtg-ai/repoatlas](https://github.com/nxtg-ai/repoatlas)
 
