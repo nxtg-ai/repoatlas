@@ -333,7 +333,7 @@ def support():
     console.print()
     console.print("  If atlas saves you time, consider supporting development:")
     console.print()
-    console.print("    [cyan]https://polar.sh/nxtg-ai/repoatlas[/cyan]")
+    console.print("    [cyan]https://github.com/sponsors/nxtg-ai[/cyan]")
     console.print()
     console.print("  Supporters get:")
     console.print("    [green]\u2713[/green] Name in SUPPORTERS.md")

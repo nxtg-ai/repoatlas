@@ -179,7 +179,7 @@ Each `atlas add` path is treated as one project. For monorepos, add the root.
 
 Atlas is free and always will be. If it saves you time, consider supporting development:
 
-[Support Atlas →](https://polar.sh/nxtg-ai/repoatlas)
+[Support Atlas →](https://github.com/sponsors/nxtg-ai)
 
 Supporters get their name in `SUPPORTERS.md`, priority GitHub issues, and early access to new features.
 
