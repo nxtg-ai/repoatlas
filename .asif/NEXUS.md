@@ -129,7 +129,25 @@ For any directive that touches 3+ files or requires architectural decisions:
 
 ## CoS Directives
 
-_(No pending directives)_
+### DIRECTIVE-NXTG-20260311-01 — Test Coverage Push (30 → 100+)
+**From**: NXTG-AI CoS (Wolf) | **Priority**: P1
+**Injected**: 2026-03-11 05:40 | **Estimate**: S | **Status**: PENDING
+
+**Context**: Atlas has 30 tests and 1,814 LOC — that's ~1.7 tests per 100 lines, well below portfolio standard. As a revenue-track product heading toward PyPI publishing (N-06), test quality is a gate. Every other revenue-track product (Faultline Pro: 909, Forge: 4,590) has 10x+ your count. This is the gap to close before any distribution work.
+
+**Action Items**:
+1. [ ] Run `pytest --co -q` — confirm baseline count.
+2. [ ] Identify the 3 modules with lowest coverage. Focus there.
+3. [ ] Add unit tests for `scanner.py` (core detection logic) — aim for edge cases: empty dirs, monorepos, nested projects, missing package files.
+4. [ ] Add unit tests for `health.py` (scoring logic) — verify scoring formula, boundary conditions (0 tests, 10000 tests, missing CI).
+5. [ ] Add unit tests for `patterns.py` (cross-project analysis) — shared deps detection, tech overlap, duplicate detection.
+6. [ ] Target: 100+ tests minimum. Test count must not decrease from any baseline.
+7. [ ] Run full suite. All green. Push.
+
+**Constraints**:
+- Real tests with meaningful assertions. No hollow `assert result is not None`.
+- Follow CRUCIBLE Protocol — Gate 2 (non-empty assertions), Gate 4 (delta gate).
+- S-sized: focused on core modules, not CLI or dashboard.
 
 ---
 
