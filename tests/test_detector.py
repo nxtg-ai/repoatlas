@@ -1,19 +1,95 @@
 """Tests for tech stack detection."""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+
 from atlas.detector import (
+    SKIP_DIRS,
+    SOURCE_EXTENSIONS,
+    _check_add,
     count_files,
+    count_loc,
     count_test_files,
     detect_databases,
     detect_frameworks,
     detect_key_deps,
     detect_languages,
+    walk_files,
 )
 
 
+# ---------------------------------------------------------------------------
+# walk_files
+# ---------------------------------------------------------------------------
+class TestWalkFiles:
+    def test_yields_regular_files(self, tmp_path):
+        (tmp_path / "hello.py").write_text("x = 1")
+        files = list(walk_files(tmp_path))
+        assert len(files) == 1
+        assert files[0].name == "hello.py"
+
+    def test_skips_git_directory(self, tmp_path):
+        git = tmp_path / ".git"
+        git.mkdir()
+        (git / "HEAD").write_text("ref")
+        (tmp_path / "app.py").write_text("pass")
+        names = [f.name for f in walk_files(tmp_path)]
+        assert "HEAD" not in names
+        assert "app.py" in names
+
+    def test_skips_node_modules(self, tmp_path):
+        nm = tmp_path / "node_modules" / "lodash"
+        nm.mkdir(parents=True)
+        (nm / "index.js").write_text("module.exports = {}")
+        (tmp_path / "app.js").write_text("const x = 1;")
+        names = [f.name for f in walk_files(tmp_path)]
+        assert "index.js" not in names
+        assert "app.js" in names
+
+    def test_skips_venv(self, tmp_path):
+        venv = tmp_path / ".venv" / "lib"
+        venv.mkdir(parents=True)
+        (venv / "site.py").write_text("pass")
+        names = [f.name for f in walk_files(tmp_path)]
+        assert "site.py" not in names
+
+    def test_skips_pycache(self, tmp_path):
+        cache = tmp_path / "__pycache__"
+        cache.mkdir()
+        (cache / "mod.cpython-312.pyc").write_bytes(b"\x00")
+        names = [f.name for f in walk_files(tmp_path)]
+        assert len(names) == 0
+
+    def test_empty_dir(self, tmp_path):
+        empty = tmp_path / "empty"
+        empty.mkdir()
+        assert list(walk_files(empty)) == []
+
+    def test_does_not_yield_directories(self, tmp_path):
+        (tmp_path / "subdir").mkdir()
+        (tmp_path / "file.txt").write_text("hi")
+        files = list(walk_files(tmp_path))
+        assert all(f.is_file() for f in files)
+
+    def test_nested_source_files(self, tmp_path):
+        deep = tmp_path / "a" / "b" / "c"
+        deep.mkdir(parents=True)
+        (deep / "deep.py").write_text("pass")
+        files = list(walk_files(tmp_path))
+        assert any(f.name == "deep.py" for f in files)
+
+
+# ---------------------------------------------------------------------------
+# detect_languages
+# ---------------------------------------------------------------------------
 class TestDetectLanguages:
     def test_detects_python(self, tmp_project):
         langs = detect_languages(tmp_project)
         assert "Python" in langs
-        assert langs["Python"] >= 4  # __init__.py, main.py, models.py, utils.py
+        assert langs["Python"] >= 4
 
     def test_detects_typescript(self, tmp_js_project):
         langs = detect_languages(tmp_js_project)
@@ -24,11 +100,49 @@ class TestDetectLanguages:
         proj.mkdir()
         assert detect_languages(proj) == {}
 
+    def test_multiple_languages(self, tmp_path):
+        proj = tmp_path / "multi"
+        proj.mkdir()
+        (proj / "app.py").write_text("pass")
+        (proj / "lib.ts").write_text("export const x = 1;")
+        (proj / "main.go").write_text("package main")
+        langs = detect_languages(proj)
+        assert "Python" in langs
+        assert "TypeScript" in langs
+        assert "Go" in langs
 
+    def test_sorted_by_count_descending(self, tmp_path):
+        proj = tmp_path / "sorted"
+        proj.mkdir()
+        for i in range(5):
+            (proj / f"mod{i}.py").write_text("pass")
+        (proj / "util.ts").write_text("export {}")
+        langs = detect_languages(proj)
+        keys = list(langs.keys())
+        assert keys[0] == "Python"
+
+    def test_tsx_counted_as_typescript(self, tmp_path):
+        proj = tmp_path / "tsx"
+        proj.mkdir()
+        (proj / "App.tsx").write_text("export default function App() {}")
+        langs = detect_languages(proj)
+        assert "TypeScript" in langs
+
+    def test_jsx_counted_as_javascript(self, tmp_path):
+        proj = tmp_path / "jsx"
+        proj.mkdir()
+        (proj / "App.jsx").write_text("export default function App() {}")
+        langs = detect_languages(proj)
+        assert "JavaScript" in langs
+
+
+# ---------------------------------------------------------------------------
+# count_files
+# ---------------------------------------------------------------------------
 class TestCountFiles:
     def test_counts_source_files(self, tmp_project):
         source, total = count_files(tmp_project)
-        assert source >= 4  # py files
+        assert source >= 4
         assert total >= source
 
     def test_empty_dir(self, tmp_path):
@@ -36,17 +150,139 @@ class TestCountFiles:
         proj.mkdir()
         assert count_files(proj) == (0, 0)
 
+    def test_nonsource_not_counted_as_source(self, tmp_path):
+        proj = tmp_path / "mixed"
+        proj.mkdir()
+        (proj / "app.py").write_text("pass")
+        (proj / "data.csv").write_text("a,b,c")
+        (proj / "config.yaml").write_text("key: val")
+        source, total = count_files(proj)
+        assert source == 1
+        assert total == 3
 
+    def test_all_source_extensions_counted(self, tmp_path):
+        proj = tmp_path / "allsrc"
+        proj.mkdir()
+        for ext in (".py", ".js", ".ts", ".rs", ".go"):
+            (proj / f"file{ext}").write_text("code")
+        source, _ = count_files(proj)
+        assert source == 5
+
+
+# ---------------------------------------------------------------------------
+# count_test_files
+# ---------------------------------------------------------------------------
 class TestCountTestFiles:
-    def test_finds_test_files(self, tmp_project):
-        count = count_test_files(tmp_project)
-        assert count >= 2  # test_main.py, test_models.py
+    def test_finds_test_prefix(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "test_main.py").write_text("pass")
+        assert count_test_files(proj) == 1
+
+    def test_finds_test_suffix(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "main_test.py").write_text("pass")
+        assert count_test_files(proj) == 1
+
+    def test_finds_dot_test_infix(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "main.test.ts").write_text("test('works', () => {})")
+        assert count_test_files(proj) == 1
+
+    def test_finds_dot_spec_infix(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "main.spec.ts").write_text("describe('main', () => {})")
+        assert count_test_files(proj) == 1
+
+    def test_finds_files_in_tests_dir(self, tmp_path):
+        proj = tmp_path / "proj"
+        tests = proj / "tests"
+        tests.mkdir(parents=True)
+        (tests / "conftest.py").write_text("pass")
+        assert count_test_files(proj) == 1
+
+    def test_finds_files_in_test_dir(self, tmp_path):
+        proj = tmp_path / "proj"
+        testdir = proj / "test"
+        testdir.mkdir(parents=True)
+        (testdir / "helper.py").write_text("pass")
+        assert count_test_files(proj) == 1
+
+    def test_finds_files_in_dunder_tests(self, tmp_path):
+        proj = tmp_path / "proj"
+        testdir = proj / "__tests__"
+        testdir.mkdir(parents=True)
+        (testdir / "App.test.tsx").write_text("test('x', () => {})")
+        assert count_test_files(proj) == 1
 
     def test_finds_spec_files(self, tmp_js_project):
         count = count_test_files(tmp_js_project)
-        assert count >= 1  # page.test.tsx
+        assert count >= 1
+
+    def test_ignores_non_source_in_test_dir(self, tmp_path):
+        proj = tmp_path / "proj"
+        tests = proj / "tests"
+        tests.mkdir(parents=True)
+        (tests / "data.json").write_text("{}")
+        assert count_test_files(proj) == 0
+
+    def test_empty_dir(self, tmp_path):
+        proj = tmp_path / "empty"
+        proj.mkdir()
+        assert count_test_files(proj) == 0
+
+    def test_finds_test_files(self, tmp_project):
+        count = count_test_files(tmp_project)
+        assert count >= 2
 
 
+# ---------------------------------------------------------------------------
+# count_loc
+# ---------------------------------------------------------------------------
+class TestCountLoc:
+    def test_counts_nonempty_lines(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "app.py").write_text("line1\nline2\n\nline3\n")
+        assert count_loc(proj) == 3
+
+    def test_empty_file(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "empty.py").write_text("")
+        assert count_loc(proj) == 0
+
+    def test_only_whitespace_lines(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "blank.py").write_text("\n   \n\t\n")
+        assert count_loc(proj) == 0
+
+    def test_skips_non_source(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "data.csv").write_text("a,b,c\n1,2,3\n")
+        assert count_loc(proj) == 0
+
+    def test_empty_dir(self, tmp_path):
+        proj = tmp_path / "empty"
+        proj.mkdir()
+        assert count_loc(proj) == 0
+
+    def test_multiple_files(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "a.py").write_text("x = 1\ny = 2\n")
+        (proj / "b.py").write_text("z = 3\n")
+        assert count_loc(proj) == 3
+
+
+# ---------------------------------------------------------------------------
+# detect_frameworks
+# ---------------------------------------------------------------------------
 class TestDetectFrameworks:
     def test_detects_python_frameworks(self, tmp_project):
         frameworks = detect_frameworks(tmp_project)
@@ -60,7 +296,99 @@ class TestDetectFrameworks:
         assert "Tailwind" in frameworks
         assert "Vitest" in frameworks
 
+    def test_detects_django(self, tmp_path):
+        proj = tmp_path / "dj"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("django==5.0.0\n")
+        fw = detect_frameworks(proj)
+        assert "Django" in fw
 
+    def test_detects_flask(self, tmp_path):
+        proj = tmp_path / "fl"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("flask==3.0.0\n")
+        fw = detect_frameworks(proj)
+        assert "Flask" in fw
+
+    def test_detects_celery(self, tmp_path):
+        proj = tmp_path / "cel"
+        proj.mkdir()
+        (proj / "pyproject.toml").write_text('[project]\ndependencies = ["celery"]\n')
+        fw = detect_frameworks(proj)
+        assert "Celery" in fw
+
+    def test_detects_anthropic_sdk(self, tmp_path):
+        proj = tmp_path / "ai"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("anthropic==0.25.0\n")
+        fw = detect_frameworks(proj)
+        assert "Anthropic SDK" in fw
+
+    def test_detects_rust_frameworks(self, tmp_path):
+        proj = tmp_path / "rs"
+        proj.mkdir()
+        (proj / "Cargo.toml").write_text('[dependencies]\ntokio = "1.0"\naxum = "0.7"\n')
+        fw = detect_frameworks(proj)
+        assert "Rust" in fw
+        assert "Tokio" in fw
+        assert "Axum" in fw
+
+    def test_detects_docker(self, tmp_path):
+        proj = tmp_path / "dk"
+        proj.mkdir()
+        (proj / "Dockerfile").write_text("FROM python:3.12\n")
+        fw = detect_frameworks(proj)
+        assert "Docker" in fw
+
+    def test_detects_docker_compose(self, tmp_path):
+        proj = tmp_path / "dc"
+        proj.mkdir()
+        (proj / "docker-compose.yml").write_text("services:\n  web:\n    build: .\n")
+        fw = detect_frameworks(proj)
+        assert "Docker" in fw
+
+    def test_empty_project_no_frameworks(self, tmp_path):
+        proj = tmp_path / "empty"
+        proj.mkdir()
+        assert detect_frameworks(proj) == []
+
+    def test_no_duplicates(self, tmp_path):
+        proj = tmp_path / "dup"
+        proj.mkdir()
+        (proj / "pyproject.toml").write_text('dependencies = ["fastapi"]\n')
+        (proj / "requirements.txt").write_text("fastapi==0.109.0\n")
+        (proj / "setup.py").write_text("install_requires=['fastapi']\n")
+        fw = detect_frameworks(proj)
+        assert fw.count("FastAPI") == 1
+
+    def test_detects_playwright(self, tmp_path):
+        proj = tmp_path / "pw"
+        proj.mkdir()
+        pkg = {"devDependencies": {"@playwright/test": "^1.40.0"}}
+        (proj / "package.json").write_text(json.dumps(pkg))
+        fw = detect_frameworks(proj)
+        assert "Playwright" in fw
+
+    def test_detects_express(self, tmp_path):
+        proj = tmp_path / "exp"
+        proj.mkdir()
+        pkg = {"dependencies": {"express": "^4.18.0"}}
+        (proj / "package.json").write_text(json.dumps(pkg))
+        fw = detect_frameworks(proj)
+        assert "Express" in fw
+
+    def test_invalid_package_json(self, tmp_path):
+        proj = tmp_path / "bad"
+        proj.mkdir()
+        (proj / "package.json").write_text("not json at all")
+        # Should not crash
+        fw = detect_frameworks(proj)
+        assert isinstance(fw, list)
+
+
+# ---------------------------------------------------------------------------
+# detect_databases
+# ---------------------------------------------------------------------------
 class TestDetectDatabases:
     def test_no_databases(self, tmp_project):
         dbs = detect_databases(tmp_project)
@@ -73,7 +401,68 @@ class TestDetectDatabases:
         dbs = detect_databases(proj)
         assert "PostgreSQL" in dbs
 
+    def test_detects_postgresql_via_psycopg(self, tmp_path):
+        proj = tmp_path / "pg"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("psycopg2-binary==2.9.9\n")
+        dbs = detect_databases(proj)
+        assert "PostgreSQL" in dbs
 
+    def test_detects_sqlite(self, tmp_path):
+        proj = tmp_path / "sq"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("aiosqlite==0.19.0\n")
+        dbs = detect_databases(proj)
+        assert "SQLite" in dbs
+
+    def test_detects_redis(self, tmp_path):
+        proj = tmp_path / "rd"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("redis==5.0.0\n")
+        dbs = detect_databases(proj)
+        assert "Redis" in dbs
+
+    def test_detects_mongodb(self, tmp_path):
+        proj = tmp_path / "mongo"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("pymongo==4.6.0\n")
+        dbs = detect_databases(proj)
+        assert "MongoDB" in dbs
+
+    def test_detects_pgvector(self, tmp_path):
+        proj = tmp_path / "vec"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("pgvector==0.2.0\n")
+        dbs = detect_databases(proj)
+        assert "pgvector" in dbs
+
+    def test_multiple_databases(self, tmp_path):
+        proj = tmp_path / "multi"
+        proj.mkdir()
+        (proj / "docker-compose.yml").write_text(
+            "services:\n  db:\n    image: postgres:16\n  cache:\n    image: redis:7\n"
+        )
+        dbs = detect_databases(proj)
+        assert "PostgreSQL" in dbs
+        assert "Redis" in dbs
+
+    def test_no_duplicates(self, tmp_path):
+        proj = tmp_path / "dup"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("psycopg2==2.9\n")
+        (proj / "docker-compose.yml").write_text("image: postgres:16\n")
+        dbs = detect_databases(proj)
+        assert dbs.count("PostgreSQL") == 1
+
+    def test_empty_project(self, tmp_path):
+        proj = tmp_path / "empty"
+        proj.mkdir()
+        assert detect_databases(proj) == []
+
+
+# ---------------------------------------------------------------------------
+# detect_key_deps
+# ---------------------------------------------------------------------------
 class TestDetectKeyDeps:
     def test_python_requirements(self, tmp_project):
         deps = detect_key_deps(tmp_project)
@@ -84,3 +473,95 @@ class TestDetectKeyDeps:
         deps = detect_key_deps(tmp_js_project)
         assert "next" in deps
         assert "react" in deps
+
+    def test_parses_gte_version(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("requests>=2.31.0\n")
+        deps = detect_key_deps(proj)
+        assert deps["requests"] == ">=2.31.0"
+
+    def test_parses_tilde_version(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("pydantic~=2.5\n")
+        deps = detect_key_deps(proj)
+        assert deps["pydantic"] == "~=2.5"
+
+    def test_parses_lte_version(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("numpy<=1.26.0\n")
+        deps = detect_key_deps(proj)
+        assert deps["numpy"] == "<=1.26.0"
+
+    def test_skips_comments_and_blanks(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("# comment\n\nfastapi==0.109.0\n")
+        deps = detect_key_deps(proj)
+        assert len(deps) == 1
+        assert "fastapi" in deps
+
+    def test_skips_dash_lines(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("-r base.txt\nfastapi==0.109.0\n")
+        deps = detect_key_deps(proj)
+        assert "fastapi" in deps
+
+    def test_reads_dev_requirements(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "requirements-dev.txt").write_text("pytest==8.0.0\n")
+        deps = detect_key_deps(proj)
+        assert "pytest" in deps
+        assert deps["pytest"] == "==8.0.0"
+
+    def test_invalid_package_json(self, tmp_path):
+        proj = tmp_path / "bad"
+        proj.mkdir()
+        (proj / "package.json").write_text("{invalid json}")
+        deps = detect_key_deps(proj)
+        assert isinstance(deps, dict)
+
+    def test_empty_project(self, tmp_path):
+        proj = tmp_path / "empty"
+        proj.mkdir()
+        assert detect_key_deps(proj) == {}
+
+    def test_js_devdeps_included(self, tmp_path):
+        proj = tmp_path / "js"
+        proj.mkdir()
+        pkg = {"dependencies": {"express": "^4.18.0"}, "devDependencies": {"vitest": "^1.0.0"}}
+        (proj / "package.json").write_text(json.dumps(pkg))
+        deps = detect_key_deps(proj)
+        assert "express" in deps
+        assert "vitest" in deps
+
+    def test_dep_name_lowercased(self, tmp_path):
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("FastAPI==0.109.0\n")
+        deps = detect_key_deps(proj)
+        assert "fastapi" in deps
+
+
+# ---------------------------------------------------------------------------
+# _check_add helper
+# ---------------------------------------------------------------------------
+class TestCheckAdd:
+    def test_adds_when_keyword_present(self):
+        lst = []
+        _check_add(lst, "fastapi==0.109", "fastapi", "FastAPI")
+        assert lst == ["FastAPI"]
+
+    def test_does_not_add_when_keyword_absent(self):
+        lst = []
+        _check_add(lst, "django==5.0", "fastapi", "FastAPI")
+        assert lst == []
+
+    def test_does_not_duplicate(self):
+        lst = ["FastAPI"]
+        _check_add(lst, "fastapi==0.109", "fastapi", "FastAPI")
+        assert lst == ["FastAPI"]

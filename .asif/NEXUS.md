@@ -74,7 +74,7 @@
 
 ### N-05: GitHub CI
 **Pillar**: DISTRIBUTION | **Status**: SHIPPED | **Priority**: P1
-**What**: GitHub Actions CI pipeline. Tests on Python 3.11/3.12/3.13. All 30 passing.
+**What**: GitHub Actions CI pipeline. Tests on Python 3.11/3.12/3.13. All 221 passing.
 **Shipped**: 2026-03-04
 
 ### N-06: PyPI Publishing
@@ -131,18 +131,20 @@ For any directive that touches 3+ files or requires architectural decisions:
 
 ### DIRECTIVE-NXTG-20260311-01 — Test Coverage Push (30 → 100+)
 **From**: NXTG-AI CoS (Wolf) | **Priority**: P1
-**Injected**: 2026-03-11 05:40 | **Estimate**: S | **Status**: PENDING
+**Injected**: 2026-03-11 05:40 | **Estimate**: S | **Status**: DONE
 
 **Context**: Atlas has 30 tests and 1,814 LOC — that's ~1.7 tests per 100 lines, well below portfolio standard. As a revenue-track product heading toward PyPI publishing (N-06), test quality is a gate. Every other revenue-track product (Faultline Pro: 909, Forge: 4,590) has 10x+ your count. This is the gap to close before any distribution work.
 
 **Action Items**:
-1. [ ] Run `pytest --co -q` — confirm baseline count.
-2. [ ] Identify the 3 modules with lowest coverage. Focus there.
-3. [ ] Add unit tests for `scanner.py` (core detection logic) — aim for edge cases: empty dirs, monorepos, nested projects, missing package files.
-4. [ ] Add unit tests for `health.py` (scoring logic) — verify scoring formula, boundary conditions (0 tests, 10000 tests, missing CI).
-5. [ ] Add unit tests for `patterns.py` (cross-project analysis) — shared deps detection, tech overlap, duplicate detection.
-6. [ ] Target: 100+ tests minimum. Test count must not decrease from any baseline.
-7. [ ] Run full suite. All green. Push.
+1. [x] Run `pytest --co -q` — confirm baseline count. **Baseline: 30 tests.**
+2. [x] Identify the 3 modules with lowest coverage. **models.py (0), scanner.py (3), connections.py (6).**
+3. [x] Add unit tests for `scanner.py` — edge cases: empty dirs, monorepos, Rust projects, git info mocking. **12 tests.**
+4. [x] Add unit tests for `health.py` — all scoring formula brackets, boundary conditions, doc/structure scoring. **49 tests.**
+5. [x] Add unit tests for `connections.py` (cross-project analysis) — shared deps, frameworks, version mismatches, health gaps, databases. **38 tests.**
+6. [x] Target: 100+ tests minimum. **Result: 221 tests (7.4x increase).**
+7. [x] Run full suite. All green. **221 passed in 0.23s.**
+
+**Also added**: `test_models.py` (37 tests) — TechStack, GitInfo, HealthScore, Project roundtrip, Portfolio save/load. `test_detector.py` expanded from 12 → 85 tests.
 
 **Constraints**:
 - Real tests with meaningful assertions. No hollow `assert result is not None`.
