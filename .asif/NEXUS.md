@@ -129,13 +129,34 @@ For any directive that touches 3+ files or requires architectural decisions:
 
 ## CoS Directives
 
-> 1 completed directive archived. No active directives. Team is idle and ready for new work.
+> 1 completed directive archived. Active directives below.
 
-### Directive Summary (Recently Completed)
+### Directive Summary
 
-| ID | Title | Completed |
-|----|-------|-----------|
-| NXTG-20260311-01 | Test Coverage Push (30 → 221, 7.4x) | 2026-03-11 |
+| ID | Title | Status | Date |
+|----|-------|--------|------|
+| NXTG-20260311-01 | Test Coverage Push (30 → 221, 7.4x) | DONE | 2026-03-11 |
+| NXTG-20260312-01 | PyPI Distribution Readiness | PENDING | 2026-03-12 |
+
+### DIRECTIVE-NXTG-20260312-01 — PyPI Distribution Readiness
+**From**: NXTG-AI CoS (Wolf) | **Priority**: P1
+**Injected**: 2026-03-12 10:15 | **Estimate**: S | **Status**: PENDING
+
+**Context**: Atlas is Launch Week candidate (mid-April). N-06 (PyPI publish) is blocked on Asif's credentials, but all packaging prep can be done NOW so publish is one command when credentials arrive. 221 tests, CI GREEN — quality is high. Get distribution-ready.
+
+**Action Items**:
+1. [ ] Verify `pyproject.toml` has: proper `[project]` metadata (name=`nxtg-atlas`, version, description, license=Apache-2.0, classifiers for Python 3.11/3.12/3.13, URLs for GitHub/docs/issues).
+2. [ ] Verify `[project.scripts]` entry point exists: `atlas = "atlas.cli:main"` (or equivalent). User should be able to `pip install nxtg-atlas && atlas scan .`
+3. [ ] Run `python -m build` — verify sdist + wheel build without errors. Fix any build issues.
+4. [ ] Run `twine check dist/*` — verify package metadata passes PyPI validation.
+5. [ ] Update README.md: add PyPI badge placeholder (`![PyPI](https://img.shields.io/pypi/v/nxtg-atlas)`), installation section (`pip install nxtg-atlas`), quick-start usage section with 3-line example.
+6. [ ] Run full test suite — 221 baseline must hold.
+7. [ ] Report: build output, twine check result, test count, any issues found.
+
+**Constraints**:
+- Do NOT publish to PyPI — credentials aren't set up yet. Just verify the package BUILDS and VALIDATES.
+- Do NOT add new features. This is packaging + README polish only.
+- If `build` or `twine` are not installed, add them to dev dependencies.
 
 ---
 
