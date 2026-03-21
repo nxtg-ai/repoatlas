@@ -33,7 +33,8 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           ai_tools=None, testing_frameworks=None, package_managers=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
-          auth_tools=None, messaging_tools=None, deploy_targets=None, project_license="",
+          auth_tools=None, messaging_tools=None, deploy_targets=None,
+          state_management=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -58,6 +59,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             auth_tools=auth_tools or [],
             messaging_tools=messaging_tools or [],
             deploy_targets=deploy_targets or [],
+            state_management=state_management or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -2860,3 +2862,163 @@ class TestFindDeployTargetPatterns:
         conns = find_connections(projects)
         deploy_types = {c.type for c in conns if "deploy" in c.type}
         assert "shared_deploy" in deploy_types
+
+
+# ---------------------------------------------------------------------------
+# _find_state_management_patterns
+# ---------------------------------------------------------------------------
+class TestFindStateManagementPatterns:
+    def test_shared_state_management(self):
+        projects = [
+            _proj("a", state_management=["Redux"]),
+            _proj("b", state_management=["Redux"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_state_mgmt"]
+        assert len(shared) == 1
+        assert "Redux" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_shared_multiple_libs(self):
+        projects = [
+            _proj("a", state_management=["Redux", "Zustand"]),
+            _proj("b", state_management=["Redux", "Zustand"]),
+            _proj("c", state_management=["Redux"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_state_mgmt"]
+        assert len(shared) == 2
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", state_management=["Redux"]),
+            _proj("b", state_management=["Zustand"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_state_mgmt"]
+        assert len(shared) == 0
+
+    def test_no_shared_single_project(self):
+        projects = [_proj("a", state_management=["Redux"])]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_state_mgmt"]
+        assert len(shared) == 0
+
+    def test_divergence_flux_vs_proxy(self):
+        projects = [
+            _proj("a", state_management=["Redux"]),
+            _proj("b", state_management=["MobX"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "state_mgmt_divergence"]
+        assert len(div) == 1
+        assert "flux/store" in div[0].detail
+        assert "proxy-based" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_divergence_flux_vs_atomic(self):
+        projects = [
+            _proj("a", state_management=["Zustand"]),
+            _proj("b", state_management=["Jotai"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "state_mgmt_divergence"]
+        assert len(div) == 1
+        assert "flux/store" in div[0].detail
+        assert "atomic" in div[0].detail
+
+    def test_divergence_vue_vs_angular(self):
+        projects = [
+            _proj("a", state_management=["Pinia"]),
+            _proj("b", state_management=["NgRx"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "state_mgmt_divergence"]
+        assert len(div) == 1
+        assert "Vue" in div[0].detail
+        assert "Angular" in div[0].detail
+
+    def test_divergence_state_machine_vs_flux(self):
+        projects = [
+            _proj("a", state_management=["XState"]),
+            _proj("b", state_management=["Redux"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "state_mgmt_divergence"]
+        assert len(div) == 1
+        assert "state machines" in div[0].detail
+
+    def test_no_divergence_same_paradigm(self):
+        projects = [
+            _proj("a", state_management=["Redux"]),
+            _proj("b", state_management=["Zustand"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "state_mgmt_divergence"]
+        # Both are flux/store — no divergence (single category)
+        assert len(div) == 0
+
+    def test_no_divergence_empty(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "state_mgmt_divergence"]
+        assert len(div) == 0
+
+    def test_gap_frontend_no_state(self):
+        projects = [
+            _proj("a", frameworks=["React"], state_management=["Redux"], source_files=15),
+            _proj("b", frameworks=["React"], source_files=15),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "state_mgmt_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "warning"
+
+    def test_gap_multiple_frameworks(self):
+        projects = [
+            _proj("a", frameworks=["Next.js"], state_management=["Zustand"], source_files=20),
+            _proj("b", frameworks=["Vue"], source_files=20),
+            _proj("c", frameworks=["Angular"], source_files=20),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "state_mgmt_gap"]
+        assert len(gaps) == 1
+        assert "2 frontend project(s)" in gaps[0].detail
+        assert sorted(gaps[0].projects) == ["b", "c"]
+
+    def test_no_gap_when_no_frontend(self):
+        projects = [
+            _proj("a", frameworks=["FastAPI"], state_management=["Redux"], source_files=20),
+            _proj("b", frameworks=["Django"], source_files=20),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "state_mgmt_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_when_no_state_portfolio(self):
+        projects = [
+            _proj("a", frameworks=["React"], source_files=20),
+            _proj("b", frameworks=["Vue"], source_files=20),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "state_mgmt_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", frameworks=["React"], state_management=["Redux"], source_files=20),
+            _proj("b", frameworks=["React"], source_files=5),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "state_mgmt_gap"]
+        assert len(gaps) == 0
+
+    def test_integration_with_find_connections_state(self):
+        projects = [
+            _proj("a", state_management=["Redux"]),
+            _proj("b", state_management=["Redux", "MobX"]),
+        ]
+        conns = find_connections(projects)
+        state_types = {c.type for c in conns if "state_mgmt" in c.type}
+        assert "shared_state_mgmt" in state_types

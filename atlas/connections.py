@@ -30,6 +30,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_auth_patterns(projects))
     connections.extend(_find_messaging_patterns(projects))
     connections.extend(_find_deploy_target_patterns(projects))
+    connections.extend(_find_state_management_patterns(projects))
     return connections
 
 
@@ -1429,6 +1430,87 @@ def _find_deploy_target_patterns(projects: list[Project]) -> list[Connection]:
                 type="deploy_gap",
                 detail=f"{len(no_deploy)} web project(s) have no deployment target configured",
                 projects=sorted(no_deploy),
+                severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_state_management_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project state management patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared state management — same library in 2+ projects
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.state_management:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_state_mgmt",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # State management divergence — projects using different paradigm families
+    flux_libs = {"Redux", "Zustand"}
+    proxy_libs = {"MobX", "Valtio", "Legend State"}
+    atomic_libs = {"Recoil", "Jotai", "Nanostores", "Signals"}
+    machine_libs = {"XState"}
+    vue_libs = {"Pinia", "Vuex"}
+    angular_libs = {"NgRx"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "flux/store": {}, "proxy-based": {}, "atomic": {},
+        "state machines": {}, "Vue": {}, "Angular": {},
+    }
+    cat_sets = [
+        ("flux/store", flux_libs),
+        ("proxy-based", proxy_libs),
+        ("atomic", atomic_libs),
+        ("state machines", machine_libs),
+        ("Vue", vue_libs),
+        ("Angular", angular_libs),
+    ]
+    for p in projects:
+        for lib in p.tech_stack.state_management:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys()))
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="state_mgmt_divergence",
+            detail=f"Mixed state management paradigms: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # State management gap — frontend projects with React/Vue/Angular but no state management
+    frontend_frameworks = {"React", "Next.js", "Vue", "Nuxt", "Angular", "Svelte", "SvelteKit",
+                           "Solid", "Preact", "Remix", "Gatsby", "Astro"}
+    has_state = {p.name for p in projects if p.tech_stack.state_management}
+    if has_state:
+        no_state = [p.name for p in projects
+                    if not p.tech_stack.state_management
+                    and any(fw in frontend_frameworks for fw in p.tech_stack.frameworks)
+                    and p.source_file_count > 10]
+        if no_state:
+            connections.append(Connection(
+                type="state_mgmt_gap",
+                detail=f"{len(no_state)} frontend project(s) have no state management library",
+                projects=sorted(no_state),
                 severity="warning",
             ))
 

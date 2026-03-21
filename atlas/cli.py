@@ -279,6 +279,7 @@ CONNECTION_CATEGORIES = {
     "auth": {"shared_auth", "auth_divergence", "auth_gap"},
     "messaging": {"shared_messaging", "messaging_divergence", "messaging_gap"},
     "deploy": {"shared_deploy", "deploy_divergence", "deploy_gap"},
+    "state_mgmt": {"shared_state_mgmt", "state_mgmt_divergence", "state_mgmt_gap"},
 }
 
 

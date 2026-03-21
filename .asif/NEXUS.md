@@ -78,8 +78,9 @@
 | N-65 | [Deployment Target Intelligence](#n-65-deployment-target-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-66 | [Export Format Auto-Detection](#n-66-export-format-auto-detection) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-67 | [Frontend State Management Detection](#n-67-frontend-state-management-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-68 | [State Management Intelligence](#n-68-state-management-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 64/67 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 65/68 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -129,7 +130,8 @@
 - Cross-project authentication intelligence (shared auth tools, auth provider divergence, session-vs-token strategy divergence, auth gaps for web projects)
 - Cross-project messaging intelligence (shared messaging tools, email provider divergence, real-time/push divergence, messaging gaps for web projects)
 - Cross-project deployment target intelligence (shared targets, serverless/edge vs container PaaS vs IaC divergence, deploy gaps for web projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65
+- Cross-project state management intelligence (shared libraries, flux/proxy/atomic/machine paradigm divergence, state management gaps for frontend projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -389,6 +391,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: `detect_state_management()` in detector.py identifies frontend state management libraries from package.json dependencies. Detects 14 libraries/families: Redux (@reduxjs/toolkit, react-redux), Zustand, Recoil, Jotai, Valtio, MobX (mobx-react, mobx-react-lite), XState (@xstate/react), Pinia, Vuex, NgRx (@ngrx/store, @ngrx/effects), Signals (@preact/signals-react, @preact/signals), Effector (effector-react), Nanostores (@nanostores/react), Legend State (@legendapp/state). Returns sorted list. Integrated into models.py (TechStack field + to_dict/from_dict), scanner.py, display.py (project card + portfolio summary), export_report.py (CSV column + markdown + JSON), and cli.py (_project_has_tech). 22 tests.
 **Shipped**: 2026-03-21. Total test count: 1246 → 1268. 20th detection category.
+
+### N-68: State Management Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project state management pattern detection via `_find_state_management_patterns()` in connections.py. Analyzes state_management data from N-67 across the portfolio to detect: shared state management libraries (Redux/Zustand across 2+ projects, info), paradigm divergence (flux/store vs proxy-based vs atomic vs state machines vs Vue vs Angular paradigm families, warning), and state management gaps (frontend projects with React/Vue/Angular/etc. frameworks and 10+ source files but no state management library, warning). New connection types (`shared_state_mgmt`, `state_mgmt_divergence`, `state_mgmt_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps state_mgmt_gap and state_mgmt_divergence to `frontend` recommendation category. 20 categories in CONNECTION_CATEGORIES. 16 intelligence tests.
+**Shipped**: 2026-03-21. Total test count: 1268 → 1284. Completes N-67 detection→intelligence pipeline.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
