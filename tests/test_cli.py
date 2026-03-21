@@ -2128,6 +2128,48 @@ class TestTop:
         assert data["metric"] == "loc"
         assert data["projects"][0]["value"] == proj.loc
 
+    def test_top_csv_format(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        (d / ".git").mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["top", "--format", "csv"])
+        assert result.exit_code == 0
+        assert "Rank,Name,Health,Grade,Stack" in result.output
+        assert "proj" in result.output
+
+    def test_top_csv_by_loc(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        (d / ".git").mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["top", "--by", "loc", "--format", "csv"])
+        assert result.exit_code == 0
+        assert "Rank,Name,Loc,Grade,Stack" in result.output
+
+    def test_top_csv_has_data(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        (d / ".git").mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["top", "--format", "csv"])
+        import csv as csv_mod
+        import io
+        reader = csv_mod.reader(io.StringIO(result.output))
+        rows = list(reader)
+        assert len(rows) == 2  # header + 1 project
+        assert rows[1][0] == "1"  # rank
+        assert rows[1][1] == "proj"  # name
+
 
 # ---------------------------------------------------------------------------
 # version command

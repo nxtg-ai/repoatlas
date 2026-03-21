@@ -1378,7 +1378,7 @@ def generate_badges(portfolio: Portfolio) -> list[str]:
 def top(
     n: int = typer.Option(5, "--limit", "-n", help="Number of projects to show"),
     by: str = typer.Option("health", help="Sort by: health, loc, tests, commits"),
-    format: Optional[str] = typer.Option(None, "--format", "-f", help="Output format: json"),
+    format: Optional[str] = typer.Option(None, "--format", "-f", help="Output format: json or csv"),
 ):
     """Show top projects by a metric."""
     portfolio = _load_portfolio()
@@ -1424,6 +1424,23 @@ def top(
             ],
         }
         console.print(json_mod.dumps(data, indent=2))
+        return
+
+    if format == "csv":
+        import csv as csv_mod
+        import io
+        metric_fns_csv = {
+            "health": lambda p: p.health.percent,
+            "loc": lambda p: p.loc,
+            "tests": lambda p: p.test_file_count,
+            "commits": lambda p: p.git_info.total_commits,
+        }
+        buf = io.StringIO()
+        writer = csv_mod.writer(buf)
+        writer.writerow(["Rank", "Name", by.capitalize(), "Grade", "Stack"])
+        for i, p in enumerate(projects, 1):
+            writer.writerow([i, p.name, metric_fns_csv[by](p), p.health.grade, p.tech_stack.summary])
+        print(buf.getvalue(), end="")
         return
 
     console.print()

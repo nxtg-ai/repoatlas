@@ -150,8 +150,9 @@
 | N-137 | [Compare CSV Export](#n-137-compare-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-138 | [Date & Time Library Detection](#n-138-date--time-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-139 | [Payment & Billing Intelligence](#n-139-payment--billing-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-140 | [Top Projects CSV Export](#n-140-top-projects-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 136/139 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 137/140 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -297,7 +298,8 @@
 - Status grade distribution: `atlas status --grades` shows compact grade distribution bar chart (A/B+/B/C/D/F counts with Unicode bars). Supports `--format json` for structured output. Works with all existing filters
 - Status CSV export: `atlas status --format csv` outputs CSV with Name, Path, Grade, Health%, Tests%, Git%, Docs%, Structure%, Languages, Frameworks, LOC, Source Files, Test Files, License columns. Works with all filters
 - Compare CSV export: `atlas compare A B --format csv` outputs CSV with Metric/A/B/Delta columns. Rows: Grade, Health%, Tests%, Git%, Docs%, Structure%, LOC, Source Files, Test Files, Commits, Languages, Frameworks, License
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130, N-133, N-136, N-137
+- Top projects CSV export: `atlas top --format csv` outputs CSV with Rank, Name, metric value, Grade, Stack columns. Works with --by and --limit options
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130, N-133, N-136, N-137, N-140
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -689,6 +691,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-140: Top Projects CSV Export
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--format csv` to `atlas top` command. Outputs CSV with Rank, Name, metric value, Grade, Stack columns. Works with --by (health, loc, tests, commits) and --limit options. 3 tests.
+**Shipped**: 2026-03-21. Total test count: 2122 → 2125. 44th experience feature.
 
 ### N-139: Payment & Billing Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
