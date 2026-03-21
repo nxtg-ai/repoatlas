@@ -58,8 +58,9 @@
 | N-45 | [CI/CD Configuration Intelligence](#n-45-cicd-configuration-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-46 | [Dashboard Quick Insights](#n-46-dashboard-quick-insights) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-47 | [Runtime Version Detection](#n-47-runtime-version-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-48 | [Runtime Version Intelligence](#n-48-runtime-version-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 44/47 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 45/48 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -95,7 +96,8 @@
 - Cross-project license intelligence (shared licenses, copyleft/permissive divergence, license gaps)
 - Cross-project documentation intelligence (shared artifacts, docs coverage divergence, README/CHANGELOG/CONTRIBUTING gaps)
 - Cross-project CI/CD configuration intelligence (shared config, dep update strategy divergence, PR template/CODEOWNERS/pre-commit gaps)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45
+- Cross-project runtime version intelligence (shared versions, version divergence, pinning gaps)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -269,6 +271,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_runtime_versions()` in detector.py. Detects pinned runtime/language versions from config files: Python (.python-version, pyproject.toml requires-python), Node.js (.node-version, .nvmrc, package.json engines.node), Ruby (.ruby-version), Go (go.mod go directive), Rust (rust-toolchain.toml channel, rust-toolchain plain file), Java (.java-version), and multi-runtime via asdf (.tool-versions with language mapping). Priority rules: specific version files override asdf entries; .node-version overrides .nvmrc; rust-toolchain.toml overrides plain rust-toolchain. Returns `dict[str, str]` (language → version). Added `runtime_versions` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py and export_report.py), markdown export project details, and JSON export portfolio_summary. `_project_has_tech()` searches runtime version keys. 17 detection tests.
 **Shipped**: 2026-03-21. Total test count: 903 → 920. 12th detection category.
+
+### N-48: Runtime Version Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project runtime version pattern detection via `_find_runtime_version_patterns()` in connections.py. Analyzes runtime_versions data from N-47 across the portfolio to detect: shared runtime versions (Python/Node pinned in 2+ projects, info), runtime version divergence (same language with different versions across projects — e.g., Python 3.12 vs 3.11, warning), and runtime version pinning gaps (projects with 5+ source files but no pinned runtime version when other projects have them, warning). New connection types (`shared_runtime`, `runtime_divergence`, `runtime_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps runtime_gap to `infra` and runtime_divergence to `deps` recommendation categories. 12 runtime version pattern tests.
+**Shipped**: 2026-03-21. Total test count: 920 → 932. Completes N-47 detection→intelligence pipeline. All 12 detection→intelligence pipelines complete.
 
 ### N-45: CI/CD Configuration Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

@@ -23,6 +23,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_license_patterns(projects))
     connections.extend(_find_docs_artifact_patterns(projects))
     connections.extend(_find_ci_config_patterns(projects))
+    connections.extend(_find_runtime_version_patterns(projects))
     return connections
 
 
@@ -942,5 +943,56 @@ def _find_docs_artifact_patterns(projects: list[Project]) -> list[Connection]:
             projects=sorted(no_contributing),
             severity="warning",
         ))
+
+    return connections[:10]
+
+
+def _find_runtime_version_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project runtime version patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared runtime versions — same language pinned in 2+ projects
+    lang_to_projects: dict[str, list[str]] = defaultdict(list)
+    lang_to_versions: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
+    for p in projects:
+        for lang, ver in p.tech_stack.runtime_versions.items():
+            lang_to_projects[lang].append(p.name)
+            lang_to_versions[lang][ver].append(p.name)
+
+    for lang, projs in sorted(lang_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_runtime",
+                detail=f"{lang} version pinned in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Runtime version divergence — same language, different versions across projects
+    for lang, ver_map in lang_to_versions.items():
+        if len(ver_map) >= 2:
+            detail_parts = [f"{ver} ({', '.join(sorted(projs))})"
+                            for ver, projs in sorted(ver_map.items())]
+            all_projs = sorted({p for projs in ver_map.values() for p in projs})
+            connections.append(Connection(
+                type="runtime_divergence",
+                detail=f"{lang} version mismatch: {', '.join(detail_parts)} — standardize",
+                projects=all_projs,
+                severity="warning",
+            ))
+
+    # Runtime version pinning gap — projects with source files but no pinned runtime
+    has_runtime = {p.name for p in projects if p.tech_stack.runtime_versions}
+    if has_runtime:
+        no_runtime = [p.name for p in projects
+                      if not p.tech_stack.runtime_versions
+                      and p.source_file_count > 5]
+        if no_runtime:
+            connections.append(Connection(
+                type="runtime_gap",
+                detail=f"{len(no_runtime)} project(s) have no pinned runtime version",
+                projects=sorted(no_runtime),
+                severity="warning",
+            ))
 
     return connections[:10]

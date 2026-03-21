@@ -276,6 +276,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_ci_config": "Shared CI/CD Config",
         "ci_config_divergence": "CI/CD Config Divergence",
         "ci_config_gap": "CI/CD Config Gaps",
+        "shared_runtime": "Shared Runtime Versions",
+        "runtime_divergence": "Runtime Version Divergence",
+        "runtime_gap": "Runtime Version Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

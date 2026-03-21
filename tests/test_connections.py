@@ -15,6 +15,7 @@ from atlas.connections import (
     _find_testing_patterns,
     _find_license_patterns,
     _find_package_manager_patterns,
+    _find_runtime_version_patterns,
     _find_version_mismatches,
     find_connections,
 )
@@ -24,7 +25,8 @@ from atlas.models import GitInfo, HealthScore, Project, TechStack
 def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           infrastructure=None, security_tools=None, quality_tools=None,
           ai_tools=None, testing_frameworks=None, package_managers=None,
-          docs_artifacts=None, ci_config=None, project_license="",
+          docs_artifacts=None, ci_config=None, runtime_versions=None,
+          project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -42,6 +44,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             package_managers=package_managers or [],
             docs_artifacts=docs_artifacts or [],
             ci_config=ci_config or [],
+            runtime_versions=runtime_versions or {},
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -1755,3 +1758,136 @@ class TestFindCiConfigPatterns:
         conns = find_connections(projects)
         ci_types = {c.type for c in conns if "ci_config" in c.type}
         assert "shared_ci_config" in ci_types
+
+
+class TestFindRuntimeVersionPatterns:
+    """Tests for _find_runtime_version_patterns()."""
+
+    # --- Shared runtime versions ---
+
+    def test_shared_runtime_two_projects(self):
+        projects = [
+            _proj("a", runtime_versions={"Python": "3.12"}),
+            _proj("b", runtime_versions={"Python": "3.11"}),
+        ]
+        conns = _find_runtime_version_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_runtime"]
+        assert len(shared) == 1
+        assert "Python" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_no_shared_when_different_languages(self):
+        projects = [
+            _proj("a", runtime_versions={"Python": "3.12"}),
+            _proj("b", runtime_versions={"Node": "20.11"}),
+        ]
+        conns = _find_runtime_version_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_runtime"]
+        assert len(shared) == 0
+
+    def test_shared_sorted_by_count(self):
+        projects = [
+            _proj("a", runtime_versions={"Python": "3.12", "Node": "20"}),
+            _proj("b", runtime_versions={"Python": "3.12", "Node": "20"}),
+            _proj("c", runtime_versions={"Python": "3.11"}),
+        ]
+        conns = _find_runtime_version_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_runtime"]
+        # Python in 3 projects should come first
+        assert "3 projects" in shared[0].detail
+
+    # --- Runtime version divergence ---
+
+    def test_version_divergence_same_language(self):
+        projects = [
+            _proj("a", runtime_versions={"Python": "3.12"}),
+            _proj("b", runtime_versions={"Python": "3.11"}),
+        ]
+        conns = _find_runtime_version_patterns(projects)
+        div = [c for c in conns if c.type == "runtime_divergence"]
+        assert len(div) == 1
+        assert "Python" in div[0].detail
+        assert "3.12" in div[0].detail
+        assert "3.11" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_no_divergence_same_version(self):
+        projects = [
+            _proj("a", runtime_versions={"Python": "3.12"}),
+            _proj("b", runtime_versions={"Python": "3.12"}),
+        ]
+        conns = _find_runtime_version_patterns(projects)
+        div = [c for c in conns if c.type == "runtime_divergence"]
+        assert len(div) == 0
+
+    def test_no_divergence_different_languages(self):
+        projects = [
+            _proj("a", runtime_versions={"Python": "3.12"}),
+            _proj("b", runtime_versions={"Node": "20"}),
+        ]
+        conns = _find_runtime_version_patterns(projects)
+        div = [c for c in conns if c.type == "runtime_divergence"]
+        assert len(div) == 0
+
+    def test_divergence_shows_project_names(self):
+        projects = [
+            _proj("alpha", runtime_versions={"Node": "18"}),
+            _proj("beta", runtime_versions={"Node": "20"}),
+        ]
+        conns = _find_runtime_version_patterns(projects)
+        div = [c for c in conns if c.type == "runtime_divergence"]
+        assert len(div) == 1
+        assert "alpha" in div[0].detail
+        assert "beta" in div[0].detail
+
+    # --- Runtime version pinning gap ---
+
+    def test_runtime_gap(self):
+        projects = [
+            _proj("a", runtime_versions={"Python": "3.12"}),
+            _proj("b", runtime_versions={}, source_files=10),
+        ]
+        conns = _find_runtime_version_patterns(projects)
+        gaps = [c for c in conns if c.type == "runtime_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "warning"
+
+    def test_no_gap_when_all_pinned(self):
+        projects = [
+            _proj("a", runtime_versions={"Python": "3.12"}),
+            _proj("b", runtime_versions={"Node": "20"}),
+        ]
+        conns = _find_runtime_version_patterns(projects)
+        gaps = [c for c in conns if c.type == "runtime_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_when_none_pinned(self):
+        projects = [
+            _proj("a", runtime_versions={}),
+            _proj("b", runtime_versions={}),
+        ]
+        conns = _find_runtime_version_patterns(projects)
+        gaps = [c for c in conns if c.type == "runtime_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", runtime_versions={"Python": "3.12"}),
+            _proj("b", runtime_versions={}, source_files=3),
+        ]
+        conns = _find_runtime_version_patterns(projects)
+        gaps = [c for c in conns if c.type == "runtime_gap"]
+        assert len(gaps) == 0
+
+    # --- Integration ---
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", runtime_versions={"Python": "3.12"}),
+            _proj("b", runtime_versions={"Python": "3.11"}),
+        ]
+        conns = find_connections(projects)
+        runtime_types = {c.type for c in conns if "runtime" in c.type}
+        assert "shared_runtime" in runtime_types
+        assert "runtime_divergence" in runtime_types

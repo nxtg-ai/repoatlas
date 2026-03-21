@@ -61,6 +61,9 @@ CONNECTION_ICONS = {
     "shared_ci_config": "[cyan]\u2699[/cyan]",
     "ci_config_divergence": "[yellow]\u21c4[/yellow]",
     "ci_config_gap": "[red]\u25cb[/red]",
+    "shared_runtime": "[green]\u25b6[/green]",
+    "runtime_divergence": "[yellow]\u21c5[/yellow]",
+    "runtime_gap": "[red]\u25a1[/red]",
 }
 
 
@@ -379,6 +382,9 @@ def show_connections(connections: list[Connection]):
         "shared_ci_config": "Shared CI/CD Config",
         "ci_config_divergence": "CI/CD Config Divergence",
         "ci_config_gap": "CI/CD Config Gaps",
+        "shared_runtime": "Shared Runtime Versions",
+        "runtime_divergence": "Runtime Version Divergence",
+        "runtime_gap": "Runtime Version Gaps",
     }
 
     lines = []
