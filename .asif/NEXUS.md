@@ -20,8 +20,9 @@
 | N-07 | [README + GIF Demo](#n-07-readme-gif-demo) | DISTRIBUTION | SHIPPED | P1 | 2026-03-13 |
 | N-08 | [Show HN Launch](#n-08-show-hn-launch) | DISTRIBUTION | DECIDED | P1 | 2026-03-13 |
 | N-09 | [Pro Tier / Monetization](#n-09-pro-tier-monetization) | DISTRIBUTION | DECIDED | P2 | 2026-03-13 |
+| N-10 | [Tag-Based Release Automation](#n-10-tag-based-release-automation) | DISTRIBUTION | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 6/9 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 7/10 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -79,9 +80,9 @@
 
 ### N-06: PyPI Publishing
 **Pillar**: DISTRIBUTION | **Status**: DECIDED | **Priority**: P0
-**What**: Publish to PyPI as `nxtg-atlas`. Package builds + validates. Blocked on PyPI credentials only.
-**Blocker**: PyPI credentials. Package is build-ready — `twine upload dist/*` when token arrives.
-**Next step**: Asif sets up PyPI token, then `twine upload dist/*`.
+**What**: Publish to PyPI as `nxtg-atlas`. Package builds + validates. Blocked on PyPI Trusted Publisher setup only.
+**Blocker**: PyPI Trusted Publisher configuration.
+**Next step**: Asif configures Trusted Publisher on pypi.org for `nxtg-ai/repoatlas` repo, then `git tag v0.2.0 && git push origin v0.2.0` — N-10 workflow handles the rest automatically.
 
 ### N-07: README + GIF Demo
 **Pillar**: DISTRIBUTION | **Status**: SHIPPED | **Priority**: P1
@@ -100,6 +101,12 @@
 **What**: Open Core model. Free (single repo) + Pro $49 one-time (cross-project intelligence, portfolio dashboard).
 **Infrastructure shipped**: `license_manager.py` (key validation, activation, feature gates), `atlas license` + `atlas activate` CLI commands, 27 tests covering key validation, activation/deactivation, status, edge cases (corrupt JSON, missing files, bad checksums). Gates NOT enforced — all features remain free. Enforcement is a product decision for Asif.
 **Next step**: Asif decides payment provider (Polar.sh vs Lemon Squeezy), pricing, and when to enforce gates.
+
+### N-10: Tag-Based Release Automation
+**Pillar**: DISTRIBUTION | **Status**: SHIPPED | **Priority**: P1
+**What**: GitHub Actions release workflow triggered by git tags (`v*`). Runs full test matrix, builds sdist+wheel, validates with twine check, publishes to PyPI via Trusted Publisher (OIDC), and creates GitHub Release with auto-generated notes. Replaces fragile commit-message-based publish trigger.
+**Shipped**: 2026-03-13. Release flow: `git tag v0.2.0 && git push origin v0.2.0` — everything else is automated.
+**Impact**: Simplifies N-06 unblock — Asif only needs to configure PyPI Trusted Publisher for `nxtg-ai/repoatlas`, then push a tag.
 
 ---
 
