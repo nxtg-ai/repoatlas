@@ -34,6 +34,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_css_framework_patterns(projects))
     connections.extend(_find_bundler_patterns(projects))
     connections.extend(_find_orm_patterns(projects))
+    connections.extend(_find_i18n_patterns(projects))
     return connections
 
 
@@ -1748,6 +1749,82 @@ def _find_orm_patterns(projects: list[Project]) -> list[Connection]:
                 type="orm_gap",
                 detail=f"{len(no_orm)} project(s) use databases but have no ORM/client library detected",
                 projects=sorted(no_orm),
+                severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_i18n_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project i18n/localization patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared i18n tools — same tool in 2+ projects
+    i18n_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for tool in p.tech_stack.i18n_tools:
+            i18n_to_projects[tool].append(p.name)
+
+    for tool, projs in sorted(i18n_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_i18n",
+                detail=f"{tool} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # i18n divergence — different i18n strategies across projects
+    icu_message = {"react-intl", "FormatJS", "Globalize"}
+    key_based = {"i18next", "react-i18next", "next-i18next", "next-intl", "vue-i18n",
+                 "typesafe-i18n", "rosetta", "Polyglot", "go-i18n", "rust-i18n"}
+    extraction = {"Lingui", "Babel (i18n)", "Flask-Babel", "django-modeltranslation",
+                  "django-rosetta", "python-i18n", "Angular i18n", "Fluent"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "ICU/message format": {}, "key-based": {}, "extraction-based": {},
+    }
+    cat_sets = [
+        ("ICU/message format", icu_message),
+        ("key-based", key_based),
+        ("extraction-based", extraction),
+    ]
+    for p in projects:
+        for tool in p.tech_stack.i18n_tools:
+            for cat_name, cat_set in cat_sets:
+                if tool in cat_set:
+                    cat_found[cat_name].setdefault(tool, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="i18n_divergence",
+            detail=f"Mixed i18n strategies: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # i18n gap — web projects with no i18n detected
+    has_i18n = {p.name for p in projects if p.tech_stack.i18n_tools}
+    if has_i18n:
+        web_frameworks = {"React", "Next.js", "Vue", "Nuxt", "Angular", "Svelte",
+                          "Django", "Flask", "FastAPI", "Rails", "Express"}
+        no_i18n = [p.name for p in projects
+                   if not p.tech_stack.i18n_tools
+                   and any(fw in web_frameworks for fw in p.tech_stack.frameworks)
+                   and p.source_file_count > 10]
+        if no_i18n:
+            connections.append(Connection(
+                type="i18n_gap",
+                detail=f"{len(no_i18n)} web project(s) have no i18n/localization detected",
+                projects=sorted(no_i18n),
                 severity="warning",
             ))
 

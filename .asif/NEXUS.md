@@ -90,8 +90,9 @@
 | N-77 | [ORM Intelligence](#n-77-orm-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-78 | [Connection Severity Filtering](#n-78-connection-severity-filtering) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-79 | [i18n & Localization Detection](#n-79-i18n--localization-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-80 | [i18n Intelligence](#n-80-i18n-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 76/79 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 77/80 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -149,7 +150,8 @@
 - Cross-project CSS/styling intelligence (shared frameworks, utility-first/CSS-in-JS/component library paradigm divergence, CSS gaps for frontend projects)
 - Cross-project bundler intelligence (shared bundlers, modern/fast vs traditional vs library generation divergence, bundler gaps for JS/TS projects)
 - Cross-project ORM intelligence (shared ORM/DB clients, ORM vs raw client paradigm divergence, ORM gaps for projects with databases)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77
+- Cross-project i18n intelligence (shared i18n tools, ICU/message format vs key-based vs extraction-based divergence, i18n gaps for web projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -473,6 +475,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: Detects internationalization and localization tools across all supported languages. Directory detection: locales/, locale/, translations/, i18n/, lang/, messages/. Config files: lingui.config.*, .linguirc, babel.cfg, i18next-parser.config.*. JavaScript/TypeScript: i18next, react-i18next, next-i18next, next-intl, react-intl, FormatJS, vue-i18n, Angular i18n, Lingui, typesafe-i18n, rosetta, Polyglot, Globalize. Python: Babel, Flask-Babel, django-modeltranslation, django-rosetta, python-i18n. Go: go-i18n, golang.org/x/text. Rust: Fluent, rust-i18n. New TechStack field: i18n_tools. 26 tests.
 **Shipped**: 2026-03-21. Total test count: 1425 → 1451. 23rd detection feature.
+
+### N-80: i18n Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project i18n/localization intelligence. Shared i18n tool detection (same tool in 2+ projects), i18n strategy divergence (ICU/message format [react-intl, FormatJS] vs key-based [i18next, vue-i18n, next-intl] vs extraction-based [Lingui, Babel, Angular i18n]), i18n gap detection (web projects using React/Vue/Angular/Django/Flask/FastAPI/etc. with 10+ files but no i18n). Connection types: shared_i18n (info), i18n_divergence (warning), i18n_gap (warning). Added to CONNECTION_CATEGORIES as "i18n" category (24th). 10 tests.
+**Shipped**: 2026-03-21. Total test count: 1451 → 1461. 25th intelligence feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

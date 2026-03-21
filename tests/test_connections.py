@@ -3390,3 +3390,98 @@ class TestFindOrmPatterns:
         conns = find_connections(projects)
         orm_types = {c.type for c in conns if "orm" in c.type}
         assert "shared_orm" in orm_types
+
+
+class TestFindI18nPatterns:
+    def test_no_i18n_tools(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        i18n_types = {c.type for c in conns if "i18n" in c.type}
+        assert len(i18n_types) == 0
+
+    def test_shared_i18n_detected(self):
+        projects = [
+            _proj("a", i18n_tools=["i18next"]),
+            _proj("b", i18n_tools=["i18next"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_i18n"]
+        assert len(shared) == 1
+        assert "i18next" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_shared_i18n_needs_two_projects(self):
+        projects = [
+            _proj("a", i18n_tools=["i18next"]),
+            _proj("b", i18n_tools=["vue-i18n"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_i18n"]
+        assert len(shared) == 0
+
+    def test_i18n_divergence_icu_vs_key_based(self):
+        projects = [
+            _proj("a", i18n_tools=["react-intl"]),
+            _proj("b", i18n_tools=["i18next"]),
+        ]
+        conns = find_connections(projects)
+        divs = [c for c in conns if c.type == "i18n_divergence"]
+        assert len(divs) == 1
+        assert "ICU" in divs[0].detail
+        assert "key-based" in divs[0].detail
+        assert divs[0].severity == "warning"
+
+    def test_no_divergence_same_paradigm(self):
+        projects = [
+            _proj("a", i18n_tools=["i18next"]),
+            _proj("b", i18n_tools=["vue-i18n"]),
+        ]
+        conns = find_connections(projects)
+        divs = [c for c in conns if c.type == "i18n_divergence"]
+        assert len(divs) == 0
+
+    def test_i18n_gap_web_projects(self):
+        projects = [
+            _proj("a", i18n_tools=["i18next"], frameworks=["React"]),
+            _proj("b", frameworks=["React"], source_files=20),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "i18n_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+
+    def test_no_gap_non_web_project(self):
+        projects = [
+            _proj("a", i18n_tools=["i18next"], frameworks=["React"]),
+            _proj("b", frameworks=["FastAPI"], source_files=5),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "i18n_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_without_i18n_projects(self):
+        projects = [
+            _proj("a", frameworks=["React"], source_files=20),
+            _proj("b", frameworks=["React"], source_files=20),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "i18n_gap"]
+        assert len(gaps) == 0
+
+    def test_multiple_shared_i18n(self):
+        projects = [
+            _proj("a", i18n_tools=["i18next", "react-i18next"]),
+            _proj("b", i18n_tools=["i18next", "react-i18next"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_i18n"]
+        assert len(shared) == 2
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", i18n_tools=["react-intl"]),
+            _proj("b", i18n_tools=["react-intl", "i18next"]),
+        ]
+        conns = find_connections(projects)
+        i18n_types = {c.type for c in conns if "i18n" in c.type}
+        assert "shared_i18n" in i18n_types

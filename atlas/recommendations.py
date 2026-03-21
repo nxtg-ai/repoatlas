@@ -236,6 +236,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "bundler_divergence": "frontend",
         "orm_gap": "database",
         "orm_divergence": "database",
+        "i18n_gap": "frontend",
+        "i18n_divergence": "frontend",
     }
 
     for conn in connections:

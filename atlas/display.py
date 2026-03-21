@@ -107,6 +107,9 @@ CONNECTION_ICONS = {
     "shared_orm": "[green]\u2261[/green]",
     "orm_divergence": "[yellow]\u2261[/yellow]",
     "orm_gap": "[red]\u2261[/red]",
+    "shared_i18n": "[green]\u2302[/green]",
+    "i18n_divergence": "[yellow]\u2302[/yellow]",
+    "i18n_gap": "[red]\u2302[/red]",
 }
 
 
@@ -594,6 +597,9 @@ def show_connections(connections: list[Connection]):
         "shared_orm": "Shared ORM/DB Clients",
         "orm_divergence": "ORM Strategy Divergence",
         "orm_gap": "ORM/DB Client Gaps",
+        "shared_i18n": "Shared i18n Tools",
+        "i18n_divergence": "i18n Strategy Divergence",
+        "i18n_gap": "i18n Gaps",
     }
 
     lines = []
@@ -655,6 +661,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_css": "css", "css_divergence": "css", "css_gap": "css",
         "shared_bundler": "bundler", "bundler_divergence": "bundler", "bundler_gap": "bundler",
         "shared_orm": "orm", "orm_divergence": "orm", "orm_gap": "orm",
+        "shared_i18n": "i18n", "i18n_divergence": "i18n", "i18n_gap": "i18n",
     }
 
     for conn in connections:
