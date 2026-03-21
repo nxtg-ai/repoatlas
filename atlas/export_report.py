@@ -671,6 +671,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_config_tool": "Shared Config Tools",
         "config_tool_divergence": "Config Tool Divergence",
         "config_tool_gap": "Config Tool Gaps",
+        "shared_caching_tool": "Shared Caching Tools",
+        "caching_divergence": "Caching Divergence",
+        "caching_gap": "Caching Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

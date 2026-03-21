@@ -346,6 +346,7 @@ CONNECTION_CATEGORIES = {
     "docgen": {"shared_doc_generator", "doc_generator_divergence", "doc_generator_gap"},
     "cli": {"shared_cli_framework", "cli_framework_divergence"},
     "config": {"shared_config_tool", "config_tool_divergence", "config_tool_gap"},
+    "caching": {"shared_caching_tool", "caching_divergence", "caching_gap"},
 }
 
 

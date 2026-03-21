@@ -259,6 +259,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "cli_framework_divergence": "deps",
         "config_tool_gap": "deps",
         "config_tool_divergence": "deps",
+        "caching_gap": "deps",
+        "caching_divergence": "deps",
     }
 
     for conn in connections:

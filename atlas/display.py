@@ -142,6 +142,9 @@ CONNECTION_ICONS = {
     "shared_config_tool": "[green]\u2699[/green]",
     "config_tool_divergence": "[yellow]\u2699[/yellow]",
     "config_tool_gap": "[red]\u2699[/red]",
+    "shared_caching_tool": "[green]\u29bf[/green]",
+    "caching_divergence": "[yellow]\u29bf[/yellow]",
+    "caching_gap": "[red]\u29bf[/red]",
 }
 
 
@@ -795,6 +798,9 @@ def show_connections(connections: list[Connection]):
         "shared_config_tool": "Shared Config Tools",
         "config_tool_divergence": "Config Tool Divergence",
         "config_tool_gap": "Config Tool Gaps",
+        "shared_caching_tool": "Shared Caching Tools",
+        "caching_divergence": "Caching Divergence",
+        "caching_gap": "Caching Gaps",
     }
 
     lines = []
@@ -868,6 +874,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_doc_generator": "docgen", "doc_generator_divergence": "docgen", "doc_generator_gap": "docgen",
         "shared_cli_framework": "cli", "cli_framework_divergence": "cli",
         "shared_config_tool": "config", "config_tool_divergence": "config", "config_tool_gap": "config",
+        "shared_caching_tool": "caching", "caching_divergence": "caching", "caching_gap": "caching",
     }
 
     for conn in connections:

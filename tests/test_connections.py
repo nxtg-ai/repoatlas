@@ -31,6 +31,7 @@ from atlas.connections import (
     _find_search_engine_patterns,
     _find_feature_flag_patterns,
     _find_config_tool_patterns,
+    _find_caching_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -4526,3 +4527,94 @@ class TestFindConfigToolPatterns:
         conns = find_connections(projects)
         config_types = {c.type for c in conns if "config_tool" in c.type}
         assert "shared_config_tool" in config_types
+
+
+# ---------------------------------------------------------------------------
+# _find_caching_patterns
+# ---------------------------------------------------------------------------
+class TestFindCachingPatterns:
+    def test_no_caching_tools(self):
+        projects = [_proj("a"), _proj("b")]
+        assert _find_caching_patterns(projects) == []
+
+    def test_shared_caching_tool(self):
+        projects = [
+            _proj("a", caching_tools=["redis-py"]),
+            _proj("b", caching_tools=["redis-py"]),
+        ]
+        conns = _find_caching_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_caching_tool"]
+        assert len(shared) == 1
+        assert "redis-py" in shared[0].detail
+
+    def test_no_shared_if_unique(self):
+        projects = [
+            _proj("a", caching_tools=["redis-py"]),
+            _proj("b", caching_tools=["moka"]),
+        ]
+        conns = _find_caching_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_caching_tool"]
+        assert len(shared) == 0
+
+    def test_divergence_redis_vs_inmemory(self):
+        projects = [
+            _proj("a", caching_tools=["redis-py"]),
+            _proj("b", caching_tools=["cachetools"]),
+        ]
+        conns = _find_caching_patterns(projects)
+        divs = [c for c in conns if c.type == "caching_divergence"]
+        assert len(divs) == 1
+        assert "redis_based" in divs[0].detail
+        assert "in_memory" in divs[0].detail
+
+    def test_no_divergence_same_paradigm(self):
+        projects = [
+            _proj("a", caching_tools=["redis-py"]),
+            _proj("b", caching_tools=["ioredis"]),
+        ]
+        conns = _find_caching_patterns(projects)
+        divs = [c for c in conns if c.type == "caching_divergence"]
+        assert len(divs) == 0
+
+    def test_gap_backend_with_db_no_cache(self):
+        projects = [
+            _proj("a", caching_tools=["redis-py"], databases=["PostgreSQL"], source_files=15),
+            _proj("b", caching_tools=[], databases=["PostgreSQL"], source_files=15),
+        ]
+        projects[1].tech_stack.languages = {"Python": 50}
+        conns = _find_caching_patterns(projects)
+        gaps = [c for c in conns if c.type == "caching_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+
+    def test_no_gap_if_no_database(self):
+        projects = [_proj("a", caching_tools=[], source_files=15)]
+        projects[0].tech_stack.languages = {"Python": 50}
+        conns = _find_caching_patterns(projects)
+        gaps = [c for c in conns if c.type == "caching_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_if_has_caching(self):
+        projects = [_proj("a", caching_tools=["redis-py"], databases=["PostgreSQL"], source_files=15)]
+        projects[0].tech_stack.languages = {"Python": 50}
+        conns = _find_caching_patterns(projects)
+        gaps = [c for c in conns if c.type == "caching_gap"]
+        assert len(gaps) == 0
+
+    def test_cap_at_10(self):
+        tools = [f"tool{i}" for i in range(15)]
+        projects = [
+            _proj("a", caching_tools=tools),
+            _proj("b", caching_tools=tools),
+        ]
+        conns = _find_caching_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", caching_tools=["redis-py"]),
+            _proj("b", caching_tools=["redis-py", "cachetools"]),
+        ]
+        conns = find_connections(projects)
+        caching_types = {c.type for c in conns if "caching" in c.type}
+        assert "shared_caching_tool" in caching_types

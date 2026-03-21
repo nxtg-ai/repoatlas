@@ -46,6 +46,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_doc_generator_patterns(projects))
     connections.extend(_find_cli_framework_patterns(projects))
     connections.extend(_find_config_tool_patterns(projects))
+    connections.extend(_find_caching_patterns(projects))
     return connections
 
 
@@ -2671,6 +2672,77 @@ def _find_config_tool_patterns(projects: list[Project]) -> list[Connection]:
             connections.append(Connection(
                 type="config_tool_gap",
                 detail=f"{p.name} is a backend project with no config management tool detected",
+                projects=[p.name],
+                severity="info",
+            ))
+
+    return connections[:10]
+
+
+def _find_caching_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project caching library patterns."""
+    connections: list[Connection] = []
+
+    # Shared caching tools — same tool used by 2+ projects
+    tool_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for t in p.tech_stack.caching_tools:
+            tool_to_projects[t].append(p.name)
+
+    for t, projs in sorted(tool_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_caching_tool",
+                detail=f"{t} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Caching divergence — different paradigms
+    redis_based = {"redis-py", "ioredis", "redis (Node)", "go-redis", "redis-rs",
+                   "django-redis", "Jedis", "Lettuce", "Redisson"}
+    in_memory = {"cachetools", "DiskCache", "node-cache", "lru-cache", "Ristretto",
+                 "BigCache", "FreeCache", "GCache", "groupcache", "moka", "cached",
+                 "mini-moka", "Caffeine", "Ehcache", "Guava Cache", "Hazelcast",
+                 "cache-manager", "catbox", "Keyv"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "redis_based": {}, "in_memory": {},
+    }
+    cat_sets = [("redis_based", redis_based), ("in_memory", in_memory)]
+    for p in projects:
+        for t in p.tech_stack.caching_tools:
+            for cat_name, cat_set in cat_sets:
+                if t in cat_set:
+                    cat_found[cat_name].setdefault(t, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, fws in active_cats.items():
+            fw_names = ", ".join(sorted(fws.keys())[:3])
+            parts.append(f"{cat_name} ({fw_names})")
+            for ps in fws.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="caching_divergence",
+            detail=f"Mixed caching approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # Caching gap — backend projects with databases but no caching
+    for p in projects:
+        has_backend = (
+            any(lang in p.tech_stack.languages for lang in ("Python", "Go", "Java", "Rust"))
+            or any(fw in p.tech_stack.frameworks for fw in ("FastAPI", "Django", "Flask", "Express", "NestJS", "Spring Boot", "Gin", "Echo", "Actix", "Rails"))
+        )
+        has_db = bool(p.tech_stack.databases)
+        if has_backend and has_db and not p.tech_stack.caching_tools and p.source_file_count >= 10:
+            connections.append(Connection(
+                type="caching_gap",
+                detail=f"{p.name} uses databases but has no caching layer detected",
                 projects=[p.name],
                 severity="info",
             ))

@@ -125,8 +125,9 @@
 | N-112 | [Configuration Management Intelligence](#n-112-configuration-management-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-113 | [Compare JSON Export](#n-113-compare-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-114 | [Caching Library Detection](#n-114-caching-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-115 | [Caching Intelligence](#n-115-caching-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 111/114 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 112/115 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -208,7 +209,8 @@
 - Cross-project documentation generation intelligence (shared doc generators, static-site vs API-docs vs component-docs paradigm divergence, doc generator gaps for projects with 20+ source files)
 - Cross-project CLI framework intelligence (shared CLI frameworks, declarative vs TUI paradigm divergence)
 - Cross-project configuration management intelligence (shared config tools, env-based vs structured paradigm divergence, config tool gaps for backend projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112
+- Cross-project caching intelligence (shared caching tools, Redis-based vs in-memory paradigm divergence, caching gaps for backend projects with databases)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -639,6 +641,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-115: Caching Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project caching intelligence: shared caching tools (shared_caching_tool), Redis-based vs in-memory paradigm divergence (caching_divergence), caching gaps for backend projects with databases and 10+ source files (caching_gap). New CONNECTION_CATEGORIES entry "caching". Updated display type_labels, icons, stats category mapping, export type_labels, recommendations mapping. 10 tests.
+**Shipped**: 2026-03-21. Total test count: 1864 → 1874. 37th intelligence feature.
 
 ### N-114: Caching Library Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
