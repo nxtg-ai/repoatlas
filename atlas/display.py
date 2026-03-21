@@ -598,6 +598,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         hc_parts = [f"{hc} ({count})" for hc, count in top_hc]
         lines.append(f"  [bold]HTTP:[/bold]        {has_hc}/{n} projects \u00b7 {', '.join(hc_parts)}")
 
+    # Doc generators
+    has_dg = sum(1 for p in projects if p.tech_stack.doc_generators)
+    if has_dg:
+        dg_counter: Counter[str] = Counter()
+        for p in projects:
+            for dg in p.tech_stack.doc_generators:
+                dg_counter[dg] += 1
+        top_dg = dg_counter.most_common(6)
+        dg_parts = [f"{dg} ({count})" for dg, count in top_dg]
+        lines.append(f"  [bold]Docs Gen:[/bold]   {has_dg}/{n} projects \u00b7 {', '.join(dg_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -975,6 +986,10 @@ def show_project_card(project: Project):
     if project.tech_stack.http_clients:
         hc = ", ".join(project.tech_stack.http_clients[:8])
         lines.append(f"  [bold]HTTP:[/bold]       {hc}")
+
+    if project.tech_stack.doc_generators:
+        dg = ", ".join(project.tech_stack.doc_generators[:8])
+        lines.append(f"  [bold]Docs Gen:[/bold]  {dg}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

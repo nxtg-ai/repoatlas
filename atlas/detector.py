@@ -3246,6 +3246,109 @@ def detect_http_clients(project_path: Path) -> list[str]:
     return sorted(tools)
 
 
+def detect_doc_generators(project_path: Path) -> list[str]:
+    """Detect documentation generation tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # Python doc generators
+    if "sphinx" in py_deps or (project_path / "docs" / "conf.py").exists():
+        _add("Sphinx")
+    if "mkdocs" in py_deps or (project_path / "mkdocs.yml").exists() or (project_path / "mkdocs.yaml").exists():
+        _add("MkDocs")
+    if "pdoc" in py_deps or "pdoc3" in py_deps:
+        _add("pdoc")
+    if "pydoctor" in py_deps:
+        _add("pydoctor")
+
+    # JS/TS doc generators — package.json
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            content = pkg_json.read_text().lower()
+            if "\"docusaurus" in content or "\"@docusaurus/" in content:
+                _add("Docusaurus")
+            if "\"storybook\"" in content or "\"@storybook/" in content:
+                _add("Storybook")
+            if "\"vitepress\"" in content:
+                _add("VitePress")
+            if "\"typedoc\"" in content:
+                _add("TypeDoc")
+            if "\"jsdoc\"" in content:
+                _add("JSDoc")
+            if "\"nextra\"" in content:
+                _add("Nextra")
+            if "\"gitbook\"" in content:
+                _add("GitBook")
+            if "\"docsify" in content:
+                _add("Docsify")
+            if "\"@mintlify/" in content or "\"mintlify\"" in content:
+                _add("Mintlify")
+            if "\"@astrojs/starlight\"" in content:
+                _add("Starlight")
+            if "\"documentation.js\"" in content or "\"documentation\":" in content and "documentationjs" in content:
+                _add("documentation.js")
+        except Exception:
+            pass
+
+    # Config file detection (framework-agnostic)
+    if (project_path / "docusaurus.config.js").exists() or (project_path / "docusaurus.config.ts").exists():
+        _add("Docusaurus")
+    if (project_path / ".storybook").exists():
+        _add("Storybook")
+    if (project_path / "typedoc.json").exists():
+        _add("TypeDoc")
+    if (project_path / "jsdoc.json").exists() or (project_path / ".jsdoc.json").exists():
+        _add("JSDoc")
+    if (project_path / "book.toml").exists():
+        _add("mdBook")
+
+    # Go doc generators
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            if "swaggo/swag" in content:
+                _add("Swag")
+        except Exception:
+            pass
+
+    # Rust doc generators — Cargo.toml (rustdoc is built-in)
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content = cargo.read_text().lower()
+            if "rustdoc" in content or "[package.metadata.docs.rs]" in content.lower():
+                _add("rustdoc")
+        except Exception:
+            pass
+
+    # Java doc generators — pom.xml / build.gradle
+    for jpath in [project_path / "pom.xml", project_path / "build.gradle", project_path / "build.gradle.kts"]:
+        if jpath.exists():
+            try:
+                content = jpath.read_text().lower()
+                if "javadoc" in content:
+                    _add("Javadoc")
+                if "dokka" in content:
+                    _add("Dokka")
+            except Exception:
+                pass
+
+    # Generic — Doxygen
+    if (project_path / "Doxyfile").exists() or (project_path / "doxygen.cfg").exists():
+        _add("Doxygen")
+
+    return sorted(tools)
+
+
 def _collect_python_deps(project_path: Path) -> set[str]:
     """Collect Python dependency names from pyproject.toml and requirements.txt."""
     py_deps: set[str] = set()

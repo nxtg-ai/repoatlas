@@ -267,6 +267,7 @@ def _project_has_tech(project, term: str) -> bool:
         + ts.search_engines
         + ts.feature_flags
         + ts.http_clients
+        + ts.doc_generators
     )
     return any(term == item.lower() for item in all_items)
 

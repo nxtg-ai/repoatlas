@@ -37,6 +37,7 @@ from atlas.detector import (
     detect_search_engines,
     detect_feature_flags,
     detect_http_clients,
+    detect_doc_generators,
     walk_files,
 )
 
@@ -4219,3 +4220,116 @@ class TestDetectHttpClients:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         assert detect_http_clients(tmp_path) == []
+
+
+# ---------------------------------------------------------------------------
+# detect_doc_generators
+# ---------------------------------------------------------------------------
+
+class TestDetectDocGenerators:
+    def test_empty_project(self, tmp_path):
+        assert detect_doc_generators(tmp_path) == []
+
+    def test_python_sphinx_deps(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sphinx\n")
+        result = detect_doc_generators(tmp_path)
+        assert "Sphinx" in result
+
+    def test_python_sphinx_conf(self, tmp_path):
+        (tmp_path / "docs").mkdir()
+        (tmp_path / "docs" / "conf.py").write_text("# Sphinx config\n")
+        result = detect_doc_generators(tmp_path)
+        assert "Sphinx" in result
+
+    def test_python_mkdocs_deps(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("mkdocs\n")
+        result = detect_doc_generators(tmp_path)
+        assert "MkDocs" in result
+
+    def test_python_mkdocs_config(self, tmp_path):
+        (tmp_path / "mkdocs.yml").write_text("site_name: Test\n")
+        result = detect_doc_generators(tmp_path)
+        assert "MkDocs" in result
+
+    def test_python_pdoc(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pdoc\n")
+        result = detect_doc_generators(tmp_path)
+        assert "pdoc" in result
+
+    def test_js_docusaurus(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@docusaurus/core": "^2.0.0"}
+        }))
+        result = detect_doc_generators(tmp_path)
+        assert "Docusaurus" in result
+
+    def test_js_docusaurus_config(self, tmp_path):
+        (tmp_path / "docusaurus.config.js").write_text("module.exports = {}\n")
+        result = detect_doc_generators(tmp_path)
+        assert "Docusaurus" in result
+
+    def test_js_storybook(self, tmp_path):
+        (tmp_path / ".storybook").mkdir()
+        result = detect_doc_generators(tmp_path)
+        assert "Storybook" in result
+
+    def test_js_vitepress(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"vitepress": "^1.0.0"}
+        }))
+        result = detect_doc_generators(tmp_path)
+        assert "VitePress" in result
+
+    def test_js_typedoc(self, tmp_path):
+        (tmp_path / "typedoc.json").write_text("{}\n")
+        result = detect_doc_generators(tmp_path)
+        assert "TypeDoc" in result
+
+    def test_js_nextra(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"nextra": "^2.0.0"}
+        }))
+        result = detect_doc_generators(tmp_path)
+        assert "Nextra" in result
+
+    def test_rust_mdbook(self, tmp_path):
+        (tmp_path / "book.toml").write_text("[book]\ntitle = \"Test\"\n")
+        result = detect_doc_generators(tmp_path)
+        assert "mdBook" in result
+
+    def test_java_javadoc(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<plugin><artifactId>maven-javadoc-plugin</artifactId></plugin>\n")
+        result = detect_doc_generators(tmp_path)
+        assert "Javadoc" in result
+
+    def test_java_dokka(self, tmp_path):
+        (tmp_path / "build.gradle.kts").write_text("plugins { id(\"org.jetbrains.dokka\") }\n")
+        result = detect_doc_generators(tmp_path)
+        assert "Dokka" in result
+
+    def test_doxygen(self, tmp_path):
+        (tmp_path / "Doxyfile").write_text("PROJECT_NAME = Test\n")
+        result = detect_doc_generators(tmp_path)
+        assert "Doxygen" in result
+
+    def test_multiple_generators(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sphinx\nmkdocs\n")
+        result = detect_doc_generators(tmp_path)
+        assert len(result) == 2
+        assert "MkDocs" in result
+        assert "Sphinx" in result
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("mkdocs\n")
+        (tmp_path / "mkdocs.yml").write_text("site_name: Test\n")
+        result = detect_doc_generators(tmp_path)
+        assert result.count("MkDocs") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sphinx\nmkdocs\n")
+        result = detect_doc_generators(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        assert detect_doc_generators(tmp_path) == []

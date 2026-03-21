@@ -39,6 +39,7 @@ class TechStack:
     search_engines: list[str] = field(default_factory=list)
     feature_flags: list[str] = field(default_factory=list)
     http_clients: list[str] = field(default_factory=list)
+    doc_generators: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -159,6 +160,7 @@ class Project:
                 "search_engines": self.tech_stack.search_engines,
                 "feature_flags": self.tech_stack.feature_flags,
                 "http_clients": self.tech_stack.http_clients,
+                "doc_generators": self.tech_stack.doc_generators,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -224,6 +226,7 @@ class Project:
                 search_engines=ts.get("search_engines", []),
                 feature_flags=ts.get("feature_flags", []),
                 http_clients=ts.get("http_clients", []),
+                doc_generators=ts.get("doc_generators", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

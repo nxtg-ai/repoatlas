@@ -371,6 +371,17 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         hc_names = ", ".join(t for t, _ in top_hc)
         lines.append(f"**HTTP Clients**: {has_hc}/{n} projects \u00b7 {hc_names}")
 
+    # Doc generators
+    has_dg = sum(1 for p in projects if p.tech_stack.doc_generators)
+    if has_dg:
+        dg_counter: Counter[str] = Counter()
+        for p in projects:
+            for dg in p.tech_stack.doc_generators:
+                dg_counter[dg] += 1
+        top_dg = dg_counter.most_common(6)
+        dg_names = ", ".join(t for t, _ in top_dg)
+        lines.append(f"**Doc Generators**: {has_dg}/{n} projects \u00b7 {dg_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -477,6 +488,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.http_clients:
             lines.append(f"- **HTTP Clients**: {', '.join(p.tech_stack.http_clients[:8])}")
+
+        if p.tech_stack.doc_generators:
+            lines.append(f"- **Doc Generators**: {', '.join(p.tech_stack.doc_generators[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -894,6 +908,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             hc_counter2[hc] += 1
     has_hc = sum(1 for p in projects if p.tech_stack.http_clients)
 
+    # Doc generators
+    dg_counter2: Counter[str] = Counter()
+    for p in projects:
+        for dg in p.tech_stack.doc_generators:
+            dg_counter2[dg] += 1
+    has_dg = sum(1 for p in projects if p.tech_stack.doc_generators)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -937,6 +958,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "search_engines": {"coverage": f"{has_se}/{n}", "engines": dict(se_counter2.most_common(10))},
         "feature_flags": {"coverage": f"{has_ff}/{n}", "tools": dict(ff_counter2.most_common(10))},
         "http_clients": {"coverage": f"{has_hc}/{n}", "clients": dict(hc_counter2.most_common(10))},
+        "doc_generators": {"coverage": f"{has_dg}/{n}", "tools": dict(dg_counter2.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -957,7 +979,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1009,6 +1031,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.search_engines),
             "; ".join(ts.feature_flags),
             "; ".join(ts.http_clients),
+            "; ".join(ts.doc_generators),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",
