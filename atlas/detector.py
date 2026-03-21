@@ -2865,6 +2865,136 @@ def detect_task_queues(project_path: Path) -> list[str]:
     return sorted(tools)
 
 
+def detect_search_engines(project_path: Path) -> list[str]:
+    """Detect search engine and full-text search tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # Python search engines
+    py_map = {
+        "elasticsearch": "Elasticsearch",
+        "opensearch-py": "OpenSearch",
+        "opensearchpy": "OpenSearch",
+        "meilisearch": "Meilisearch",
+        "typesense": "Typesense",
+        "pysolr": "Solr",
+        "algoliasearch": "Algolia",
+        "whoosh": "Whoosh",
+        "tantivy": "Tantivy",
+        "django-haystack": "Haystack",
+        "django-watson": "Watson",
+    }
+    for dep, name in py_map.items():
+        if dep in py_deps:
+            _add(name)
+
+    # package.json — JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text())
+            all_deps = set()
+            for section in ("dependencies", "devDependencies"):
+                all_deps.update(data.get(section, {}).keys())
+
+            js_map = {
+                "@elastic/elasticsearch": "Elasticsearch",
+                "elasticsearch": "Elasticsearch",
+                "@opensearch-project/opensearch": "OpenSearch",
+                "meilisearch": "Meilisearch",
+                "typesense": "Typesense",
+                "algoliasearch": "Algolia",
+                "react-instantsearch": "Algolia",
+                "instantsearch.js": "Algolia",
+                "lunr": "Lunr",
+                "flexsearch": "FlexSearch",
+                "fuse.js": "Fuse.js",
+                "minisearch": "MiniSearch",
+                "solr-client": "Solr",
+            }
+            for dep, name in js_map.items():
+                if dep in all_deps:
+                    _add(name)
+        except Exception:
+            pass
+
+    # go.mod — Go
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            go_map = {
+                "olivere/elastic": "Elasticsearch",
+                "elastic/go-elasticsearch": "Elasticsearch",
+                "opensearch-project/opensearch-go": "OpenSearch",
+                "meilisearch/meilisearch-go": "Meilisearch",
+                "typesense/typesense-go": "Typesense",
+                "algolia/algoliasearch-client-go": "Algolia",
+                "blevesearch/bleve": "Bleve",
+            }
+            for dep, name in go_map.items():
+                if dep.lower() in content:
+                    _add(name)
+        except Exception:
+            pass
+
+    # Cargo.toml — Rust
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            content = cargo_toml.read_text().lower()
+            if "tantivy" in content:
+                _add("Tantivy")
+            if "meilisearch-sdk" in content:
+                _add("Meilisearch")
+            if "elasticsearch" in content:
+                _add("Elasticsearch")
+        except Exception:
+            pass
+
+    # pom.xml / build.gradle — Java
+    pom = project_path / "pom.xml"
+    if pom.exists():
+        try:
+            content = pom.read_text().lower()
+            if "elasticsearch" in content:
+                _add("Elasticsearch")
+            if "opensearch" in content:
+                _add("OpenSearch")
+            if "solr" in content:
+                _add("Solr")
+            if "algolia" in content:
+                _add("Algolia")
+            if "lucene" in content:
+                _add("Lucene")
+        except Exception:
+            pass
+
+    gradle = project_path / "build.gradle"
+    if gradle.exists():
+        try:
+            content = gradle.read_text().lower()
+            if "elasticsearch" in content:
+                _add("Elasticsearch")
+            if "opensearch" in content:
+                _add("OpenSearch")
+            if "solr" in content:
+                _add("Solr")
+            if "lucene" in content:
+                _add("Lucene")
+        except Exception:
+            pass
+
+    return sorted(tools)
+
+
 def _collect_python_deps(project_path: Path) -> set[str]:
     """Collect Python dependency names from pyproject.toml and requirements.txt."""
     py_deps: set[str] = set()

@@ -338,6 +338,17 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         tq_names = ", ".join(t for t, _ in top_tq)
         lines.append(f"**Task Queues**: {has_tq}/{n} projects \u00b7 {tq_names}")
 
+    # Search engines
+    has_se = sum(1 for p in projects if p.tech_stack.search_engines)
+    if has_se:
+        se_counter: Counter[str] = Counter()
+        for p in projects:
+            for se in p.tech_stack.search_engines:
+                se_counter[se] += 1
+        top_se = se_counter.most_common(6)
+        se_names = ", ".join(t for t, _ in top_se)
+        lines.append(f"**Search Engines**: {has_se}/{n} projects \u00b7 {se_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -435,6 +446,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.task_queues:
             lines.append(f"- **Task Queues**: {', '.join(p.tech_stack.task_queues[:8])}")
+
+        if p.tech_stack.search_engines:
+            lines.append(f"- **Search Engines**: {', '.join(p.tech_stack.search_engines[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -822,6 +836,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             tq_counter2[tq] += 1
     has_tq = sum(1 for p in projects if p.tech_stack.task_queues)
 
+    # Search engines
+    se_counter2: Counter[str] = Counter()
+    for p in projects:
+        for se in p.tech_stack.search_engines:
+            se_counter2[se] += 1
+    has_se = sum(1 for p in projects if p.tech_stack.search_engines)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -862,6 +883,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "container_orchestration": {"coverage": f"{has_co}/{n}", "tools": dict(co_counter2.most_common(10))},
         "cloud_providers": {"coverage": f"{has_cloud}/{n}", "providers": dict(cloud_counter2.most_common(10))},
         "task_queues": {"coverage": f"{has_tq}/{n}", "tools": dict(tq_counter2.most_common(10))},
+        "search_engines": {"coverage": f"{has_se}/{n}", "engines": dict(se_counter2.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -881,7 +903,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Docs Artifacts", "CI Config", "Runtime Versions", "Build Tools", "API Specs",
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
-        "Container Orchestration", "Cloud Providers", "Task Queues",
+        "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines",
         "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
@@ -931,6 +953,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.container_orchestration),
             "; ".join(ts.cloud_providers),
             "; ".join(ts.task_queues),
+            "; ".join(ts.search_engines),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

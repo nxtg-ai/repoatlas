@@ -106,8 +106,9 @@
 | N-93 | [Task Queue & Background Job Detection](#n-93-task-queue--background-job-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-94 | [Task Queue Intelligence](#n-94-task-queue-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-95 | [Export Filtering](#n-95-export-filtering) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-96 | [Search Engine Detection](#n-96-search-engine-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 92/95 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 93/96 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -143,7 +144,8 @@
 - Container orchestration: Docker Compose, Kubernetes, Helm, Kustomize, Skaffold, Tilt, Terraform, Pulumi, Ansible, Nomad, Docker Swarm, Vagrant, Packer
 - Cloud provider & SDK detection: AWS (boto3, aws-sdk, aws-cdk), GCP (google-cloud-*, firebase), Azure (azure-*), Cloudflare (wrangler), Fly.io, Railway, Render, DigitalOcean — across Python, JS/TS, Go, Rust, Java
 - Task queue & background job detection: Celery, RQ, Dramatiq, Huey, arq, TaskIQ, Temporal, Prefect, Airflow, Luigi, Dagster, BullMQ, Bull, Bee-Queue, Agenda, node-cron, Graphile Worker, pg-boss, Quirrel, Asynq, robfig/cron, gocraft/work, tokio-cron-scheduler, Apalis, Quartz, Spring Batch — across Python, JS/TS, Go, Rust, Java
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93
+- Search engine detection: Elasticsearch, OpenSearch, Meilisearch, Typesense, Algolia, Solr, Whoosh, Haystack, Tantivy, Lunr, FlexSearch, Fuse.js, MiniSearch, Bleve, Lucene — across Python, JS/TS, Go, Rust, Java
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -586,6 +588,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--grade`, `--lang`, `--has`, `--min-health`, `--max-health` filter options to `atlas export` command. Matches the same filter flags from `atlas status`. Works with all export formats (markdown, json, csv). Enables exporting targeted subsets of the portfolio. 5 tests.
 **Shipped**: 2026-03-21. Total test count: 1640 → 1645. 28th experience feature.
+
+### N-96: Search Engine Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_search_engines()` in detector.py. Detects search engines and full-text search tools across ecosystems: Python (Elasticsearch, OpenSearch, Meilisearch, Typesense, Algolia, Solr/pysolr, Whoosh, Haystack, Tantivy, Watson), JS/TS (Elasticsearch, OpenSearch, Meilisearch, Typesense, Algolia, Lunr, FlexSearch, Fuse.js, MiniSearch, Solr), Go (Elasticsearch, OpenSearch, Meilisearch, Typesense, Algolia, Bleve), Rust (Tantivy, Meilisearch, Elasticsearch), Java (Elasticsearch, OpenSearch, Solr, Algolia, Lucene). Added `search_engines` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel, markdown/JSON/CSV export. `_project_has_tech()` searches search_engines. 20 detection tests.
+**Shipped**: 2026-03-21. Total test count: 1645 → 1665. 29th detection category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

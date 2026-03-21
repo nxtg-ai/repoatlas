@@ -556,6 +556,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         tq_parts = [f"{tq} ({count})" for tq, count in top_tq]
         lines.append(f"  [bold]Task Queues:[/bold] {has_tq}/{n} projects \u00b7 {', '.join(tq_parts)}")
 
+    # Search engines
+    has_se = sum(1 for p in projects if p.tech_stack.search_engines)
+    if has_se:
+        se_counter: Counter[str] = Counter()
+        for p in projects:
+            for se in p.tech_stack.search_engines:
+                se_counter[se] += 1
+        top_se = se_counter.most_common(6)
+        se_parts = [f"{se} ({count})" for se, count in top_se]
+        lines.append(f"  [bold]Search:[/bold]      {has_se}/{n} projects \u00b7 {', '.join(se_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -909,6 +920,10 @@ def show_project_card(project: Project):
     if project.tech_stack.task_queues:
         tq = ", ".join(project.tech_stack.task_queues[:8])
         lines.append(f"  [bold]Queues:[/bold]     {tq}")
+
+    if project.tech_stack.search_engines:
+        se = ", ".join(project.tech_stack.search_engines[:8])
+        lines.append(f"  [bold]Search:[/bold]     {se}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

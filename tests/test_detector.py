@@ -34,6 +34,7 @@ from atlas.detector import (
     detect_container_orchestration,
     detect_cloud_providers,
     detect_task_queues,
+    detect_search_engines,
     walk_files,
 )
 
@@ -3860,3 +3861,118 @@ class TestDetectTaskQueues:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         assert detect_task_queues(tmp_path) == []
+
+
+# ---------------------------------------------------------------------------
+# detect_search_engines
+# ---------------------------------------------------------------------------
+class TestDetectSearchEngines:
+    def test_empty_project(self, tmp_path):
+        assert detect_search_engines(tmp_path) == []
+
+    def test_python_elasticsearch(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("elasticsearch>=8.0\n")
+        result = detect_search_engines(tmp_path)
+        assert "Elasticsearch" in result
+
+    def test_python_meilisearch(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("meilisearch\n")
+        result = detect_search_engines(tmp_path)
+        assert "Meilisearch" in result
+
+    def test_python_algolia(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("algoliasearch\n")
+        result = detect_search_engines(tmp_path)
+        assert "Algolia" in result
+
+    def test_python_typesense(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("typesense\n")
+        result = detect_search_engines(tmp_path)
+        assert "Typesense" in result
+
+    def test_python_opensearch(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("opensearch-py\n")
+        result = detect_search_engines(tmp_path)
+        assert "OpenSearch" in result
+
+    def test_python_solr(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pysolr\n")
+        result = detect_search_engines(tmp_path)
+        assert "Solr" in result
+
+    def test_js_elasticsearch(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@elastic/elasticsearch": "^8.0.0"}
+        }))
+        result = detect_search_engines(tmp_path)
+        assert "Elasticsearch" in result
+
+    def test_js_algolia(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"algoliasearch": "^4.0.0"}
+        }))
+        result = detect_search_engines(tmp_path)
+        assert "Algolia" in result
+
+    def test_js_lunr(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"lunr": "^2.3.0"}
+        }))
+        result = detect_search_engines(tmp_path)
+        assert "Lunr" in result
+
+    def test_js_fuse(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"fuse.js": "^6.0.0"}
+        }))
+        result = detect_search_engines(tmp_path)
+        assert "Fuse.js" in result
+
+    def test_go_elasticsearch(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/elastic/go-elasticsearch v8.0.0\n")
+        result = detect_search_engines(tmp_path)
+        assert "Elasticsearch" in result
+
+    def test_go_bleve(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/blevesearch/bleve v2.0.0\n")
+        result = detect_search_engines(tmp_path)
+        assert "Bleve" in result
+
+    def test_rust_tantivy(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ntantivy = "0.21"\n')
+        result = detect_search_engines(tmp_path)
+        assert "Tantivy" in result
+
+    def test_java_elasticsearch(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency>elasticsearch</dependency>\n")
+        result = detect_search_engines(tmp_path)
+        assert "Elasticsearch" in result
+
+    def test_java_lucene(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.apache.lucene:lucene-core:9.0.0'\n")
+        result = detect_search_engines(tmp_path)
+        assert "Lucene" in result
+
+    def test_multiple_engines(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("elasticsearch\nmeilisearch\n")
+        result = detect_search_engines(tmp_path)
+        assert "Elasticsearch" in result
+        assert "Meilisearch" in result
+        assert len(result) == 2
+
+    def test_dedup(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("elasticsearch\n")
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@elastic/elasticsearch": "^8.0.0"}
+        }))
+        result = detect_search_engines(tmp_path)
+        assert result.count("Elasticsearch") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("typesense\nalgoliasearch\nelasticsearch\n")
+        result = detect_search_engines(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        assert detect_search_engines(tmp_path) == []
