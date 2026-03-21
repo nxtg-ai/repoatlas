@@ -119,8 +119,9 @@
 | N-106 | [Documentation Generation Intelligence](#n-106-documentation-generation-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-107 | [Doctor CSV Export](#n-107-doctor-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-108 | [CLI Framework Detection](#n-108-cli-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-109 | [CLI Framework Intelligence](#n-109-cli-framework-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 105/108 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 106/109 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -198,7 +199,8 @@
 - Cross-project feature flag intelligence (shared flag tools, SaaS vs self-hosted vs analytics paradigm divergence, feature flag gaps for web projects)
 - Cross-project HTTP client intelligence (shared HTTP clients, sync vs async vs fetch-based vs RPC-style paradigm divergence, HTTP client gaps for backend projects)
 - Cross-project documentation generation intelligence (shared doc generators, static-site vs API-docs vs component-docs paradigm divergence, doc generator gaps for projects with 20+ source files)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106
+- Cross-project CLI framework intelligence (shared CLI frameworks, declarative vs TUI paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -627,6 +629,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-109: CLI Framework Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project CLI framework intelligence: shared CLI frameworks (shared_cli_framework), declarative vs TUI paradigm divergence (cli_framework_divergence). New CONNECTION_CATEGORIES entry "cli". 7 tests.
+**Shipped**: 2026-03-21. Total test count: 1797 → 1804. 35th intelligence feature.
 
 ### N-108: CLI Framework Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

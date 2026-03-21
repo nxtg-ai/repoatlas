@@ -4366,3 +4366,68 @@ class TestFindDocGeneratorPatterns:
         conns = find_connections(projects)
         doc_types = {c.type for c in conns if "doc_generator" in c.type}
         assert "shared_doc_generator" in doc_types
+
+
+class TestFindCliFrameworkPatterns:
+    def test_no_cli_frameworks(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        cli_conns = [c for c in conns if "cli_framework" in c.type]
+        assert len(cli_conns) == 0
+
+    def test_shared_cli_framework(self):
+        projects = [
+            _proj("a", cli_frameworks=["Click"]),
+            _proj("b", cli_frameworks=["Click"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_cli_framework"]
+        assert len(shared) == 1
+        assert "Click" in shared[0].detail
+
+    def test_cli_framework_divergence(self):
+        projects = [
+            _proj("a", cli_frameworks=["Click"]),
+            _proj("b", cli_frameworks=["Ink"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "cli_framework_divergence"]
+        assert len(div) == 1
+        assert div[0].severity == "warning"
+
+    def test_no_divergence_single_paradigm(self):
+        projects = [
+            _proj("a", cli_frameworks=["Click"]),
+            _proj("b", cli_frameworks=["Typer"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "cli_framework_divergence"]
+        assert len(div) == 0
+
+    def test_multiple_shared(self):
+        projects = [
+            _proj("a", cli_frameworks=["Click", "Rich"]),
+            _proj("b", cli_frameworks=["Click", "Rich"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_cli_framework"]
+        assert len(shared) == 2
+
+    def test_capped_at_10(self):
+        fws = [f"FW{i}" for i in range(20)]
+        projects = [
+            _proj("a", cli_frameworks=fws),
+            _proj("b", cli_frameworks=fws),
+        ]
+        conns = find_connections(projects)
+        cli_conns = [c for c in conns if "cli_framework" in c.type]
+        assert len(cli_conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", cli_frameworks=["Click"]),
+            _proj("b", cli_frameworks=["Click", "Cobra"]),
+        ]
+        conns = find_connections(projects)
+        cli_types = {c.type for c in conns if "cli_framework" in c.type}
+        assert "shared_cli_framework" in cli_types

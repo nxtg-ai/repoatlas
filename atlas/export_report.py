@@ -639,6 +639,8 @@ def _connections_section(conns: list) -> list[str]:
         "shared_doc_generator": "Shared Doc Generators",
         "doc_generator_divergence": "Doc Generator Divergence",
         "doc_generator_gap": "Doc Generator Gaps",
+        "shared_cli_framework": "Shared CLI Frameworks",
+        "cli_framework_divergence": "CLI Framework Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

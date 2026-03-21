@@ -256,6 +256,7 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "http_client_divergence": "deps",
         "doc_generator_gap": "docs",
         "doc_generator_divergence": "docs",
+        "cli_framework_divergence": "deps",
     }
 
     for conn in connections:

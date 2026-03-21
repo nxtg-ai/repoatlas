@@ -44,6 +44,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_feature_flag_patterns(projects))
     connections.extend(_find_http_client_patterns(projects))
     connections.extend(_find_doc_generator_patterns(projects))
+    connections.extend(_find_cli_framework_patterns(projects))
     return connections
 
 
@@ -2541,5 +2542,65 @@ def _find_doc_generator_patterns(projects: list[Project]) -> list[Connection]:
                 projects=sorted(no_docs),
                 severity="info",
             ))
+
+    return connections[:10]
+
+
+def _find_cli_framework_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project CLI framework patterns."""
+    connections: list[Connection] = []
+
+    # Shared CLI frameworks — same framework used by 2+ projects
+    fw_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for f in p.tech_stack.cli_frameworks:
+            fw_to_projects[f].append(p.name)
+
+    for f, projs in sorted(fw_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_cli_framework",
+                detail=f"{f} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # CLI framework divergence — different paradigms
+    declarative = {"Click", "Typer", "Cobra", "clap", "StructOpt", "Commander.js",
+                   "Yargs", "oclif", "picocli", "JCommander", "urfave/cli",
+                   "Kong", "argh", "meow", "Caporal", "Clipanion", "pflag",
+                   "go-flags", "Fire", "Airline", "Spring Shell", "citty",
+                   "docopt", "plac", "Cement", "cliff", "Cleo", "Vorpal",
+                   "Gluegun"}
+    tui = {"Rich", "Textual", "Bubbletea", "Lip Gloss", "Huh", "Ink",
+           "Ratatui", "dialoguer", "indicatif", "console", "Chalk", "Ora",
+           "prompt_toolkit", "Questionary", "InquirerPy", "Inquirer.js",
+           "prompts", "Trogon"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "declarative": {}, "tui": {},
+    }
+    cat_sets = [("declarative", declarative), ("tui", tui)]
+    for p in projects:
+        for f in p.tech_stack.cli_frameworks:
+            for cat_name, cat_set in cat_sets:
+                if f in cat_set:
+                    cat_found[cat_name].setdefault(f, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, fws in active_cats.items():
+            fw_names = ", ".join(sorted(fws.keys())[:3])
+            parts.append(f"{cat_name} ({fw_names})")
+            for ps in fws.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="cli_framework_divergence",
+            detail=f"Mixed CLI approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
 
     return connections[:10]
