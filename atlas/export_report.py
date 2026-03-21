@@ -520,6 +520,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_logging": "Shared Logging Tools",
         "logging_divergence": "Logging Strategy Divergence",
         "logging_gap": "Logging Gaps",
+        "shared_container_orch": "Shared Container Orchestration",
+        "container_orch_divergence": "Container Orchestration Divergence",
+        "container_orch_gap": "Container Orchestration Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

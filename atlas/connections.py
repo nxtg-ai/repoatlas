@@ -37,6 +37,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_i18n_patterns(projects))
     connections.extend(_find_validation_patterns(projects))
     connections.extend(_find_logging_patterns(projects))
+    connections.extend(_find_container_orchestration_patterns(projects))
     return connections
 
 
@@ -1982,6 +1983,78 @@ def _find_logging_patterns(projects: list[Project]) -> list[Connection]:
                 type="logging_gap",
                 detail=f"{len(no_log)} backend project(s) have no logging framework detected",
                 projects=sorted(no_log),
+                severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_container_orchestration_patterns(projects: list[Project]) -> list[Connection]:
+    """Find container orchestration patterns across projects."""
+    connections: list[Connection] = []
+
+    # Shared container orchestration tools
+    tool_to_projs: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for tool in p.tech_stack.container_orchestration:
+            tool_to_projs[tool].append(p.name)
+
+    for tool, projs in sorted(tool_to_projs.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_container_orch",
+                detail=f"{tool} used across {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Container orchestration divergence — different deployment strategies
+    iac = {"Terraform", "Pulumi", "Ansible", "Packer", "Vagrant"}
+    k8s_native = {"Kubernetes", "Helm", "Kustomize", "Skaffold", "Tilt"}
+    compose = {"Docker Compose", "Docker Swarm"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "iac": {}, "k8s": {}, "compose": {},
+    }
+    cat_sets = [
+        ("iac", iac),
+        ("k8s", k8s_native),
+        ("compose", compose),
+    ]
+    for p in projects:
+        for tool in p.tech_stack.container_orchestration:
+            for cat_name, cat_set in cat_sets:
+                if tool in cat_set:
+                    cat_found[cat_name].setdefault(tool, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="container_orch_divergence",
+            detail=f"Mixed orchestration strategies: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # Container orchestration gap — projects with Docker but no orchestration
+    has_orch = {p.name for p in projects if p.tech_stack.container_orchestration}
+    if has_orch:
+        no_orch = [p.name for p in projects
+                   if not p.tech_stack.container_orchestration
+                   and "Docker" in p.tech_stack.infrastructure
+                   and p.source_file_count > 10]
+        if no_orch:
+            connections.append(Connection(
+                type="container_orch_gap",
+                detail=f"{len(no_orch)} Docker project(s) have no orchestration tooling",
+                projects=sorted(no_orch),
                 severity="warning",
             ))
 

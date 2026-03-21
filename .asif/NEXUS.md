@@ -99,8 +99,9 @@
 | N-86 | [Logging Intelligence](#n-86-logging-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-87 | [Rename Project Command](#n-87-rename-project-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-88 | [Container Orchestration Detection](#n-88-container-orchestration-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-89 | [Container Orchestration Intelligence](#n-89-container-orchestration-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 85/88 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 86/89 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -164,7 +165,8 @@
 - Cross-project i18n intelligence (shared i18n tools, ICU/message format vs key-based vs extraction-based divergence, i18n gaps for web projects)
 - Cross-project validation intelligence (shared validation tools, schema-first vs model/decorator-based vs form validation divergence, validation gaps for API/backend projects)
 - Cross-project logging intelligence (shared logging tools, structured vs traditional logging divergence, logging gaps for backend projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86
+- Cross-project container orchestration intelligence (shared orchestration tools, IaC vs Kubernetes-native vs Compose divergence, orchestration gaps for Docker projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -536,6 +538,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: Detects container orchestration & IaC tools: Docker Compose, Kubernetes (k8s/kubernetes/kube/manifests/deploy dirs), Helm (Chart.yaml/charts dir), Kustomize, Skaffold, Tilt, Terraform, Pulumi, Ansible, Nomad, Docker Swarm, Vagrant, Packer. Added TechStack.container_orchestration field, wired through scanner, display, export, CLI search. 22 tests.
 **Shipped**: 2026-03-21. Total test count: 1544 → 1566. 26th detection feature.
+
+### N-89: Container Orchestration Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project container orchestration intelligence: shared orchestration tools (shared_container_orch), IaC vs Kubernetes-native vs Compose strategy divergence (container_orch_divergence), orchestration gaps for Docker projects (container_orch_gap). New CONNECTION_CATEGORIES entry "containers". 10 tests.
+**Shipped**: 2026-03-21. Total test count: 1566 → 1575. 28th intelligence feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

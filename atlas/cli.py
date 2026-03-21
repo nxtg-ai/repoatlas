@@ -293,6 +293,7 @@ CONNECTION_CATEGORIES = {
     "i18n": {"shared_i18n", "i18n_divergence", "i18n_gap"},
     "validation": {"shared_validation", "validation_divergence", "validation_gap"},
     "logging": {"shared_logging", "logging_divergence", "logging_gap"},
+    "containers": {"shared_container_orch", "container_orch_divergence", "container_orch_gap"},
 }
 
 

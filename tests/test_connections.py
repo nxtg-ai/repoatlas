@@ -25,6 +25,7 @@ from atlas.connections import (
     _find_version_mismatches,
     _find_validation_patterns,
     _find_logging_patterns,
+    _find_container_orchestration_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -3686,3 +3687,93 @@ class TestFindLoggingPatterns:
         conns = find_connections(projects)
         log_types = {c.type for c in conns if "logging" in c.type}
         assert "shared_logging" in log_types
+
+
+# ---------------------------------------------------------------------------
+# Container Orchestration Patterns
+# ---------------------------------------------------------------------------
+class TestFindContainerOrchestrationPatterns:
+    def test_shared_container_orch(self):
+        projects = [
+            _proj("a", container_orchestration=["Kubernetes", "Helm"]),
+            _proj("b", container_orchestration=["Kubernetes"]),
+        ]
+        conns = _find_container_orchestration_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_container_orch"]
+        assert len(shared) == 1
+        assert "Kubernetes" in shared[0].detail
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", container_orchestration=["Terraform"]),
+            _proj("b", container_orchestration=["Pulumi"]),
+        ]
+        conns = _find_container_orchestration_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_container_orch"]
+        assert len(shared) == 0
+
+    def test_divergence_iac_vs_k8s(self):
+        projects = [
+            _proj("a", container_orchestration=["Terraform"]),
+            _proj("b", container_orchestration=["Kubernetes"]),
+        ]
+        conns = _find_container_orchestration_patterns(projects)
+        divs = [c for c in conns if c.type == "container_orch_divergence"]
+        assert len(divs) == 1
+        assert "iac" in divs[0].detail
+        assert "k8s" in divs[0].detail
+
+    def test_divergence_compose_vs_k8s(self):
+        projects = [
+            _proj("a", container_orchestration=["Docker Compose"]),
+            _proj("b", container_orchestration=["Helm"]),
+        ]
+        conns = _find_container_orchestration_patterns(projects)
+        divs = [c for c in conns if c.type == "container_orch_divergence"]
+        assert len(divs) == 1
+
+    def test_no_divergence_same_category(self):
+        projects = [
+            _proj("a", container_orchestration=["Terraform"]),
+            _proj("b", container_orchestration=["Pulumi"]),
+        ]
+        conns = _find_container_orchestration_patterns(projects)
+        divs = [c for c in conns if c.type == "container_orch_divergence"]
+        assert len(divs) == 0  # both are IaC, only 1 category
+
+    def test_gap_docker_without_orchestration(self):
+        projects = [
+            _proj("a", container_orchestration=["Kubernetes"], infrastructure=["Docker"]),
+            _proj("b", container_orchestration=[], infrastructure=["Docker"], source_files=20),
+        ]
+        conns = _find_container_orchestration_patterns(projects)
+        gaps = [c for c in conns if c.type == "container_orch_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+
+    def test_no_gap_all_have_orchestration(self):
+        projects = [
+            _proj("a", container_orchestration=["Helm"], infrastructure=["Docker"]),
+            _proj("b", container_orchestration=["Terraform"], infrastructure=["Docker"]),
+        ]
+        conns = _find_container_orchestration_patterns(projects)
+        gaps = [c for c in conns if c.type == "container_orch_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_without_docker(self):
+        projects = [
+            _proj("a", container_orchestration=["Kubernetes"]),
+            _proj("b", container_orchestration=[], source_files=20),
+        ]
+        conns = _find_container_orchestration_patterns(projects)
+        gaps = [c for c in conns if c.type == "container_orch_gap"]
+        assert len(gaps) == 0
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", container_orchestration=["Kubernetes"]),
+            _proj("b", container_orchestration=["Kubernetes", "Helm"]),
+        ]
+        conns = find_connections(projects)
+        co_types = {c.type for c in conns if "container_orch" in c.type}
+        assert "shared_container_orch" in co_types
