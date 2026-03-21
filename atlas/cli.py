@@ -989,7 +989,7 @@ def inspect(name: str = typer.Argument(help="Project name to inspect")):
 def compare(
     project_a: str = typer.Argument(help="First project name"),
     project_b: str = typer.Argument(help="Second project name"),
-    format: Optional[str] = typer.Option(None, "--format", "-f", help="Output format: json"),
+    format: Optional[str] = typer.Option(None, "--format", "-f", help="Output format: json or csv"),
 ):
     """Compare two projects side by side."""
     portfolio = _load_portfolio()
@@ -1056,6 +1056,28 @@ def compare(
             "shared_deps": sorted(deps_a & deps_b),
         }
         console.print(json_mod.dumps(data, indent=2))
+        return
+
+    if format == "csv":
+        import csv as csv_mod
+        import io
+        buf = io.StringIO()
+        writer = csv_mod.writer(buf)
+        writer.writerow(["Metric", a.name, b.name, "Delta"])
+        writer.writerow(["Grade", a.health.grade, b.health.grade, ""])
+        writer.writerow(["Health%", a.health.percent, b.health.percent, a.health.percent - b.health.percent])
+        writer.writerow(["Tests%", round(a.health.tests * 100), round(b.health.tests * 100), round(a.health.tests * 100) - round(b.health.tests * 100)])
+        writer.writerow(["Git%", round(a.health.git_hygiene * 100), round(b.health.git_hygiene * 100), round(a.health.git_hygiene * 100) - round(b.health.git_hygiene * 100)])
+        writer.writerow(["Docs%", round(a.health.documentation * 100), round(b.health.documentation * 100), round(a.health.documentation * 100) - round(b.health.documentation * 100)])
+        writer.writerow(["Structure%", round(a.health.structure * 100), round(b.health.structure * 100), round(a.health.structure * 100) - round(b.health.structure * 100)])
+        writer.writerow(["LOC", a.loc, b.loc, a.loc - b.loc])
+        writer.writerow(["Source Files", a.source_file_count, b.source_file_count, a.source_file_count - b.source_file_count])
+        writer.writerow(["Test Files", a.test_file_count, b.test_file_count, a.test_file_count - b.test_file_count])
+        writer.writerow(["Commits", a.git_info.total_commits, b.git_info.total_commits, a.git_info.total_commits - b.git_info.total_commits])
+        writer.writerow(["Languages", "; ".join(a.tech_stack.primary_languages), "; ".join(b.tech_stack.primary_languages), ""])
+        writer.writerow(["Frameworks", "; ".join(a.tech_stack.frameworks), "; ".join(b.tech_stack.frameworks), ""])
+        writer.writerow(["License", a.license, b.license, ""])
+        print(buf.getvalue(), end="")
         return
 
     show_comparison(a, b)

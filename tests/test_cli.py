@@ -1178,6 +1178,43 @@ class TestCompare:
         assert isinstance(data["unique_frameworks_a"], list)
         assert isinstance(data["unique_frameworks_b"], list)
 
+    def test_compare_csv_format(self, portfolio_dir, tmp_path):
+        self._add_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["compare", "proj-a", "proj-b", "--format", "csv"])
+        assert result.exit_code == 0
+        assert "Metric,proj-a,proj-b,Delta" in result.output
+        assert "Grade" in result.output
+        assert "Health%" in result.output
+        assert "LOC" in result.output
+
+    def test_compare_csv_deltas(self, portfolio_dir, tmp_path):
+        self._add_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["compare", "proj-a", "proj-b", "--format", "csv"])
+        assert result.exit_code == 0
+        # Check LOC row has delta
+        import csv as csv_mod
+        import io
+        reader = csv_mod.reader(io.StringIO(result.output))
+        rows = list(reader)
+        loc_row = [r for r in rows if r[0] == "LOC"][0]
+        assert loc_row[1] == "1000"
+        assert loc_row[2] == "800"
+        assert loc_row[3] == "200"
+
+    def test_compare_csv_all_metrics(self, portfolio_dir, tmp_path):
+        self._add_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["compare", "proj-a", "proj-b", "--format", "csv"])
+        import csv as csv_mod
+        import io
+        reader = csv_mod.reader(io.StringIO(result.output))
+        rows = list(reader)
+        metrics = [r[0] for r in rows]
+        assert "Grade" in metrics
+        assert "Health%" in metrics
+        assert "Tests%" in metrics
+        assert "LOC" in metrics
+        assert "License" in metrics
+
 
 # ===========================================================================
 # atlas remove
