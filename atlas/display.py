@@ -653,6 +653,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         cache_parts = [f"{ct} ({count})" for ct, count in top_cache]
         lines.append(f"  [bold]Caching:[/bold]     {has_cache}/{n} projects \u00b7 {', '.join(cache_parts)}")
 
+    # Template engines
+    has_tpl = sum(1 for p in projects if p.tech_stack.template_engines)
+    if has_tpl:
+        tpl_counter: Counter[str] = Counter()
+        for p in projects:
+            for te in p.tech_stack.template_engines:
+                tpl_counter[te] += 1
+        top_tpl = tpl_counter.most_common(6)
+        tpl_parts = [f"{te} ({count})" for te, count in top_tpl]
+        lines.append(f"  [bold]Templates:[/bold]   {has_tpl}/{n} projects \u00b7 {', '.join(tpl_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1061,6 +1072,10 @@ def show_project_card(project: Project):
     if project.tech_stack.caching_tools:
         cch = ", ".join(project.tech_stack.caching_tools[:8])
         lines.append(f"  [bold]Caching:[/bold]    {cch}")
+
+    if project.tech_stack.template_engines:
+        tpl = ", ".join(project.tech_stack.template_engines[:8])
+        lines.append(f"  [bold]Templates:[/bold]  {tpl}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

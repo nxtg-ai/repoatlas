@@ -3721,6 +3721,126 @@ def detect_caching_tools(project_path: Path) -> list[str]:
     return sorted(tools)
 
 
+def detect_template_engines(project_path: Path) -> list[str]:
+    """Detect template engines and rendering libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # Python template engines
+    py_mapping = {
+        "jinja2": "Jinja2",
+        "mako": "Mako",
+        "chameleon": "Chameleon",
+        "genshi": "Genshi",
+        "cheetah3": "Cheetah",
+        "airspeed": "Airspeed",
+    }
+    for dep, name in py_mapping.items():
+        if dep in py_deps:
+            _add(name)
+
+    # Django templates (implicit if Django is a dep)
+    if "django" in py_deps:
+        _add("Django Templates")
+
+    # JS/TS template engines — package.json
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            content = pkg_json.read_text().lower()
+            if "\"handlebars\"" in content or "\"hbs\"" in content:
+                _add("Handlebars")
+            if "\"ejs\"" in content:
+                _add("EJS")
+            if "\"pug\"" in content:
+                _add("Pug")
+            if "\"nunjucks\"" in content:
+                _add("Nunjucks")
+            if "\"mustache\"" in content:
+                _add("Mustache")
+            if "\"liquid\"" in content or "\"liquidjs\"" in content:
+                _add("Liquid")
+            if "\"eta\"" in content and "\"eta\":" in content:
+                _add("Eta")
+            if "\"marko\"" in content:
+                _add("Marko")
+            if "\"edge.js\"" in content or "\"@adonisjs/view\"" in content:
+                _add("Edge.js")
+            if "\"@vue/compiler-sfc\"" in content:
+                _add("Vue SFC")
+            if "\"svelte\"" in content:
+                _add("Svelte")
+            if "\"solid-js\"" in content:
+                _add("Solid")
+            if "\"astro\"" in content:
+                _add("Astro")
+        except Exception:
+            pass
+
+    # Go template engines — go.mod
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            if "html/template" in content or "text/template" in content:
+                _add("Go Templates")
+            if "pongo2" in content:
+                _add("Pongo2")
+            if "raymond" in content:
+                _add("Raymond")
+            if "jet" in content and "cloudykit/jet" in content:
+                _add("Jet")
+            if "amber" in content and "eknkc/amber" in content:
+                _add("Amber")
+        except Exception:
+            pass
+
+    # Rust template engines — Cargo.toml
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content = cargo.read_text().lower()
+            if "tera" in content and "tera =" in content:
+                _add("Tera")
+            if "askama" in content:
+                _add("Askama")
+            if "handlebars" in content and "handlebars =" in content:
+                _add("Handlebars (Rust)")
+            if "minijinja" in content:
+                _add("MiniJinja")
+            if "maud" in content and "maud =" in content:
+                _add("Maud")
+        except Exception:
+            pass
+
+    # Java template engines — pom.xml / build.gradle
+    for jpath in [project_path / "pom.xml", project_path / "build.gradle", project_path / "build.gradle.kts"]:
+        if jpath.exists():
+            try:
+                content = jpath.read_text().lower()
+                if "thymeleaf" in content:
+                    _add("Thymeleaf")
+                if "freemarker" in content:
+                    _add("FreeMarker")
+                if "velocity" in content and "velocity-engine" in content:
+                    _add("Velocity")
+                if "mustache" in content and "jmustache" in content:
+                    _add("Mustache (Java)")
+                if "pebble" in content and "pebble" in content:
+                    _add("Pebble")
+            except Exception:
+                pass
+
+    return sorted(tools)
+
+
 def _collect_python_deps(project_path: Path) -> set[str]:
     """Collect Python dependency names from pyproject.toml and requirements.txt."""
     py_deps: set[str] = set()

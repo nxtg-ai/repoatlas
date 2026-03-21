@@ -41,6 +41,7 @@ from atlas.detector import (
     detect_cli_frameworks,
     detect_config_tools,
     detect_caching_tools,
+    detect_template_engines,
     walk_files,
 )
 
@@ -4686,3 +4687,119 @@ class TestDetectCachingTools:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         assert detect_caching_tools(tmp_path) == []
+
+
+class TestDetectTemplateEngines:
+    def test_empty_project(self, tmp_path):
+        assert detect_template_engines(tmp_path) == []
+
+    def test_python_jinja2(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("jinja2\n")
+        result = detect_template_engines(tmp_path)
+        assert "Jinja2" in result
+
+    def test_python_mako(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("mako\n")
+        result = detect_template_engines(tmp_path)
+        assert "Mako" in result
+
+    def test_python_django_templates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("django\n")
+        result = detect_template_engines(tmp_path)
+        assert "Django Templates" in result
+
+    def test_js_handlebars(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"handlebars": "^4.0.0"}
+        }))
+        result = detect_template_engines(tmp_path)
+        assert "Handlebars" in result
+
+    def test_js_ejs(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"ejs": "^3.0.0"}
+        }))
+        result = detect_template_engines(tmp_path)
+        assert "EJS" in result
+
+    def test_js_pug(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"pug": "^3.0.0"}
+        }))
+        result = detect_template_engines(tmp_path)
+        assert "Pug" in result
+
+    def test_js_nunjucks(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"nunjucks": "^3.0.0"}
+        }))
+        result = detect_template_engines(tmp_path)
+        assert "Nunjucks" in result
+
+    def test_js_mustache(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"mustache": "^4.0.0"}
+        }))
+        result = detect_template_engines(tmp_path)
+        assert "Mustache" in result
+
+    def test_js_liquid(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"liquidjs": "^10.0.0"}
+        }))
+        result = detect_template_engines(tmp_path)
+        assert "Liquid" in result
+
+    def test_js_svelte(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"svelte": "^4.0.0"}
+        }))
+        result = detect_template_engines(tmp_path)
+        assert "Svelte" in result
+
+    def test_js_astro(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"astro": "^3.0.0"}
+        }))
+        result = detect_template_engines(tmp_path)
+        assert "Astro" in result
+
+    def test_rust_tera(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ntera = "1.0"\n')
+        result = detect_template_engines(tmp_path)
+        assert "Tera" in result
+
+    def test_rust_askama(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\naskama = "0.12"\n')
+        result = detect_template_engines(tmp_path)
+        assert "Askama" in result
+
+    def test_java_thymeleaf(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<project><dependency>spring-boot-starter-thymeleaf</dependency></project>\n")
+        result = detect_template_engines(tmp_path)
+        assert "Thymeleaf" in result
+
+    def test_java_freemarker(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.freemarker:freemarker:2.3.32'\n")
+        result = detect_template_engines(tmp_path)
+        assert "FreeMarker" in result
+
+    def test_multiple_engines(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("jinja2\nmako\n")
+        result = detect_template_engines(tmp_path)
+        assert len(result) == 2
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("jinja2\n")
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = [\n    "jinja2",\n]\n')
+        result = detect_template_engines(tmp_path)
+        assert result.count("Jinja2") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("mako\njinja2\n")
+        result = detect_template_engines(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        assert detect_template_engines(tmp_path) == []

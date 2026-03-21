@@ -414,6 +414,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         caching_names = ", ".join(t for t, _ in top_caching)
         lines.append(f"**Caching Tools**: {has_caching}/{n} projects \u00b7 {caching_names}")
 
+    has_tpl = sum(1 for p in projects if p.tech_stack.template_engines)
+    if has_tpl:
+        tpl_counter: Counter[str] = Counter()
+        for p in projects:
+            for te in p.tech_stack.template_engines:
+                tpl_counter[te] += 1
+        top_tpl = tpl_counter.most_common(6)
+        tpl_names = ", ".join(t for t, _ in top_tpl)
+        lines.append(f"**Template Engines**: {has_tpl}/{n} projects \u00b7 {tpl_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -532,6 +542,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.caching_tools:
             lines.append(f"- **Caching**: {', '.join(p.tech_stack.caching_tools[:8])}")
+
+        if p.tech_stack.template_engines:
+            lines.append(f"- **Templates**: {', '.join(p.tech_stack.template_engines[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -988,6 +1001,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             caching_counter2[ct] += 1
     has_caching = sum(1 for p in projects if p.tech_stack.caching_tools)
 
+    # Template engines
+    tpl_counter2: Counter[str] = Counter()
+    for p in projects:
+        for te in p.tech_stack.template_engines:
+            tpl_counter2[te] += 1
+    has_tpl = sum(1 for p in projects if p.tech_stack.template_engines)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1035,6 +1055,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "cli_frameworks": {"coverage": f"{has_clf}/{n}", "tools": dict(clf_counter2.most_common(10))},
         "config_tools": {"coverage": f"{has_cfg}/{n}", "tools": dict(cfg_counter2.most_common(10))},
         "caching_tools": {"coverage": f"{has_caching}/{n}", "tools": dict(caching_counter2.most_common(10))},
+        "template_engines": {"coverage": f"{has_tpl}/{n}", "engines": dict(tpl_counter2.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1055,7 +1076,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1111,6 +1132,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.cli_frameworks),
             "; ".join(ts.config_tools),
             "; ".join(ts.caching_tools),
+            "; ".join(ts.template_engines),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

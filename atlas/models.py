@@ -43,6 +43,7 @@ class TechStack:
     cli_frameworks: list[str] = field(default_factory=list)
     config_tools: list[str] = field(default_factory=list)
     caching_tools: list[str] = field(default_factory=list)
+    template_engines: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -167,6 +168,7 @@ class Project:
                 "cli_frameworks": self.tech_stack.cli_frameworks,
                 "config_tools": self.tech_stack.config_tools,
                 "caching_tools": self.tech_stack.caching_tools,
+                "template_engines": self.tech_stack.template_engines,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -236,6 +238,7 @@ class Project:
                 cli_frameworks=ts.get("cli_frameworks", []),
                 config_tools=ts.get("config_tools", []),
                 caching_tools=ts.get("caching_tools", []),
+                template_engines=ts.get("template_engines", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),
