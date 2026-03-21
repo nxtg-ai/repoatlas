@@ -85,8 +85,9 @@
 | N-72 | [Connection Category List Command](#n-72-connection-category-list-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-73 | [Bundler & Module Tool Detection](#n-73-bundler--module-tool-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-74 | [Bundler Intelligence](#n-74-bundler-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-75 | [Export Connection Summary Stats](#n-75-export-connection-summary-stats) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 71/74 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 72/75 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -165,8 +166,9 @@
 - Connection statistics panel: summary of total connections, severity breakdown (critical/warning/info), top categories by count
 - Export format auto-detection: `atlas export -o report.json` auto-detects format from file extension (.md/.json/.csv)
 - Doctor category summary: `atlas doctor` shows recommendation category breakdown (e.g., "3 security, 2 testing, 1 infra") after priority summary
-- Connection category list: `atlas connections --type list` shows all 21 available categories with their connection types
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72
+- Connection category list: `atlas connections --type list` shows all available categories with their connection types
+- Export connection summary stats: markdown exports show "N connections: X warning, Y info" header, JSON exports include connection_summary with total/critical/warning/info counts
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -438,6 +440,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project bundler pattern detection via `_find_bundler_patterns()` in connections.py. Analyzes bundlers data from N-73 across the portfolio to detect: shared bundlers (Vite/Webpack across 2+ projects, info), generation divergence (modern/fast [Vite, esbuild, SWC, Turbopack, Rspack, Bun] vs traditional [Webpack, Rollup, Parcel, Snowpack] vs library [tsup, unbuild, microbundle], warning), and bundler gaps (JS/TS projects with 10+ source files but no bundler, warning). New connection types (`shared_bundler`, `bundler_divergence`, `bundler_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps bundler_gap and bundler_divergence to `frontend` recommendation category. 22 categories in CONNECTION_CATEGORIES. 12 intelligence tests.
 **Shipped**: 2026-03-21. Total test count: 1358 → 1370. Completes N-73 detection→intelligence pipeline.
+
+### N-75: Export Connection Summary Stats
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Markdown export now shows a connection summary line at the top of the Cross-Project Intelligence section (e.g., "**12 connections**: 3 warning, 9 info"). JSON export now includes a `connection_summary` object with `total`, `critical`, `warning`, and `info` counts alongside the full connections array. Gives consumers a quick overview of portfolio intelligence without parsing individual connections. 5 tests.
+**Shipped**: 2026-03-21. Total test count: 1370 → 1375. 22nd experience feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

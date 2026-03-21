@@ -357,6 +357,18 @@ def _connections_section(conns: list) -> list[str]:
     lines.append("## Cross-Project Intelligence")
     lines.append("")
 
+    # Summary stats
+    total = len(conns)
+    sev_counts: dict[str, int] = {}
+    for c in conns:
+        sev_counts[c.severity] = sev_counts.get(c.severity, 0) + 1
+    sev_parts = []
+    for s in ("critical", "warning", "info"):
+        if s in sev_counts:
+            sev_parts.append(f"{sev_counts[s]} {s}")
+    lines.append(f"**{total} connections**: {', '.join(sev_parts)}")
+    lines.append("")
+
     # Group by type
     groups: dict[str, list] = {}
     for conn in conns:
@@ -463,6 +475,12 @@ def build_json_report(portfolio: Portfolio) -> str:
         },
         "portfolio_summary": _json_portfolio_summary(projects),
         "projects": [_json_project(p) for p in projects],
+        "connection_summary": {
+            "total": len(conns),
+            "critical": sum(1 for c in conns if c.severity == "critical"),
+            "warning": sum(1 for c in conns if c.severity == "warning"),
+            "info": sum(1 for c in conns if c.severity == "info"),
+        },
         "connections": [
             {
                 "type": c.type,

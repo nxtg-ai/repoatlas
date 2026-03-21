@@ -467,6 +467,55 @@ class TestJsonReport:
         data = json.loads(result)
         assert isinstance(data, dict)
 
+    def test_connection_summary_present(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("a", frameworks=["FastAPI"], source_files=20),
+            _proj("b", frameworks=["FastAPI"], source_files=20),
+        )))
+        assert "connection_summary" in data
+        cs = data["connection_summary"]
+        assert "total" in cs
+        assert "critical" in cs
+        assert "warning" in cs
+        assert "info" in cs
+
+    def test_connection_summary_counts(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("a", frameworks=["FastAPI"], source_files=20,
+                  infrastructure=["Docker"]),
+            _proj("b", frameworks=["FastAPI"], source_files=20,
+                  infrastructure=["Docker"]),
+        )))
+        cs = data["connection_summary"]
+        assert cs["total"] == len(data["connections"])
+        assert cs["total"] > 0
+
+    def test_connection_summary_empty_portfolio(self):
+        data = json.loads(build_json_report(_portfolio(_proj("solo"))))
+        cs = data["connection_summary"]
+        assert cs["total"] == 0
+
+
+class TestMarkdownConnectionSummary:
+    def test_summary_line_in_report(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", frameworks=["FastAPI"], source_files=20),
+            _proj("b", frameworks=["FastAPI"], source_files=20),
+        ))
+        assert "connections" in report.lower()
+        # Should have the "N connections: ..." summary line
+        assert " connections**:" in report
+
+    def test_summary_severity_breakdown(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", frameworks=["FastAPI"], source_files=20,
+                  infrastructure=["Docker"]),
+            _proj("b", frameworks=["FastAPI"], source_files=20,
+                  infrastructure=["Docker"]),
+        ))
+        # Should contain at least one severity label
+        assert any(s in report for s in ["info", "warning", "critical"])
+
 
 class TestCsvExport:
     """Tests for build_csv_report()."""
