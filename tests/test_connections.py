@@ -29,6 +29,7 @@ from atlas.connections import (
     _find_cloud_provider_patterns,
     _find_task_queue_patterns,
     _find_search_engine_patterns,
+    _find_feature_flag_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -4074,3 +4075,104 @@ class TestFindSearchEnginePatterns:
         conns = find_connections(projects)
         search_types = {c.type for c in conns if "search" in c.type}
         assert "shared_search" in search_types
+
+
+# ---------------------------------------------------------------------------
+# _find_feature_flag_patterns
+# ---------------------------------------------------------------------------
+class TestFindFeatureFlagPatterns:
+    def test_shared_feature_flag(self):
+        projects = [
+            _proj("a", feature_flags=["LaunchDarkly"]),
+            _proj("b", feature_flags=["LaunchDarkly", "PostHog"]),
+        ]
+        conns = _find_feature_flag_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_feature_flag"]
+        assert len(shared) == 1
+        assert "LaunchDarkly" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_no_shared_unique_flags(self):
+        projects = [
+            _proj("a", feature_flags=["LaunchDarkly"]),
+            _proj("b", feature_flags=["Unleash"]),
+        ]
+        conns = _find_feature_flag_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_feature_flag"]
+        assert len(shared) == 0
+
+    def test_divergence_saas_vs_self_hosted(self):
+        projects = [
+            _proj("a", feature_flags=["LaunchDarkly"]),
+            _proj("b", feature_flags=["Unleash"]),
+        ]
+        conns = _find_feature_flag_patterns(projects)
+        div = [c for c in conns if c.type == "feature_flag_divergence"]
+        assert len(div) == 1
+        assert "Mixed feature flag approaches" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_divergence_saas_vs_analytics(self):
+        projects = [
+            _proj("a", feature_flags=["Split"]),
+            _proj("b", feature_flags=["PostHog"]),
+        ]
+        conns = _find_feature_flag_patterns(projects)
+        div = [c for c in conns if c.type == "feature_flag_divergence"]
+        assert len(div) == 1
+
+    def test_no_divergence_same_paradigm(self):
+        projects = [
+            _proj("a", feature_flags=["LaunchDarkly"]),
+            _proj("b", feature_flags=["Split"]),
+        ]
+        conns = _find_feature_flag_patterns(projects)
+        div = [c for c in conns if c.type == "feature_flag_divergence"]
+        assert len(div) == 0
+
+    def test_gap_web_project_without_flags(self):
+        projects = [
+            _proj("a", feature_flags=["LaunchDarkly"], frameworks=["Next.js"], source_files=30),
+            _proj("b", feature_flags=[], frameworks=["React"], source_files=30),
+        ]
+        conns = _find_feature_flag_patterns(projects)
+        gaps = [c for c in conns if c.type == "feature_flag_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "info"
+
+    def test_no_gap_all_have_flags(self):
+        projects = [
+            _proj("a", feature_flags=["LaunchDarkly"], frameworks=["React"]),
+            _proj("b", feature_flags=["Unleash"], frameworks=["Vue.js"]),
+        ]
+        conns = _find_feature_flag_patterns(projects)
+        gaps = [c for c in conns if c.type == "feature_flag_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_without_web_framework(self):
+        projects = [
+            _proj("a", feature_flags=["LaunchDarkly"]),
+            _proj("b", feature_flags=[], frameworks=["Gin"], source_files=30),
+        ]
+        conns = _find_feature_flag_patterns(projects)
+        gaps = [c for c in conns if c.type == "feature_flag_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", feature_flags=["LaunchDarkly"]),
+            _proj("b", feature_flags=[], frameworks=["React"], source_files=5),
+        ]
+        conns = _find_feature_flag_patterns(projects)
+        gaps = [c for c in conns if c.type == "feature_flag_gap"]
+        assert len(gaps) == 0
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", feature_flags=["LaunchDarkly"]),
+            _proj("b", feature_flags=["LaunchDarkly", "PostHog"]),
+        ]
+        conns = find_connections(projects)
+        flag_types = {c.type for c in conns if "feature_flag" in c.type}
+        assert "shared_feature_flag" in flag_types

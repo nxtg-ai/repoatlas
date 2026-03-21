@@ -588,6 +588,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_search": "Shared Search Engines",
         "search_divergence": "Search Engine Divergence",
         "search_gap": "Search Engine Gaps",
+        "shared_feature_flag": "Shared Feature Flags",
+        "feature_flag_divergence": "Feature Flag Divergence",
+        "feature_flag_gap": "Feature Flag Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

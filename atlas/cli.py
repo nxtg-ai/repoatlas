@@ -301,6 +301,7 @@ CONNECTION_CATEGORIES = {
     "cloud": {"shared_cloud", "cloud_divergence", "cloud_gap"},
     "queues": {"shared_task_queue", "task_queue_divergence", "task_queue_gap"},
     "search": {"shared_search", "search_divergence", "search_gap"},
+    "flags": {"shared_feature_flag", "feature_flag_divergence", "feature_flag_gap"},
 }
 
 

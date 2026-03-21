@@ -128,6 +128,9 @@ CONNECTION_ICONS = {
     "shared_search": "[green]\U0001f50d[/green]",
     "search_divergence": "[yellow]\U0001f50d[/yellow]",
     "search_gap": "[red]\U0001f50d[/red]",
+    "shared_feature_flag": "[green]\u2691[/green]",
+    "feature_flag_divergence": "[yellow]\u2691[/yellow]",
+    "feature_flag_gap": "[red]\u2691[/red]",
 }
 
 
@@ -712,6 +715,9 @@ def show_connections(connections: list[Connection]):
         "shared_search": "Shared Search Engines",
         "search_divergence": "Search Engine Divergence",
         "search_gap": "Search Engine Gaps",
+        "shared_feature_flag": "Shared Feature Flags",
+        "feature_flag_divergence": "Feature Flag Divergence",
+        "feature_flag_gap": "Feature Flag Gaps",
     }
 
     lines = []
@@ -780,6 +786,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_cloud": "cloud", "cloud_divergence": "cloud", "cloud_gap": "cloud",
         "shared_task_queue": "queues", "task_queue_divergence": "queues", "task_queue_gap": "queues",
         "shared_search": "search", "search_divergence": "search", "search_gap": "search",
+        "shared_feature_flag": "flags", "feature_flag_divergence": "flags", "feature_flag_gap": "flags",
     }
 
     for conn in connections:

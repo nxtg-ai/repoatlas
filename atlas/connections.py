@@ -41,6 +41,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_cloud_provider_patterns(projects))
     connections.extend(_find_task_queue_patterns(projects))
     connections.extend(_find_search_engine_patterns(projects))
+    connections.extend(_find_feature_flag_patterns(projects))
     return connections
 
 
@@ -2299,6 +2300,85 @@ def _find_search_engine_patterns(projects: list[Project]) -> list[Connection]:
                 type="search_gap",
                 detail=f"{len(no_search)} database-backed project(s) have no search engine detected",
                 projects=sorted(no_search),
+                severity="info",
+            ))
+
+    return connections[:10]
+
+
+def _find_feature_flag_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project feature flag patterns."""
+    connections: list[Connection] = []
+
+    # Shared feature flag tools — same tool used by 2+ projects
+    flag_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for f in p.tech_stack.feature_flags:
+            flag_to_projects[f].append(p.name)
+
+    for f, projs in sorted(flag_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_feature_flag",
+                detail=f"{f} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Feature flag divergence — different flag paradigms
+    saas = {"LaunchDarkly", "Split", "Statsig", "ConfigCat", "HappyKit",
+            "Vercel Flags"}
+    self_hosted = {"Unleash", "Flagsmith", "GrowthBook", "Flipper",
+                   "Togglz", "FF4J", "Waffle", "Flask-FeatureFlags"}
+    analytics = {"PostHog"}
+    standard = {"OpenFeature"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "saas": {}, "self_hosted": {}, "analytics": {}, "standard": {},
+    }
+    cat_sets = [
+        ("saas", saas),
+        ("self_hosted", self_hosted),
+        ("analytics", analytics),
+        ("standard", standard),
+    ]
+    for p in projects:
+        for f in p.tech_stack.feature_flags:
+            for cat_name, cat_set in cat_sets:
+                if f in cat_set:
+                    cat_found[cat_name].setdefault(f, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, flags in active_cats.items():
+            flag_names = ", ".join(sorted(flags.keys())[:3])
+            parts.append(f"{cat_name} ({flag_names})")
+            for ps in flags.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="feature_flag_divergence",
+            detail=f"Mixed feature flag approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # Feature flag gap — web projects with no feature flags
+    has_flags = {p.name for p in projects if p.tech_stack.feature_flags}
+    if has_flags:
+        no_flags = [p.name for p in projects
+                    if not p.tech_stack.feature_flags
+                    and p.source_file_count > 20
+                    and any(f in p.tech_stack.frameworks
+                            for f in ("Next.js", "React", "Vue.js", "Angular",
+                                      "Svelte", "Nuxt", "Remix", "FastAPI",
+                                      "Django", "Express", "NestJS"))]
+        if no_flags:
+            connections.append(Connection(
+                type="feature_flag_gap",
+                detail=f"{len(no_flags)} web project(s) have no feature flag tooling detected",
+                projects=sorted(no_flags),
                 severity="info",
             ))
 

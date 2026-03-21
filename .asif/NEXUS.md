@@ -110,8 +110,9 @@
 | N-97 | [Search Engine Intelligence](#n-97-search-engine-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-98 | [Doctor JSON Export](#n-98-doctor-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-99 | [Feature Flag Detection](#n-99-feature-flag-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-100 | [Feature Flag Intelligence](#n-100-feature-flag-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 96/99 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 97/100 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -183,7 +184,8 @@
 - Cross-project cloud provider intelligence (shared providers, hyperscaler vs edge/PaaS divergence, multi-hyperscaler complexity warnings, cloud gaps for deployed projects)
 - Cross-project task queue intelligence (shared task queues, traditional vs workflow vs cron paradigm divergence, task queue gaps for backend projects)
 - Cross-project search engine intelligence (shared search engines, server-side vs client-side vs SaaS paradigm divergence, search gaps for database-backed projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97
+- Cross-project feature flag intelligence (shared flag tools, SaaS vs self-hosted vs analytics paradigm divergence, feature flag gaps for web projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -609,6 +611,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-100: Feature Flag Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project feature flag intelligence: shared feature flag tools (shared_feature_flag), SaaS vs self-hosted vs analytics vs standard paradigm divergence (feature_flag_divergence), feature flag gaps for web projects (feature_flag_gap). New CONNECTION_CATEGORIES entry "flags". 10 tests.
+**Shipped**: 2026-03-21. Total test count: 1699 → 1709. 32nd intelligence feature.
 
 ### N-99: Feature Flag Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
