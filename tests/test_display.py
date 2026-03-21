@@ -6,7 +6,8 @@ from unittest.mock import patch
 
 from rich.console import Console
 
-from atlas.display import _show_portfolio_summary, show_quick_insights, show_status
+from atlas.display import _show_portfolio_summary, show_quick_insights, show_status, sparkline
+from atlas.history import ProjectSnapshot, ScanEntry
 from atlas.recommendations import Recommendation
 from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
@@ -50,12 +51,12 @@ def _capture_summary(projects: list[Project]) -> str:
     return buf.getvalue()
 
 
-def _capture_status(portfolio: Portfolio) -> str:
+def _capture_status(portfolio: Portfolio, history=None) -> str:
     """Capture rendered output from show_status."""
     buf = StringIO()
     test_console = Console(file=buf, force_terminal=False, width=120)
     with patch("atlas.display.console", test_console):
-        show_status(portfolio)
+        show_status(portfolio, history=history)
     return buf.getvalue()
 
 
@@ -473,3 +474,143 @@ class TestQuickInsights:
         output = _capture_quick_insights(recs)
         assert "app1" in output
         assert "app2" in output
+
+
+# ---------------------------------------------------------------------------
+# sparkline utility (N-54)
+# ---------------------------------------------------------------------------
+class TestSparkline:
+    def test_basic_ascending(self):
+        result = sparkline([0.0, 0.25, 0.5, 0.75, 1.0])
+        assert len(result) == 5
+        # First char should be the lowest, last the highest
+        assert result[0] == " "
+        assert result[-1] == "\u2588"
+
+    def test_all_zeros(self):
+        result = sparkline([0.0, 0.0, 0.0])
+        assert all(c == " " for c in result)
+
+    def test_all_ones(self):
+        result = sparkline([1.0, 1.0, 1.0])
+        assert all(c == "\u2588" for c in result)
+
+    def test_empty_returns_empty(self):
+        assert sparkline([]) == ""
+
+    def test_single_value(self):
+        result = sparkline([0.5])
+        assert len(result) == 1
+
+    def test_clamps_above_one(self):
+        result = sparkline([1.5])
+        assert result == "\u2588"
+
+    def test_clamps_below_zero(self):
+        result = sparkline([-0.5])
+        assert result == " "
+
+    def test_width_truncation(self):
+        values = [0.1 * i for i in range(20)]
+        result = sparkline(values, width=5)
+        assert len(result) == 5
+
+    def test_width_uses_recent_values(self):
+        # Width=3 should use last 3 values
+        values = [0.0, 0.0, 0.0, 0.5, 0.75, 1.0]
+        result = sparkline(values, width=3)
+        assert len(result) == 3
+        # Should represent the last 3: 0.5, 0.75, 1.0
+
+    def test_consistent_monotone_output(self):
+        values = [0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0]
+        result = sparkline(values, width=9)
+        # Each char should be >= the previous
+        for i in range(1, len(result)):
+            assert ord(result[i]) >= ord(result[i - 1])
+
+
+# ---------------------------------------------------------------------------
+# Health Trend Sparklines in dashboard (N-54)
+# ---------------------------------------------------------------------------
+def _make_history(project_name: str, health_values: list[float]) -> list[ScanEntry]:
+    """Build mock scan history entries with per-project health snapshots."""
+    entries = []
+    for i, h in enumerate(health_values):
+        entries.append(ScanEntry(
+            timestamp=f"2026-03-{20 + i:02d}T00:00:00Z",
+            portfolio_health=h,
+            portfolio_grade="B",
+            total_projects=1,
+            total_tests=10,
+            total_loc=1000,
+            projects=[ProjectSnapshot(name=project_name, health=h, grade="B", tests=10, loc=1000)],
+        ))
+    return entries
+
+
+class TestHealthTrendSparklines:
+    def test_trend_column_shown_with_history(self):
+        projects = [_proj("alpha")]
+        portfolio = Portfolio(name="Test", projects=projects)
+        history = _make_history("alpha", [0.5, 0.6, 0.7, 0.8])
+        output = _capture_status(portfolio, history=history)
+        assert "Trend" in output
+
+    def test_no_trend_column_without_history(self):
+        projects = [_proj("alpha")]
+        portfolio = Portfolio(name="Test", projects=projects)
+        output = _capture_status(portfolio)
+        assert "Trend" not in output
+
+    def test_no_trend_column_with_single_entry(self):
+        projects = [_proj("alpha")]
+        portfolio = Portfolio(name="Test", projects=projects)
+        history = _make_history("alpha", [0.8])
+        output = _capture_status(portfolio, history=history)
+        assert "Trend" not in output
+
+    def test_sparkline_chars_in_output(self):
+        projects = [_proj("alpha")]
+        portfolio = Portfolio(name="Test", projects=projects)
+        history = _make_history("alpha", [0.3, 0.5, 0.7, 0.9])
+        output = _capture_status(portfolio, history=history)
+        # Should contain at least one sparkline character
+        spark_chars = set("\u2581\u2582\u2583\u2584\u2585\u2586\u2587\u2588")
+        assert any(c in output for c in spark_chars)
+
+    def test_multiple_projects_sparklines(self):
+        projects = [_proj("alpha"), _proj("beta")]
+        portfolio = Portfolio(name="Test", projects=projects)
+        history = [
+            ScanEntry(
+                timestamp="2026-03-20T00:00:00Z", portfolio_health=0.5,
+                portfolio_grade="B", total_projects=2, total_tests=20, total_loc=2000,
+                projects=[
+                    ProjectSnapshot(name="alpha", health=0.5, grade="C", tests=10, loc=1000),
+                    ProjectSnapshot(name="beta", health=0.6, grade="B", tests=10, loc=1000),
+                ],
+            ),
+            ScanEntry(
+                timestamp="2026-03-21T00:00:00Z", portfolio_health=0.7,
+                portfolio_grade="B", total_projects=2, total_tests=20, total_loc=2000,
+                projects=[
+                    ProjectSnapshot(name="alpha", health=0.7, grade="B", tests=10, loc=1000),
+                    ProjectSnapshot(name="beta", health=0.8, grade="B+", tests=10, loc=1000),
+                ],
+            ),
+        ]
+        output = _capture_status(portfolio, history=history)
+        assert "Trend" in output
+
+    def test_empty_history_no_trend(self):
+        projects = [_proj("alpha")]
+        portfolio = Portfolio(name="Test", projects=projects)
+        output = _capture_status(portfolio, history=[])
+        assert "Trend" not in output
+
+    def test_none_history_no_trend(self):
+        projects = [_proj("alpha")]
+        portfolio = Portfolio(name="Test", projects=projects)
+        output = _capture_status(portfolio, history=None)
+        assert "Trend" not in output

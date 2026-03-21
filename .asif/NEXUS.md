@@ -64,8 +64,9 @@
 | N-51 | [Build Tool Intelligence](#n-51-build-tool-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-52 | [API Specification Detection](#n-52-api-specification-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-53 | [API Specification Intelligence](#n-53-api-specification-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-54 | [Health Trend Sparklines](#n-54-health-trend-sparklines) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 50/53 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 51/54 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -124,7 +125,8 @@
 - Filterable dashboard: `atlas status --grade A --lang Python --has Docker --min-health 80`
 - Quick insights: top 3 actionable recommendations shown inline in `atlas status` dashboard
 - CSV export: `atlas export --format csv` for spreadsheet-friendly portfolio data
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49
+- Health trend sparklines: Unicode mini-charts in `atlas status` showing per-project health history
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -291,6 +293,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project API specification pattern detection via `_find_api_spec_patterns()` in connections.py. Analyzes api_specs data from N-52 across the portfolio to detect: shared API specs (OpenAPI/GraphQL across 2+ projects, info), API paradigm divergence (REST vs GraphQL vs RPC across portfolio, info), and API spec gaps (projects with web frameworks like FastAPI/Django/Flask/Express but no API spec, warning). New connection types (`shared_api_spec`, `api_spec_divergence`, `api_spec_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps api_spec_gap and api_spec_divergence to `infra` recommendation categories. 16 API spec pattern tests.
 **Shipped**: 2026-03-21. Total test count: 999 → 1015. Completes N-52 detection→intelligence pipeline. All 15 detection→intelligence pipelines complete.
+
+### N-54: Health Trend Sparklines
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Unicode sparkline mini-charts in the `atlas status` dashboard showing per-project health trends over time. New `sparkline()` utility function in display.py renders float values (0.0–1.0) as Unicode block characters (▁▂▃▄▅▆▇█). `show_status()` accepts optional scan history, builds per-project health time series, and renders a "Trend" column when 2+ scan entries exist. Column hidden gracefully when no history available. CLI passes `load_history()` to `show_status()`. 10 sparkline unit tests + 7 dashboard integration tests.
+**Shipped**: 2026-03-21. Total test count: 1015 → 1032. Leverages N-13 scan history data for visual trend display.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

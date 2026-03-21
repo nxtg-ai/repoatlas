@@ -11,6 +11,19 @@ from atlas.models import Connection, Portfolio, Project
 
 console = Console()
 
+SPARK_CHARS = " \u2581\u2582\u2583\u2584\u2585\u2586\u2587\u2588"
+
+
+def sparkline(values: list[float], width: int = 7) -> str:
+    """Render a list of floats (0.0–1.0) as a Unicode sparkline string."""
+    if not values:
+        return ""
+    # Clamp values to [0, 1]
+    clamped = [max(0.0, min(1.0, v)) for v in values]
+    # Take the most recent `width` values
+    recent = clamped[-width:]
+    return "".join(SPARK_CHARS[int(v * (len(SPARK_CHARS) - 1))] for v in recent)
+
 HEALTH_COLORS = {
     "A": "bold green",
     "B+": "green",
@@ -73,8 +86,20 @@ CONNECTION_ICONS = {
 }
 
 
-def show_status(portfolio: Portfolio):
+def show_status(portfolio: Portfolio, history: list | None = None):
     """Display the full portfolio dashboard."""
+    # Build per-project sparkline data from history
+    project_sparklines: dict[str, str] = {}
+    if history and len(history) >= 2:
+        # Collect health values for each project across entries
+        project_health_series: dict[str, list[float]] = {}
+        for entry in history:
+            for snap in entry.projects:
+                project_health_series.setdefault(snap.name, []).append(snap.health)
+        for name, values in project_health_series.items():
+            if len(values) >= 2:
+                project_sparklines[name] = sparkline(values)
+
     # Header panel
     total_tests = portfolio.total_tests
     total_loc = portfolio.total_loc
@@ -127,6 +152,8 @@ def show_status(portfolio: Portfolio):
     table.add_column("Tests", justify="right", min_width=7)
     table.add_column("LOC", justify="right", min_width=8)
     table.add_column("Tech Stack", min_width=25)
+    if project_sparklines:
+        table.add_column("Trend", justify="center", min_width=9)
     table.add_column("Branch", style="dim", min_width=8)
     table.add_column("Commits", justify="right", style="dim", min_width=7)
 
@@ -149,7 +176,12 @@ def show_status(portfolio: Portfolio):
         branch = proj.git_info.branch[:12] if proj.git_info.branch else "[dim]-[/dim]"
         commits = str(proj.git_info.total_commits) if proj.git_info.total_commits > 0 else "[dim]-[/dim]"
 
-        table.add_row(icon, proj.name, health_str, tests_str, loc_str, tech, branch, commits)
+        if project_sparklines:
+            spark = project_sparklines.get(proj.name, "")
+            trend_str = f"[dim]{spark}[/dim]" if spark else "[dim]-[/dim]"
+            table.add_row(icon, proj.name, health_str, tests_str, loc_str, tech, trend_str, branch, commits)
+        else:
+            table.add_row(icon, proj.name, health_str, tests_str, loc_str, tech, branch, commits)
 
     console.print(table)
 

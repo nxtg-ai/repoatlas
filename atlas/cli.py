@@ -207,9 +207,9 @@ def status(
             last_scan=portfolio.last_scan,
         )
         console.print(f"  [dim]Filtered: {', '.join(active_filters)} ({len(filtered)}/{len(portfolio.projects)} projects)[/dim]")
-        show_status(view)
+        show_status(view, history=load_history())
     else:
-        show_status(portfolio)
+        show_status(portfolio, history=load_history())
 
     # Cross-project intelligence
     display_projects = filtered if active_filters else portfolio.projects
