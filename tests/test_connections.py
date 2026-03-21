@@ -4,6 +4,7 @@ from __future__ import annotations
 from atlas.connections import (
     _find_health_gaps,
     _find_infra_patterns,
+    _find_quality_patterns,
     _find_security_patterns,
     _find_shared_databases,
     _find_shared_deps,
@@ -15,8 +16,8 @@ from atlas.models import GitInfo, HealthScore, Project, TechStack
 
 
 def _proj(name: str, frameworks=None, key_deps=None, databases=None,
-          infrastructure=None, security_tools=None, test_files=0,
-          source_files=10, git_commits=20, uncommitted=0,
+          infrastructure=None, security_tools=None, quality_tools=None,
+          test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
         name=name,
@@ -27,6 +28,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             databases=databases or [],
             infrastructure=infrastructure or [],
             security_tools=security_tools or [],
+            quality_tools=quality_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -603,3 +605,138 @@ class TestFindSecurityPatterns:
         conns = find_connections(projects)
         sec_types = {c.type for c in conns if "security" in c.type}
         assert "shared_security" in sec_types
+
+
+# ---------------------------------------------------------------------------
+# _find_quality_patterns
+# ---------------------------------------------------------------------------
+class TestFindQualityPatterns:
+    def test_shared_quality_tool(self):
+        projects = [
+            _proj("a", quality_tools=["Ruff", "mypy"]),
+            _proj("b", quality_tools=["Ruff", "Black"]),
+        ]
+        conns = _find_quality_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_quality"]
+        assert any("Ruff" in c.detail for c in shared)
+        assert shared[0].severity == "info"
+
+    def test_shared_quality_needs_two_projects(self):
+        projects = [_proj("a", quality_tools=["Ruff"])]
+        conns = _find_quality_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_quality"]
+        assert shared == []
+
+    def test_no_quality_tooling_gap(self):
+        projects = [
+            _proj("linted", quality_tools=["Ruff"], source_files=20),
+            _proj("bare", quality_tools=[], source_files=20),
+        ]
+        conns = _find_quality_patterns(projects)
+        gaps = [c for c in conns if c.type == "quality_gap" and "no code quality" in c.detail]
+        assert len(gaps) == 1
+        assert "bare" in gaps[0].projects
+        assert gaps[0].severity == "critical"
+
+    def test_no_quality_gap_small_project(self):
+        projects = [_proj("tiny", quality_tools=[], source_files=3)]
+        conns = _find_quality_patterns(projects)
+        gaps = [c for c in conns if c.type == "quality_gap" and "no code quality" in c.detail]
+        assert gaps == []
+
+    def test_missing_linting(self):
+        projects = [
+            _proj("a", quality_tools=["Black", "mypy"], source_files=20),
+        ]
+        conns = _find_quality_patterns(projects)
+        gaps = [c for c in conns if c.type == "quality_gap" and "linting" in c.detail]
+        assert len(gaps) == 1
+        assert gaps[0].severity == "warning"
+
+    def test_no_linting_gap_when_present(self):
+        projects = [
+            _proj("a", quality_tools=["Ruff", "Black"], source_files=20),
+        ]
+        conns = _find_quality_patterns(projects)
+        gaps = [c for c in conns if c.type == "quality_gap" and "linting" in c.detail]
+        assert gaps == []
+
+    def test_eslint_counts_as_linter(self):
+        projects = [
+            _proj("a", quality_tools=["ESLint", "Prettier"], source_files=20),
+        ]
+        conns = _find_quality_patterns(projects)
+        gaps = [c for c in conns if c.type == "quality_gap" and "linting" in c.detail]
+        assert gaps == []
+
+    def test_missing_type_checking(self):
+        projects = [
+            _proj("a", quality_tools=["Ruff", "Black"], source_files=20),
+        ]
+        conns = _find_quality_patterns(projects)
+        gaps = [c for c in conns if c.type == "quality_gap" and "type checking" in c.detail]
+        assert len(gaps) == 1
+        assert gaps[0].severity == "warning"
+
+    def test_no_type_checking_gap_when_present(self):
+        projects = [
+            _proj("a", quality_tools=["Ruff", "mypy"], source_files=20),
+        ]
+        conns = _find_quality_patterns(projects)
+        gaps = [c for c in conns if c.type == "quality_gap" and "type checking" in c.detail]
+        assert gaps == []
+
+    def test_typescript_counts_as_type_checker(self):
+        projects = [
+            _proj("a", quality_tools=["ESLint", "TypeScript"], source_files=20),
+        ]
+        conns = _find_quality_patterns(projects)
+        gaps = [c for c in conns if c.type == "quality_gap" and "type checking" in c.detail]
+        assert gaps == []
+
+    def test_linter_divergence(self):
+        projects = [
+            _proj("a", quality_tools=["Ruff"]),
+            _proj("b", quality_tools=["Flake8"]),
+        ]
+        conns = _find_quality_patterns(projects)
+        diverge = [c for c in conns if c.type == "quality_divergence"]
+        assert len(diverge) == 1
+        assert "standardize" in diverge[0].detail.lower()
+        assert diverge[0].severity == "warning"
+
+    def test_no_divergence_single_linter(self):
+        projects = [
+            _proj("a", quality_tools=["Ruff"]),
+            _proj("b", quality_tools=["Ruff"]),
+        ]
+        conns = _find_quality_patterns(projects)
+        diverge = [c for c in conns if c.type == "quality_divergence"]
+        assert diverge == []
+
+    def test_empty_projects(self):
+        assert _find_quality_patterns([]) == []
+
+    def test_all_quality_no_gaps(self):
+        projects = [
+            _proj("a", quality_tools=["Ruff", "mypy", "Black"], source_files=20),
+            _proj("b", quality_tools=["Ruff", "Pyright", "Black"], source_files=20),
+        ]
+        conns = _find_quality_patterns(projects)
+        gaps = [c for c in conns if c.type == "quality_gap"]
+        assert gaps == []
+
+    def test_limit_10(self):
+        tools = [f"tool{i}" for i in range(20)]
+        projects = [_proj("a", quality_tools=tools), _proj("b", quality_tools=tools)]
+        conns = _find_quality_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", quality_tools=["Ruff", "mypy"]),
+            _proj("b", quality_tools=["Ruff", "Flake8"]),
+        ]
+        conns = find_connections(projects)
+        qt_types = {c.type for c in conns if "quality" in c.type}
+        assert "shared_quality" in qt_types

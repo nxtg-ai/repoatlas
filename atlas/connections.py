@@ -16,6 +16,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_shared_databases(projects))
     connections.extend(_find_infra_patterns(projects))
     connections.extend(_find_security_patterns(projects))
+    connections.extend(_find_quality_patterns(projects))
     return connections
 
 
@@ -331,6 +332,86 @@ def _find_security_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="security_divergence",
             detail=f"Multiple dep scanners: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_quality_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project code quality patterns."""
+    connections: list[Connection] = []
+    qt_to_projects: dict[str, list[str]] = defaultdict(list)
+
+    for proj in projects:
+        for tool in proj.tech_stack.quality_tools:
+            qt_to_projects[tool].append(proj.name)
+
+    # Shared quality tools (2+ projects)
+    for tool, projs in sorted(qt_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_quality",
+                detail=f"{tool} used across {len(projs)} projects — share config",
+                projects=projs,
+                severity="info",
+            ))
+
+    # No quality tooling at all
+    no_quality = [p.name for p in projects if not p.tech_stack.quality_tools and p.source_file_count > 5]
+    if no_quality:
+        connections.append(Connection(
+            type="quality_gap",
+            detail=f"{len(no_quality)} projects have no code quality tooling",
+            projects=no_quality,
+            severity="critical",
+        ))
+
+    # Missing linting
+    linters = {"Ruff", "Flake8", "Pylint", "ESLint", "Biome", "golangci-lint", "Clippy"}
+    no_linting = [
+        p.name for p in projects
+        if p.tech_stack.quality_tools
+        and not any(t in linters for t in p.tech_stack.quality_tools)
+        and p.source_file_count > 5
+    ]
+    if no_linting:
+        connections.append(Connection(
+            type="quality_gap",
+            detail=f"{len(no_linting)} projects lack linting — add Ruff/ESLint",
+            projects=no_linting,
+            severity="warning",
+        ))
+
+    # Missing type checking
+    type_checkers = {"mypy", "Pyright", "TypeScript"}
+    no_types = [
+        p.name for p in projects
+        if p.tech_stack.quality_tools
+        and not any(t in type_checkers for t in p.tech_stack.quality_tools)
+        and p.source_file_count > 5
+    ]
+    if no_types:
+        connections.append(Connection(
+            type="quality_gap",
+            detail=f"{len(no_types)} projects lack type checking — add mypy/Pyright/TypeScript",
+            projects=no_types,
+            severity="warning",
+        ))
+
+    # Linter divergence — multiple linters across portfolio
+    linter_to_projects: dict[str, list[str]] = defaultdict(list)
+    for proj in projects:
+        for tool in proj.tech_stack.quality_tools:
+            if tool in linters:
+                linter_to_projects[tool].append(proj.name)
+    if len(linter_to_projects) >= 2:
+        detail_parts = [f"{tool} ({', '.join(ps[:3])})" for tool, ps in linter_to_projects.items()]
+        all_projects = list({p for ps in linter_to_projects.values() for p in ps})
+        connections.append(Connection(
+            type="quality_divergence",
+            detail=f"Multiple linters: {', '.join(detail_parts)} — standardize",
             projects=all_projects,
             severity="warning",
         ))

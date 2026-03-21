@@ -39,6 +39,9 @@ CONNECTION_ICONS = {
     "shared_security": "[green]\u2611[/green]",
     "security_divergence": "[yellow]\u2610[/yellow]",
     "security_gap": "[red]\u2612[/red]",
+    "shared_quality": "[green]\u2714[/green]",
+    "quality_divergence": "[yellow]\u2702[/yellow]",
+    "quality_gap": "[red]\u2718[/red]",
 }
 
 
@@ -258,6 +261,9 @@ def show_connections(connections: list[Connection]):
         "shared_security": "Shared Security Tools",
         "security_divergence": "Security Divergence",
         "security_gap": "Security Gaps",
+        "shared_quality": "Shared Quality Tools",
+        "quality_divergence": "Quality Divergence",
+        "quality_gap": "Quality Gaps",
     }
 
     lines = []

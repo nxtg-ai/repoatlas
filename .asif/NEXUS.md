@@ -35,8 +35,9 @@
 | N-22 | [Rich Markdown Export](#n-22-rich-markdown-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 | N-23 | [Security Intelligence](#n-23-security-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-24 | [Code Quality Tooling Detection](#n-24-code-quality-tooling-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
+| N-25 | [Quality Intelligence](#n-25-quality-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 21/24 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 22/25 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -57,7 +58,8 @@
 - Side-by-side project comparison with actionable insights
 - Cross-project infrastructure intelligence (shared infra, divergence, gaps)
 - Cross-project security intelligence (shared tools, adoption gaps, divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23
+- Cross-project quality intelligence (shared tools, adoption gaps, linter divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -183,6 +185,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Refactored markdown export into dedicated `export_report.py` module with `build_markdown_report()`. Generates comprehensive portfolio reports: header with aggregate stats, project table sorted by health, portfolio summary (languages, frameworks, infra coverage, security posture, AI/ML adoption), per-project details (health breakdown across 4 dimensions, all tech stack fields, git info), and cross-project intelligence grouped by type with severity icons. Replaces inline markdown generation in cli.py. 23 export tests.
 **Shipped**: 2026-03-13. Total test count: 483 → 506. Surfaces all detection data (N-17, N-19, N-21) in exported reports.
+
+### N-25: Quality Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project quality pattern detection via `_find_quality_patterns()` in connections.py. Analyzes quality tooling from N-24 across the portfolio to detect: shared quality tools (Ruff/mypy across 2+ projects), quality adoption gaps (no tooling, missing linting, missing type checking), and linter divergence (multiple linters across portfolio). New connection types (`shared_quality`, `quality_divergence`, `quality_gap`) displayed in `atlas connections` and markdown export. 16 quality pattern tests.
+**Shipped**: 2026-03-13. Total test count: 567 → 583. Completes N-24 detection→intelligence pipeline. Parallels N-19→N-23 and N-17→N-18 patterns.
 
 ### N-24: Code Quality Tooling Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
