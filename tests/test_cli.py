@@ -210,6 +210,53 @@ class TestConnections:
 
 
 # ===========================================================================
+# atlas doctor
+# ===========================================================================
+
+
+class TestDoctor:
+    def test_doctor_with_healthy_project(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+
+    def test_doctor_empty_portfolio(self, portfolio_dir):
+        runner.invoke(app, ["init"])
+        result = runner.invoke(app, ["doctor"])
+        assert "No projects" in result.output
+
+    def test_doctor_no_portfolio(self, portfolio_dir):
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 1
+
+    def test_doctor_shows_recommendations(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "bad-proj"
+        d.mkdir()
+        # Create a project with poor health
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.3, documentation=0.1, structure=0.2)
+        hs.compute()
+        proj = Project(
+            name="bad-proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=10, has_remote=False, uncommitted_changes=60),
+            health=hs, test_file_count=0, source_file_count=30, total_file_count=30, loc=2000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "recommendation" in result.output.lower()
+        assert "CRITICAL" in result.output
+
+
+# ===========================================================================
 # atlas inspect
 # ===========================================================================
 

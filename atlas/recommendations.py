@@ -1,0 +1,152 @@
+"""Recommendations engine — turns health data into actionable suggestions."""
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from atlas.connections import find_connections
+from atlas.models import Portfolio, Project
+
+
+@dataclass
+class Recommendation:
+    priority: str  # critical, high, medium, low
+    category: str  # tests, git, docs, structure, deps
+    message: str
+    projects: list[str]
+
+    @property
+    def icon(self) -> str:
+        return {
+            "critical": "[red]\u2716[/red]",
+            "high": "[yellow]\u26a0[/yellow]",
+            "medium": "[cyan]\u2139[/cyan]",
+            "low": "[dim]\u2022[/dim]",
+        }.get(self.priority, " ")
+
+
+PRIORITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+
+
+def generate_recommendations(portfolio: Portfolio) -> list[Recommendation]:
+    """Analyze portfolio and return prioritized recommendations."""
+    recs: list[Recommendation] = []
+
+    for project in portfolio.projects:
+        recs.extend(_project_recommendations(project))
+
+    if len(portfolio.projects) > 1:
+        recs.extend(_cross_project_recommendations(portfolio))
+
+    recs.sort(key=lambda r: (PRIORITY_ORDER.get(r.priority, 99), r.category))
+    return recs
+
+
+def _project_recommendations(project: Project) -> list[Recommendation]:
+    """Generate recommendations for a single project."""
+    recs: list[Recommendation] = []
+    name = project.name
+
+    # --- Tests ---
+    if project.test_file_count == 0 and project.source_file_count > 5:
+        recs.append(Recommendation(
+            priority="critical",
+            category="tests",
+            message=f"Zero tests in {name} ({project.source_file_count} source files). Add test coverage.",
+            projects=[name],
+        ))
+    elif project.health.tests < 0.5 and project.source_file_count > 5:
+        recs.append(Recommendation(
+            priority="high",
+            category="tests",
+            message=f"Low test coverage in {name} ({project.test_file_count} test files / {project.source_file_count} source files).",
+            projects=[name],
+        ))
+
+    # --- Git hygiene ---
+    if project.git_info.uncommitted_changes > 50:
+        recs.append(Recommendation(
+            priority="high",
+            category="git",
+            message=f"{name} has {project.git_info.uncommitted_changes} uncommitted changes. Commit or stash.",
+            projects=[name],
+        ))
+    elif project.git_info.uncommitted_changes > 10:
+        recs.append(Recommendation(
+            priority="medium",
+            category="git",
+            message=f"{name} has {project.git_info.uncommitted_changes} uncommitted changes.",
+            projects=[name],
+        ))
+
+    if not project.git_info.has_remote and project.git_info.total_commits > 0:
+        recs.append(Recommendation(
+            priority="high",
+            category="git",
+            message=f"{name} has no remote. Push to GitHub/GitLab for backup.",
+            projects=[name],
+        ))
+
+    # --- Documentation ---
+    if project.health.documentation < 0.2:
+        recs.append(Recommendation(
+            priority="high",
+            category="docs",
+            message=f"{name} has minimal documentation. Add a README.",
+            projects=[name],
+        ))
+    elif project.health.documentation < 0.5:
+        recs.append(Recommendation(
+            priority="medium",
+            category="docs",
+            message=f"{name} documentation is sparse. Consider adding CHANGELOG or docs/.",
+            projects=[name],
+        ))
+
+    # --- Structure ---
+    if project.health.structure < 0.3 and project.source_file_count > 5:
+        recs.append(Recommendation(
+            priority="high",
+            category="structure",
+            message=f"{name} has no CI. Add a GitHub Actions workflow.",
+            projects=[name],
+        ))
+
+    return recs
+
+
+def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]:
+    """Generate recommendations from cross-project analysis."""
+    recs: list[Recommendation] = []
+    connections = find_connections(portfolio.projects)
+
+    for conn in connections:
+        if conn.type == "version_mismatch":
+            recs.append(Recommendation(
+                priority="high",
+                category="deps",
+                message=f"Version mismatch: {conn.detail}. Standardize across projects.",
+                projects=conn.projects,
+            ))
+        elif conn.type == "health_gap" and conn.severity == "critical":
+            recs.append(Recommendation(
+                priority="critical",
+                category="tests",
+                message=conn.detail,
+                projects=conn.projects,
+            ))
+
+    # Overall portfolio health
+    low_health = [
+        p for p in portfolio.projects
+        if p.health.overall < 0.6
+    ]
+    if low_health:
+        worst = min(low_health, key=lambda p: p.health.overall)
+        recs.append(Recommendation(
+            priority="medium",
+            category="structure",
+            message=f"Focus improvements on {worst.name} (grade {worst.health.grade}, {worst.health.percent}%) — lowest health in portfolio.",
+            projects=[worst.name],
+        ))
+
+    return recs

@@ -145,6 +145,7 @@ Atlas finds patterns across your repos that no single-repo tool can see:
 | `atlas inspect <name>` | Deep-dive on one project |
 | `atlas remove <name>` | Remove a project |
 | `atlas connections` | Cross-project patterns |
+| `atlas doctor` | Diagnose issues and suggest fixes |
 | `atlas batch-add <dir>` | Add all repos in a directory |
 | `atlas export` | Markdown/JSON report |
 | `atlas support` | How to support this project |

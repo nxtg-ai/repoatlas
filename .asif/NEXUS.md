@@ -22,8 +22,9 @@
 | N-09 | [Pro Tier / Monetization](#n-09-pro-tier-monetization) | DISTRIBUTION | DECIDED | P2 | 2026-03-13 |
 | N-10 | [Tag-Based Release Automation](#n-10-tag-based-release-automation) | DISTRIBUTION | SHIPPED | P1 | 2026-03-13 |
 | N-11 | [CLI Integration Tests](#n-11-cli-integration-tests) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
+| N-12 | [Doctor — Actionable Recommendations](#n-12-doctor-actionable-recommendations) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 8/11 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 9/12 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -108,6 +109,11 @@
 **What**: GitHub Actions release workflow triggered by git tags (`v*`). Runs full test matrix, builds sdist+wheel, validates with twine check, publishes to PyPI via Trusted Publisher (OIDC), and creates GitHub Release with auto-generated notes. Replaces fragile commit-message-based publish trigger.
 **Shipped**: 2026-03-13. Release flow: `git tag v0.2.0 && git push origin v0.2.0` — everything else is automated.
 **Impact**: Simplifies N-06 unblock — Asif only needs to configure PyPI Trusted Publisher for `nxtg-ai/repoatlas`, then push a tag.
+
+### N-12: Doctor — Actionable Recommendations
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: New `atlas doctor` command with recommendations engine (`recommendations.py`). Analyzes per-project health (tests, git, docs, structure) and cross-project patterns (version mismatches, health focus). Outputs prioritized suggestions (critical/high/medium/low) with specific fix actions. 24 recommendation tests + 4 CLI doctor tests.
+**Shipped**: 2026-03-13. Total test count: 284 → 312. README commands table updated.
 
 ### N-11: CLI Integration Tests
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

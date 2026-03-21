@@ -13,6 +13,7 @@ from atlas.connections import find_connections
 from atlas.display import console, show_connections, show_project_card, show_scan_complete, show_status
 from atlas.license_manager import activate as activate_license, get_status as get_license_status
 from atlas.models import Portfolio
+from atlas.recommendations import generate_recommendations
 from atlas.scanner import scan_project
 
 app = typer.Typer(
@@ -176,6 +177,45 @@ def connections():
     conns = find_connections(portfolio.projects)
     console.print()
     show_connections(conns)
+
+
+@app.command()
+def doctor():
+    """Diagnose portfolio health and suggest fixes."""
+    portfolio = _load_portfolio()
+
+    if not portfolio.projects:
+        console.print("[yellow]No projects in portfolio.[/yellow]")
+        return
+
+    recs = generate_recommendations(portfolio)
+
+    console.print()
+    if not recs:
+        console.print("  [green]\u2713[/green] [bold]Portfolio is healthy![/bold] No issues found.")
+        console.print()
+        return
+
+    console.print(f"  [bold]Found {len(recs)} recommendation{'s' if len(recs) != 1 else ''}:[/bold]")
+    console.print()
+
+    for rec in recs:
+        proj_list = ", ".join(rec.projects[:3])
+        if len(rec.projects) > 3:
+            proj_list += f" +{len(rec.projects) - 3}"
+        console.print(f"  {rec.icon} [{rec.priority.upper()}] {rec.message}")
+
+    # Summary counts
+    counts = {}
+    for rec in recs:
+        counts[rec.priority] = counts.get(rec.priority, 0) + 1
+    parts = []
+    for p in ("critical", "high", "medium", "low"):
+        if p in counts:
+            parts.append(f"{counts[p]} {p}")
+    console.print()
+    console.print(f"  [dim]Summary: {', '.join(parts)}[/dim]")
+    console.print()
 
 
 @app.command()
