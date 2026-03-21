@@ -1482,7 +1482,7 @@ def version():
     """Show the installed atlas version."""
     try:
         from importlib.metadata import version as pkg_version
-        ver = pkg_version("atlas-portfolio")
+        ver = pkg_version("nxtg-atlas")
     except Exception:
         ver = "dev"
     console.print(f"atlas {ver}")
