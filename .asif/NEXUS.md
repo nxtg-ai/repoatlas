@@ -38,8 +38,9 @@
 | N-25 | [Quality Intelligence](#n-25-quality-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-26 | [Enhanced Doctor Recommendations](#n-26-enhanced-doctor-recommendations) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 | N-27 | [AI/ML Intelligence](#n-27-aiml-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
+| N-28 | [Testing Framework Detection](#n-28-testing-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 24/27 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 25/28 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -52,7 +53,8 @@
 - Security posture: Dependabot, Renovate, Snyk, CodeQL, Bandit, Gitleaks, Trivy, SECURITY.md
 - AI/ML tooling: Anthropic, OpenAI, LangChain, LlamaIndex, Transformers, PyTorch, TensorFlow, Vercel AI SDK, MLflow, W&B, DVC, Jupyter
 - Code quality tooling: Ruff, Flake8, Pylint, ESLint, Biome, Black, Prettier, mypy, Pyright, TypeScript, golangci-lint, Clippy
-- **Shipped**: N-01, N-17, N-19, N-21, N-24
+- Testing frameworks: pytest, Jest, Vitest, Mocha, Cypress, Playwright, go test, cargo test, tox, nox, Hypothesis, AVA, Testing Library
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -209,6 +211,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Enhanced `atlas doctor` recommendations engine to leverage all detection data from N-17/N-19/N-24/N-25. Per-project: security (no tooling, missing dep scanning, missing secret scanning), quality (no tooling, missing linting, missing type checking), infrastructure (no CI/CD). Cross-project: maps security_gap/security_divergence, quality_gap/quality_divergence, infra_gap/infra_divergence connections to prioritized recommendations. 23 new recommendation tests.
 **Shipped**: 2026-03-13. Total test count: 583 → 606. Surfaces all detection+intelligence data through actionable `atlas doctor` output.
+
+### N-28: Testing Framework Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_testing_frameworks()` in detector.py. Detects testing frameworks and tools across projects: Python (pytest, tox, nox, Hypothesis, coverage.py, nose2), JavaScript/TypeScript (Jest, Vitest, Mocha, Cypress, Playwright, AVA, Testing Library), Go (go test from _test.go files), Rust (cargo test from Cargo.toml). Reads config files (pytest.ini, jest.config.*, vitest.config.*, .mocharc.*, cypress.config.*, playwright.config.*), dependency files, and conftest.py. Added `testing_frameworks` field to TechStack model. Shows in `atlas inspect` and markdown export. 30 testing framework tests.
+**Shipped**: 2026-03-13. Total test count: 621 → 651. Separates testing tools from general frameworks for dedicated visibility.
 
 ### N-27: AI/ML Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

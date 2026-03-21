@@ -330,6 +330,10 @@ def show_project_card(project: Project):
         qt = ", ".join(project.tech_stack.quality_tools[:6])
         lines.append(f"  [bold]Quality:[/bold]    {qt}")
 
+    if project.tech_stack.testing_frameworks:
+        tf = ", ".join(project.tech_stack.testing_frameworks[:6])
+        lines.append(f"  [bold]Testing:[/bold]    {tf}")
+
     if project.git_info.branch:
         lines.append(f"  [bold]Branch:[/bold]    {project.git_info.branch}")
         lines.append(f"  [bold]Commits:[/bold]   {project.git_info.total_commits:,}")

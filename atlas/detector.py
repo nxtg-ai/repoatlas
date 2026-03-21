@@ -527,6 +527,121 @@ def detect_quality_tools(project_path: Path) -> list[str]:
     return tools
 
 
+def detect_testing_frameworks(project_path: Path) -> list[str]:
+    """Detect testing frameworks and tools."""
+    tools: list[str] = []
+
+    # --- Python testing ---
+    # pytest (config files)
+    if (project_path / "pytest.ini").exists():
+        _check_add(tools, "pytest", "pytest", "pytest")
+    if (project_path / "conftest.py").exists():
+        _check_add(tools, "pytest", "pytest", "pytest")
+    pyproject = project_path / "pyproject.toml"
+    if pyproject.exists():
+        content = pyproject.read_text(errors="ignore").lower()
+        if "[tool.pytest" in content:
+            _check_add(tools, "pytest", "pytest", "pytest")
+
+    # tox
+    if (project_path / "tox.ini").exists():
+        tools.append("tox")
+
+    # nox
+    if (project_path / "noxfile.py").exists():
+        tools.append("nox")
+
+    # Python deps
+    for cfg in ("pyproject.toml", "requirements.txt", "requirements-dev.txt"):
+        path = project_path / cfg
+        if path.exists():
+            content = path.read_text(errors="ignore").lower()
+            _check_add(tools, content, "pytest", "pytest")
+            _check_add(tools, content, "unittest2", "unittest2")
+            _check_add(tools, content, "nose2", "nose2")
+            _check_add(tools, content, "hypothesis", "Hypothesis")
+            _check_add(tools, content, "coverage", "coverage.py")
+
+    # --- JavaScript/TypeScript testing ---
+    # Jest config
+    jest_configs = ("jest.config.js", "jest.config.ts", "jest.config.mjs",
+                    "jest.config.cjs", "jest.config.json")
+    for cfg in jest_configs:
+        if (project_path / cfg).exists():
+            _check_add(tools, "jest", "jest", "Jest")
+            break
+
+    # Vitest config
+    vitest_configs = ("vitest.config.ts", "vitest.config.js", "vitest.config.mts",
+                      "vitest.config.mjs")
+    for cfg in vitest_configs:
+        if (project_path / cfg).exists():
+            _check_add(tools, "vitest", "vitest", "Vitest")
+            break
+
+    # Mocha config
+    mocha_configs = (".mocharc.yml", ".mocharc.yaml", ".mocharc.json", ".mocharc.js")
+    for cfg in mocha_configs:
+        if (project_path / cfg).exists():
+            _check_add(tools, "mocha", "mocha", "Mocha")
+            break
+
+    # Cypress
+    cypress_configs = ("cypress.config.ts", "cypress.config.js", "cypress.config.mjs")
+    for cfg in cypress_configs:
+        if (project_path / cfg).exists():
+            _check_add(tools, "cypress", "cypress", "Cypress")
+            break
+    if (project_path / "cypress").is_dir():
+        _check_add(tools, "cypress", "cypress", "Cypress")
+
+    # Playwright config
+    playwright_configs = ("playwright.config.ts", "playwright.config.js")
+    for cfg in playwright_configs:
+        if (project_path / cfg).exists():
+            _check_add(tools, "playwright", "playwright", "Playwright")
+            break
+
+    # JS deps
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text())
+            all_deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
+            js_test = {
+                "jest": "Jest",
+                "vitest": "Vitest",
+                "mocha": "Mocha",
+                "cypress": "Cypress",
+                "@playwright/test": "Playwright",
+                "ava": "AVA",
+                "@testing-library/react": "Testing Library",
+                "@testing-library/jest-dom": "Testing Library",
+            }
+            for dep, name in js_test.items():
+                if dep in all_deps and name not in tools:
+                    tools.append(name)
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    # --- Go testing ---
+    # go test is built-in; detect by _test.go files
+    if (project_path / "go.mod").exists():
+        try:
+            for f in walk_files(project_path):
+                if f.name.endswith("_test.go"):
+                    tools.append("go test")
+                    break
+        except OSError:
+            pass
+
+    # --- Rust testing ---
+    if (project_path / "Cargo.toml").exists():
+        tools.append("cargo test")
+
+    return tools
+
+
 def _detect_cloud_from_deps(project_path: Path, infra: list[str]) -> None:
     """Detect cloud providers from dependency files."""
     search_files = ("pyproject.toml", "requirements.txt", "package.json")
