@@ -79,8 +79,9 @@
 | N-66 | [Export Format Auto-Detection](#n-66-export-format-auto-detection) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-67 | [Frontend State Management Detection](#n-67-frontend-state-management-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-68 | [State Management Intelligence](#n-68-state-management-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-69 | [Doctor Category Summary](#n-69-doctor-category-summary) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 65/68 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 66/69 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -154,7 +155,8 @@
 - Connection category filtering: `atlas connections --type security` to filter cross-project intelligence by category (19 categories)
 - Connection statistics panel: summary of total connections, severity breakdown (critical/warning/info), top categories by count
 - Export format auto-detection: `atlas export -o report.json` auto-detects format from file extension (.md/.json/.csv)
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66
+- Doctor category summary: `atlas doctor` shows recommendation category breakdown (e.g., "3 security, 2 testing, 1 infra") after priority summary
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -396,6 +398,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project state management pattern detection via `_find_state_management_patterns()` in connections.py. Analyzes state_management data from N-67 across the portfolio to detect: shared state management libraries (Redux/Zustand across 2+ projects, info), paradigm divergence (flux/store vs proxy-based vs atomic vs state machines vs Vue vs Angular paradigm families, warning), and state management gaps (frontend projects with React/Vue/Angular/etc. frameworks and 10+ source files but no state management library, warning). New connection types (`shared_state_mgmt`, `state_mgmt_divergence`, `state_mgmt_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps state_mgmt_gap and state_mgmt_divergence to `frontend` recommendation category. 20 categories in CONNECTION_CATEGORIES. 16 intelligence tests.
 **Shipped**: 2026-03-21. Total test count: 1268 → 1284. Completes N-67 detection→intelligence pipeline.
+
+### N-69: Doctor Category Summary
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: `atlas doctor` now shows a category breakdown line after the priority summary (e.g., "Categories: 3 security, 2 testing, 1 infra"). Groups recommendations by category and displays counts sorted by frequency (most common first). Helps users prioritize remediation by domain area rather than just severity. 3 tests.
+**Shipped**: 2026-03-21. Total test count: 1284 → 1287. 20th experience feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

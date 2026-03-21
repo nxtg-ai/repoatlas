@@ -348,6 +348,13 @@ def doctor():
             parts.append(f"{counts[p]} {p}")
     console.print()
     console.print(f"  [dim]Summary: {', '.join(parts)}[/dim]")
+
+    # Category breakdown
+    cat_counts: dict[str, int] = {}
+    for rec in recs:
+        cat_counts[rec.category] = cat_counts.get(rec.category, 0) + 1
+    cat_parts = [f"{v} {k}" for k, v in sorted(cat_counts.items(), key=lambda x: x[1], reverse=True)]
+    console.print(f"  [dim]Categories: {', '.join(cat_parts)}[/dim]")
     console.print()
 
 

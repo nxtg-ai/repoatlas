@@ -315,6 +315,62 @@ class TestDoctor:
         assert "recommendation" in result.output.lower()
         assert "CRITICAL" in result.output
 
+    def test_doctor_shows_category_summary(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "bad-proj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.3, documentation=0.1, structure=0.2)
+        hs.compute()
+        proj = Project(
+            name="bad-proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=10, has_remote=False, uncommitted_changes=60),
+            health=hs, test_file_count=0, source_file_count=30, total_file_count=30, loc=2000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "Categories:" in result.output
+
+    def test_doctor_category_summary_counts(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = Project(
+            name="proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        # Should show category names in summary
+        out = result.output
+        assert "Categories:" in out
+        # At least one category should appear with a count
+        import re
+        cat_match = re.search(r"Categories:\s*(.+)", out)
+        assert cat_match is not None
+        cat_text = cat_match.group(1)
+        # Format is "N category, M category, ..."
+        assert re.search(r"\d+\s+\w+", cat_text) is not None
+
+    def test_doctor_healthy_no_category_summary(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        # Empty portfolio = no recs = no category summary
+        assert "Categories:" not in result.output
+
 
 # ===========================================================================
 # atlas ci
