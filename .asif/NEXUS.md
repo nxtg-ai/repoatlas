@@ -45,8 +45,9 @@
 | N-32 | [Database Intelligence](#n-32-database-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-33 | [Database Summary Panel](#n-33-database-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-34 | [Package Manager Detection](#n-34-package-manager-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-35 | [Package Manager Intelligence](#n-35-package-manager-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 31/34 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 32/35 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -74,7 +75,8 @@
 - Cross-project AI/ML intelligence (shared tools, LLM provider divergence, experiment tracking gaps)
 - Cross-project testing intelligence (shared frameworks, runner divergence, testing gaps)
 - Cross-project database intelligence (shared databases, relational/vector/broker divergence, database gaps)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32
+- Cross-project package manager intelligence (shared managers, JS/Python/Java divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -223,6 +225,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Enhanced `atlas doctor` recommendations engine to leverage all detection data from N-17/N-19/N-24/N-25. Per-project: security (no tooling, missing dep scanning, missing secret scanning), quality (no tooling, missing linting, missing type checking), infrastructure (no CI/CD). Cross-project: maps security_gap/security_divergence, quality_gap/quality_divergence, infra_gap/infra_divergence connections to prioritized recommendations. 23 new recommendation tests.
 **Shipped**: 2026-03-13. Total test count: 583 → 606. Surfaces all detection+intelligence data through actionable `atlas doctor` output.
+
+### N-35: Package Manager Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project package manager pattern detection via `_find_package_manager_patterns()` in connections.py. Detects: shared package managers (Poetry/npm across 2+ projects), JS package manager divergence (npm vs Yarn vs pnpm vs Bun), Python package manager divergence (pip vs Poetry vs PDM vs uv vs Pipenv), Java build tool divergence (Maven vs Gradle). New connection types (`shared_pkg_manager`, `pkg_manager_divergence`) displayed in `atlas connections`, markdown export, and `atlas doctor`. 13 package manager pattern tests.
+**Shipped**: 2026-03-21. Total test count: 736 → 749. Completes N-34 detection→intelligence pipeline. All 7 detection→intelligence pipelines complete.
 
 ### N-34: Package Manager Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

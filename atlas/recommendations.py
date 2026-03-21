@@ -207,6 +207,7 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "testing_divergence": "tests",
         "database_gap": "deps",
         "database_divergence": "deps",
+        "pkg_manager_divergence": "deps",
     }
 
     for conn in connections:

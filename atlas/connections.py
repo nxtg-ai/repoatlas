@@ -19,6 +19,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_quality_patterns(projects))
     connections.extend(_find_ai_patterns(projects))
     connections.extend(_find_testing_patterns(projects))
+    connections.extend(_find_package_manager_patterns(projects))
     return connections
 
 
@@ -635,6 +636,85 @@ def _find_testing_patterns(projects: list[Project]) -> list[Connection]:
             detail=f"{len(no_testing)} projects have no testing framework — add pytest/Jest",
             projects=no_testing,
             severity="critical",
+        ))
+
+    return connections[:10]
+
+
+def _find_package_manager_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project package manager patterns."""
+    connections: list[Connection] = []
+
+    # Shared package managers (2+ projects)
+    from collections import Counter
+    pm_counter: Counter[str] = Counter()
+    pm_projects: dict[str, list[str]] = {}
+    for p in projects:
+        for pm in p.tech_stack.package_managers:
+            pm_counter[pm] += 1
+            pm_projects.setdefault(pm, []).append(p.name)
+
+    for pm, count in pm_counter.most_common():
+        if count >= 2:
+            connections.append(Connection(
+                type="shared_pkg_manager",
+                detail=f"{pm} used in {count} projects — share configs/scripts",
+                projects=pm_projects[pm],
+                severity="info",
+            ))
+
+    # JS package manager divergence (npm vs yarn vs pnpm vs bun)
+    js_managers = {"npm", "Yarn", "pnpm", "Bun"}
+    js_divergence: dict[str, set[str]] = {}
+    for p in projects:
+        for pm in p.tech_stack.package_managers:
+            if pm in js_managers:
+                js_divergence.setdefault(pm, set()).add(p.name)
+
+    if len(js_divergence) >= 2:
+        detail_parts = [f"{pm} ({', '.join(sorted(projs))})" for pm, projs in js_divergence.items()]
+        all_projects = sorted({p for projs in js_divergence.values() for p in projs})
+        connections.append(Connection(
+            type="pkg_manager_divergence",
+            detail=f"Multiple JS package managers: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
+        ))
+
+    # Python package manager divergence (pip vs Poetry vs PDM vs uv vs Pipenv)
+    py_managers = {"pip", "Poetry", "PDM", "uv", "Pipenv"}
+    py_divergence: dict[str, set[str]] = {}
+    for p in projects:
+        for pm in p.tech_stack.package_managers:
+            if pm in py_managers:
+                py_divergence.setdefault(pm, set()).add(p.name)
+
+    if len(py_divergence) >= 2:
+        detail_parts = [f"{pm} ({', '.join(sorted(projs))})" for pm, projs in py_divergence.items()]
+        all_projects = sorted({p for projs in py_divergence.values() for p in projs})
+        connections.append(Connection(
+            type="pkg_manager_divergence",
+            detail=f"Multiple Python package managers: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
+        ))
+
+    # Java build tool divergence (Maven vs Gradle)
+    java_managers = {"Maven", "Gradle"}
+    java_divergence: dict[str, set[str]] = {}
+    for p in projects:
+        for pm in p.tech_stack.package_managers:
+            if pm in java_managers:
+                java_divergence.setdefault(pm, set()).add(p.name)
+
+    if len(java_divergence) >= 2:
+        detail_parts = [f"{pm} ({', '.join(sorted(projs))})" for pm, projs in java_divergence.items()]
+        all_projects = sorted({p for projs in java_divergence.values() for p in projs})
+        connections.append(Connection(
+            type="pkg_manager_divergence",
+            detail=f"Multiple Java build tools: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
         ))
 
     return connections[:10]

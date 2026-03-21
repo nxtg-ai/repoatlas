@@ -11,6 +11,7 @@ from atlas.connections import (
     _find_shared_deps,
     _find_shared_frameworks,
     _find_testing_patterns,
+    _find_package_manager_patterns,
     _find_version_mismatches,
     find_connections,
 )
@@ -19,7 +20,7 @@ from atlas.models import GitInfo, HealthScore, Project, TechStack
 
 def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           infrastructure=None, security_tools=None, quality_tools=None,
-          ai_tools=None, testing_frameworks=None,
+          ai_tools=None, testing_frameworks=None, package_managers=None,
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -34,6 +35,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             quality_tools=quality_tools or [],
             ai_tools=ai_tools or [],
             testing_frameworks=testing_frameworks or [],
+            package_managers=package_managers or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -1143,3 +1145,124 @@ class TestFindTestingPatterns:
         conns = _find_testing_patterns(projects)
         div = [c for c in conns if c.type == "testing_divergence"]
         assert len(div) == 2  # one for JS, one for Python
+
+
+# ---------------------------------------------------------------------------
+# Package manager patterns (N-35)
+# ---------------------------------------------------------------------------
+class TestFindPackageManagerPatterns:
+    def test_shared_package_manager(self):
+        projects = [
+            _proj("a", package_managers=["Poetry"]),
+            _proj("b", package_managers=["Poetry"]),
+        ]
+        conns = _find_package_manager_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_pkg_manager"]
+        assert len(shared) == 1
+        assert "Poetry" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", package_managers=["Poetry"]),
+            _proj("b", package_managers=["npm"]),
+        ]
+        conns = _find_package_manager_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_pkg_manager"]
+        assert len(shared) == 0
+
+    def test_js_divergence_npm_vs_yarn(self):
+        projects = [
+            _proj("a", package_managers=["npm"]),
+            _proj("b", package_managers=["Yarn"]),
+        ]
+        conns = _find_package_manager_patterns(projects)
+        div = [c for c in conns if c.type == "pkg_manager_divergence"]
+        assert len(div) == 1
+        assert "JS package managers" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_js_divergence_three_managers(self):
+        projects = [
+            _proj("a", package_managers=["npm"]),
+            _proj("b", package_managers=["Yarn"]),
+            _proj("c", package_managers=["pnpm"]),
+        ]
+        conns = _find_package_manager_patterns(projects)
+        div = [c for c in conns if c.type == "pkg_manager_divergence" and "JS" in c.detail]
+        assert len(div) == 1
+        assert "npm" in div[0].detail
+        assert "Yarn" in div[0].detail
+        assert "pnpm" in div[0].detail
+
+    def test_no_js_divergence_same_manager(self):
+        projects = [
+            _proj("a", package_managers=["pnpm"]),
+            _proj("b", package_managers=["pnpm"]),
+        ]
+        conns = _find_package_manager_patterns(projects)
+        div = [c for c in conns if c.type == "pkg_manager_divergence"]
+        assert len(div) == 0
+
+    def test_python_divergence_pip_vs_poetry(self):
+        projects = [
+            _proj("a", package_managers=["pip"]),
+            _proj("b", package_managers=["Poetry"]),
+        ]
+        conns = _find_package_manager_patterns(projects)
+        div = [c for c in conns if c.type == "pkg_manager_divergence" and "Python" in c.detail]
+        assert len(div) == 1
+
+    def test_no_python_divergence_same_manager(self):
+        projects = [
+            _proj("a", package_managers=["Poetry"]),
+            _proj("b", package_managers=["Poetry"]),
+        ]
+        conns = _find_package_manager_patterns(projects)
+        div = [c for c in conns if c.type == "pkg_manager_divergence" and "Python" in c.detail]
+        assert len(div) == 0
+
+    def test_java_divergence_maven_vs_gradle(self):
+        projects = [
+            _proj("a", package_managers=["Maven"]),
+            _proj("b", package_managers=["Gradle"]),
+        ]
+        conns = _find_package_manager_patterns(projects)
+        div = [c for c in conns if c.type == "pkg_manager_divergence" and "Java" in c.detail]
+        assert len(div) == 1
+
+    def test_mixed_divergence_js_and_python(self):
+        projects = [
+            _proj("a", package_managers=["pip", "npm"]),
+            _proj("b", package_managers=["Poetry", "Yarn"]),
+        ]
+        conns = _find_package_manager_patterns(projects)
+        div = [c for c in conns if c.type == "pkg_manager_divergence"]
+        assert len(div) == 2  # one JS, one Python
+
+    def test_empty_projects(self):
+        conns = _find_package_manager_patterns([])
+        assert conns == []
+
+    def test_single_project(self):
+        conns = _find_package_manager_patterns([_proj("solo", package_managers=["Poetry"])])
+        shared = [c for c in conns if c.type == "shared_pkg_manager"]
+        assert len(shared) == 0
+
+    def test_multiple_shared(self):
+        projects = [
+            _proj("a", package_managers=["Poetry", "npm"]),
+            _proj("b", package_managers=["Poetry", "npm"]),
+        ]
+        conns = _find_package_manager_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_pkg_manager"]
+        assert len(shared) == 2
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", package_managers=["npm"]),
+            _proj("b", package_managers=["npm", "Yarn"]),
+        ]
+        conns = find_connections(projects)
+        pm_types = {c.type for c in conns if "pkg_manager" in c.type}
+        assert "shared_pkg_manager" in pm_types

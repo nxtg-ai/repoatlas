@@ -50,6 +50,8 @@ CONNECTION_ICONS = {
     "shared_testing": "[green]\u2713[/green]",
     "testing_divergence": "[yellow]\u2263[/yellow]",
     "testing_gap": "[red]\u2717[/red]",
+    "shared_pkg_manager": "[cyan]\u2696[/cyan]",
+    "pkg_manager_divergence": "[yellow]\u2694[/yellow]",
 }
 
 
@@ -302,6 +304,8 @@ def show_connections(connections: list[Connection]):
         "shared_testing": "Shared Testing Frameworks",
         "testing_divergence": "Testing Divergence",
         "testing_gap": "Testing Gaps",
+        "shared_pkg_manager": "Shared Package Managers",
+        "pkg_manager_divergence": "Package Manager Divergence",
     }
 
     lines = []

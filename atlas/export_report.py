@@ -203,6 +203,8 @@ def _connections_section(conns: list) -> list[str]:
         "shared_testing": "Shared Testing Frameworks",
         "testing_divergence": "Testing Divergence",
         "testing_gap": "Testing Gaps",
+        "shared_pkg_manager": "Shared Package Managers",
+        "pkg_manager_divergence": "Package Manager Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
