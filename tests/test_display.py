@@ -6,10 +6,17 @@ from unittest.mock import patch
 
 from rich.console import Console
 
-from atlas.display import _show_portfolio_summary, show_quick_insights, show_status, sparkline
+from atlas.display import (
+    _show_connection_stats,
+    _show_portfolio_summary,
+    show_connections,
+    show_quick_insights,
+    show_status,
+    sparkline,
+)
 from atlas.history import ProjectSnapshot, ScanEntry
 from atlas.recommendations import Recommendation
-from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
+from atlas.models import Connection, GitInfo, HealthScore, Portfolio, Project, TechStack
 
 
 def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
@@ -614,3 +621,151 @@ class TestHealthTrendSparklines:
         portfolio = Portfolio(name="Test", projects=projects)
         output = _capture_status(portfolio, history=None)
         assert "Trend" not in output
+
+
+# ---------------------------------------------------------------------------
+# Connection Statistics Panel (N-63)
+# ---------------------------------------------------------------------------
+def _capture_connection_stats(connections: list[Connection]) -> str:
+    """Capture rendered output from _show_connection_stats."""
+    buf = StringIO()
+    test_console = Console(file=buf, force_terminal=False, width=120)
+    with patch("atlas.display.console", test_console):
+        _show_connection_stats(connections)
+    return buf.getvalue()
+
+
+def _capture_show_connections(connections: list[Connection]) -> str:
+    """Capture rendered output from show_connections."""
+    buf = StringIO()
+    test_console = Console(file=buf, force_terminal=False, width=120)
+    with patch("atlas.display.console", test_console):
+        show_connections(connections)
+    return buf.getvalue()
+
+
+class TestConnectionStats:
+    def test_shows_total_count(self):
+        conns = [
+            Connection(type="shared_dep", projects=["a", "b"], detail="numpy", severity="info"),
+            Connection(type="shared_dep", projects=["a", "c"], detail="pandas", severity="info"),
+        ]
+        output = _capture_connection_stats(conns)
+        assert "2" in output
+        assert "connections" in output
+
+    def test_severity_breakdown_critical(self):
+        conns = [
+            Connection(type="security_gap", projects=["a"], detail="No security", severity="critical"),
+            Connection(type="shared_dep", projects=["a", "b"], detail="numpy", severity="info"),
+        ]
+        output = _capture_connection_stats(conns)
+        assert "1 critical" in output
+        assert "1 info" in output
+
+    def test_severity_breakdown_warning(self):
+        conns = [
+            Connection(type="version_mismatch", projects=["a", "b"], detail="numpy mismatch", severity="warning"),
+            Connection(type="version_mismatch", projects=["b", "c"], detail="pandas mismatch", severity="warning"),
+        ]
+        output = _capture_connection_stats(conns)
+        assert "2 warning" in output
+
+    def test_category_counts(self):
+        conns = [
+            Connection(type="shared_dep", projects=["a", "b"], detail="numpy", severity="info"),
+            Connection(type="shared_dep", projects=["a", "c"], detail="pandas", severity="info"),
+            Connection(type="shared_security", projects=["a", "b"], detail="Dependabot", severity="info"),
+        ]
+        output = _capture_connection_stats(conns)
+        assert "deps (2)" in output
+        assert "security (1)" in output
+
+    def test_top_five_categories(self):
+        conns = [
+            Connection(type="shared_dep", projects=["a", "b"], detail="d1", severity="info"),
+            Connection(type="shared_dep", projects=["a", "b"], detail="d2", severity="info"),
+            Connection(type="shared_security", projects=["a", "b"], detail="s1", severity="info"),
+            Connection(type="shared_quality", projects=["a", "b"], detail="q1", severity="info"),
+            Connection(type="shared_testing", projects=["a", "b"], detail="t1", severity="info"),
+            Connection(type="shared_ai", projects=["a", "b"], detail="a1", severity="info"),
+            Connection(type="shared_database", projects=["a", "b"], detail="db1", severity="info"),
+        ]
+        output = _capture_connection_stats(conns)
+        assert "deps (2)" in output
+        assert "+1 more" in output
+
+    def test_connection_summary_title(self):
+        conns = [
+            Connection(type="shared_dep", projects=["a", "b"], detail="numpy", severity="info"),
+        ]
+        output = _capture_connection_stats(conns)
+        assert "Connection Summary" in output
+
+    def test_shown_after_connections_panel(self):
+        conns = [
+            Connection(type="shared_dep", projects=["a", "b"], detail="numpy", severity="info"),
+        ]
+        output = _capture_show_connections(conns)
+        assert "Cross-Project Intelligence" in output
+        assert "Connection Summary" in output
+
+    def test_not_shown_for_empty_connections(self):
+        output = _capture_show_connections([])
+        assert "Connection Summary" not in output
+
+    def test_all_severity_types(self):
+        conns = [
+            Connection(type="security_gap", projects=["a"], detail="gap", severity="critical"),
+            Connection(type="version_mismatch", projects=["a", "b"], detail="mismatch", severity="warning"),
+            Connection(type="shared_dep", projects=["a", "b"], detail="shared", severity="info"),
+        ]
+        output = _capture_connection_stats(conns)
+        assert "1 critical" in output
+        assert "1 warning" in output
+        assert "1 info" in output
+
+    def test_single_connection(self):
+        conns = [
+            Connection(type="shared_dep", projects=["a", "b"], detail="numpy", severity="info"),
+        ]
+        output = _capture_connection_stats(conns)
+        assert "1" in output
+        assert "connections" in output
+
+    def test_messaging_category(self):
+        conns = [
+            Connection(type="shared_messaging", projects=["a", "b"], detail="SendGrid", severity="info"),
+            Connection(type="messaging_divergence", projects=["a", "b"], detail="email divergence", severity="warning"),
+        ]
+        output = _capture_connection_stats(conns)
+        assert "messaging (2)" in output
+
+    def test_auth_category(self):
+        conns = [
+            Connection(type="shared_auth", projects=["a", "b"], detail="Clerk", severity="info"),
+            Connection(type="auth_gap", projects=["c"], detail="no auth", severity="critical"),
+        ]
+        output = _capture_connection_stats(conns)
+        assert "auth (2)" in output
+
+    def test_no_remaining_categories(self):
+        conns = [
+            Connection(type="shared_dep", projects=["a", "b"], detail="numpy", severity="info"),
+        ]
+        output = _capture_connection_stats(conns)
+        assert "+0 more" not in output
+        assert "more" not in output
+
+    def test_mixed_categories_sorted_by_count(self):
+        conns = [
+            Connection(type="shared_dep", projects=["a", "b"], detail="d1", severity="info"),
+            Connection(type="shared_dep", projects=["a", "c"], detail="d2", severity="info"),
+            Connection(type="shared_dep", projects=["b", "c"], detail="d3", severity="info"),
+            Connection(type="shared_security", projects=["a", "b"], detail="s1", severity="info"),
+        ]
+        output = _capture_connection_stats(conns)
+        # deps should appear first (3 > 1)
+        deps_pos = output.find("deps (3)")
+        sec_pos = output.find("security (1)")
+        assert deps_pos < sec_pos

@@ -73,8 +73,9 @@
 | N-60 | [Connection Category Filtering](#n-60-connection-category-filtering) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-61 | [Messaging & Notification Detection](#n-61-messaging--notification-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-62 | [Messaging & Notification Intelligence](#n-62-messaging--notification-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-63 | [Connection Statistics Panel](#n-63-connection-statistics-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 59/62 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 60/63 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -142,7 +143,8 @@
 - Health trend sparklines: Unicode mini-charts in `atlas status` showing per-project health history
 - Markdown badge generation: shields.io badges for portfolio README (health grade, project count, test files, LOC, primary language)
 - Connection category filtering: `atlas connections --type security` to filter cross-project intelligence by category (18 categories)
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60
+- Connection statistics panel: summary of total connections, severity breakdown (critical/warning/info), top categories by count
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -354,6 +356,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project messaging intelligence — detects shared messaging tools, email provider divergence (SendGrid/Postmark/Mailgun/Resend/Nodemailer/Gomail/Lettre), real-time/push divergence (Socket.IO/Pusher/Firebase Cloud Messaging/Web Push/Novu), and messaging gaps for web projects with frameworks but no messaging (>10 source files). Adds `_find_messaging_patterns()` to connections.py (shared_messaging, messaging_divergence, messaging_gap). Updates display.py icons/labels, export_report.py type_labels, recommendations.py type_to_category, cli.py CONNECTION_CATEGORIES. 17 connection tests.
 **Shipped**: 2026-03-21. Total test count: 1161 → 1177. 19th intelligence category.
+
+### N-63: Connection Statistics Panel
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Summary statistics panel shown after `atlas connections` output. Displays total connection count, severity breakdown (critical/warning/info with color coding), and top 5 categories by count with "+N more" overflow. Adds `_show_connection_stats()` to display.py, called automatically from `show_connections()`. 14 tests covering all severity types, category counting, sorting, edge cases.
+**Shipped**: 2026-03-21. Total test count: 1177 → 1191. 18th experience feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

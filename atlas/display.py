@@ -525,6 +525,77 @@ def show_connections(connections: list[Connection]):
         padding=(1, 2),
     ))
 
+    # Summary statistics
+    _show_connection_stats(connections)
+
+
+def _show_connection_stats(connections: list[Connection]):
+    """Show summary statistics for connections."""
+    from collections import Counter
+
+    total = len(connections)
+    sev_counter: Counter[str] = Counter()
+    cat_counter: Counter[str] = Counter()
+
+    # Category mapping: connection type prefix -> display category
+    type_to_category = {
+        "shared_dep": "deps", "shared_framework": "deps",
+        "version_mismatch": "deps", "reuse_candidate": "deps",
+        "health_gap": "health",
+        "shared_infra": "infra", "infra_divergence": "infra", "infra_gap": "infra",
+        "shared_security": "security", "security_divergence": "security", "security_gap": "security",
+        "shared_quality": "quality", "quality_divergence": "quality", "quality_gap": "quality",
+        "shared_ai": "ai", "ai_divergence": "ai", "ai_gap": "ai",
+        "shared_testing": "testing", "testing_divergence": "testing", "testing_gap": "testing",
+        "shared_database": "database", "database_divergence": "database", "database_gap": "database",
+        "shared_pkg_manager": "packages", "pkg_manager_divergence": "packages",
+        "shared_license": "license", "license_divergence": "license", "license_gap": "license",
+        "shared_docs": "docs", "docs_divergence": "docs", "docs_gap": "docs",
+        "shared_ci_config": "ci", "ci_config_divergence": "ci", "ci_config_gap": "ci",
+        "shared_runtime": "runtime", "runtime_divergence": "runtime", "runtime_gap": "runtime",
+        "shared_build_tool": "build", "build_tool_divergence": "build", "build_tool_gap": "build",
+        "shared_api_spec": "api", "api_spec_divergence": "api", "api_spec_gap": "api",
+        "shared_monitoring": "monitoring", "monitoring_divergence": "monitoring", "monitoring_gap": "monitoring",
+        "shared_auth": "auth", "auth_divergence": "auth", "auth_gap": "auth",
+        "shared_messaging": "messaging", "messaging_divergence": "messaging", "messaging_gap": "messaging",
+    }
+
+    for conn in connections:
+        sev_counter[conn.severity] += 1
+        cat = type_to_category.get(conn.type, "other")
+        cat_counter[cat] += 1
+
+    parts = [f"[bold]{total}[/bold] connections"]
+
+    # Severity breakdown
+    sev_parts = []
+    if sev_counter["critical"]:
+        sev_parts.append(f"[red]{sev_counter['critical']} critical[/red]")
+    if sev_counter["warning"]:
+        sev_parts.append(f"[yellow]{sev_counter['warning']} warning[/yellow]")
+    if sev_counter["info"]:
+        sev_parts.append(f"[cyan]{sev_counter['info']} info[/cyan]")
+    if sev_parts:
+        parts.append(" · ".join(sev_parts))
+
+    # Top categories
+    top_cats = cat_counter.most_common(5)
+    if top_cats:
+        cat_parts = [f"{cat} ({count})" for cat, count in top_cats]
+        remaining = len(cat_counter) - len(top_cats)
+        cat_str = ", ".join(cat_parts)
+        if remaining > 0:
+            cat_str += f" +{remaining} more"
+        parts.append(f"Top: {cat_str}")
+
+    content = "  " + "   |   ".join(parts)
+    console.print(Panel(
+        content,
+        title="[bold white] Connection Summary [/bold white]",
+        border_style="dim yellow",
+        padding=(0, 2),
+    ))
+
 
 def show_project_card(project: Project):
     """Display a single project summary card."""
