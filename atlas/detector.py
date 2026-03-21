@@ -4131,6 +4131,121 @@ def detect_di_frameworks(project_path: Path) -> list[str]:
     return sorted(tools)
 
 
+def detect_websocket_libs(project_path: Path) -> list[str]:
+    """Detect WebSocket libraries and real-time communication frameworks."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # --- Python ---
+    if "websockets" in py_deps:
+        _add("websockets")
+    if "python-socketio" in py_deps or "socketio" in py_deps:
+        _add("python-socketio")
+    if "channels" in py_deps or "daphne" in py_deps:
+        _add("Django Channels")
+    if "starlette" in py_deps or "fastapi" in py_deps:
+        _add("Starlette WebSocket")
+    if "tornado" in py_deps:
+        _add("Tornado WebSocket")
+    if "autobahn" in py_deps:
+        _add("Autobahn")
+    if "aiohttp" in py_deps:
+        _add("aiohttp WebSocket")
+    if "wsproto" in py_deps:
+        _add("wsproto")
+
+    # --- JS/TS ---
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            content = pkg_json.read_text().lower()
+            if "socket.io" in content:
+                _add("Socket.IO")
+            if '"ws"' in content or "'ws'" in content:
+                _add("ws")
+            if "sockjs" in content:
+                _add("SockJS")
+            if "primus" in content:
+                _add("Primus")
+            if "@trpc/server" in content:
+                _add("tRPC WebSocket")
+            if "graphql-ws" in content:
+                _add("graphql-ws")
+            if "pusher" in content:
+                _add("Pusher")
+            if "ably" in content:
+                _add("Ably")
+            if "phoenix" in content and "channel" in content:
+                _add("Phoenix Channels")
+            if "actioncable" in content or "@rails/actioncable" in content:
+                _add("Action Cable")
+            if "centrifuge" in content:
+                _add("Centrifugo")
+        except Exception:
+            pass
+
+    # --- Go ---
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            if "gorilla/websocket" in content:
+                _add("Gorilla WebSocket")
+            if "nhooyr.io/websocket" in content or "nhooyr" in content:
+                _add("nhooyr/websocket")
+            if "gobwas/ws" in content:
+                _add("gobwas/ws")
+            if "centrifugal/centrifuge" in content:
+                _add("Centrifugo")
+            if "olahol/melody" in content:
+                _add("Melody")
+        except Exception:
+            pass
+
+    # --- Rust ---
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            content = cargo_toml.read_text().lower()
+            if "tokio-tungstenite" in content or "tungstenite" in content:
+                _add("Tungstenite")
+            if "axum" in content and "ws" in content:
+                _add("Axum WebSocket")
+            if "actix-web-actors" in content or "actix-ws" in content:
+                _add("Actix WebSocket")
+            if "warp" in content and "ws" in content:
+                _add("Warp WebSocket")
+        except Exception:
+            pass
+
+    # --- Java ---
+    for build_file in [project_path / "pom.xml", project_path / "build.gradle", project_path / "build.gradle.kts"]:
+        if build_file.exists():
+            try:
+                content = build_file.read_text().lower()
+                if "spring-websocket" in content or "spring-boot-starter-websocket" in content:
+                    _add("Spring WebSocket")
+                if "javax.websocket" in content or "jakarta.websocket" in content:
+                    _add("Jakarta WebSocket")
+                if "tyrus" in content:
+                    _add("Tyrus")
+                if "netty" in content and "websocket" in content:
+                    _add("Netty WebSocket")
+                if "undertow" in content and "websocket" in content:
+                    _add("Undertow WebSocket")
+            except Exception:
+                pass
+
+    return sorted(tools)
+
+
 def _collect_python_deps(project_path: Path) -> set[str]:
     """Collect Python dependency names from pyproject.toml and requirements.txt."""
     py_deps: set[str] = set()

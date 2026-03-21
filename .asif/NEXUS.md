@@ -136,8 +136,9 @@
 | N-123 | [Dependency Injection Detection](#n-123-dependency-injection-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-124 | [Dependency Injection Intelligence](#n-124-dependency-injection-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-125 | [Connections Project Filter](#n-125-connections-project-filter) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-126 | [WebSocket Library Detection](#n-126-websocket-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 122/125 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 123/126 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -183,7 +184,8 @@
 - Template engine detection: Jinja2, Mako, Chameleon, Genshi, Cheetah, Django Templates (Python), Handlebars, EJS, Pug, Nunjucks, Mustache, Liquid, Eta, Marko, Edge.js, Vue SFC, Svelte, Solid, Astro (JS/TS), Pongo2, Raymond, Jet, Amber (Go), Tera, Askama, Handlebars (Rust), MiniJinja, Maud (Rust), Thymeleaf, FreeMarker, Velocity, Mustache (Java), Pebble (Java)
 - Serialization format detection: Protocol Buffers, MessagePack, Apache Avro, Apache Thrift, FlatBuffers, CBOR, YAML, TOML, orjson, ujson, Pydantic, Marshmallow, cattrs, Pickle, Apache Arrow, Parquet, BSON (Python), protobufjs, js-yaml, superjson, Apache Arrow (JS/TS), Protocol Buffers, MessagePack, YAML, TOML, go-json (Go), serde_json, simd-json, Bincode, Postcard (Rust), Jackson, Gson, Kryo (Java) — via deps, config files, .proto/.avsc files
 - Dependency injection detection: dependency-injector, python-inject, Lagom, punq, wireup, svcs, dishka, FastAPI Depends (Python), InversifyJS, tsyringe, TypeDI, Awilix, BottleJS, injection-js, Angular DI, NestJS DI (JS/TS), Uber Fx, Uber Dig, Wire, do (Go), Shaku, inject (Rust), Spring DI, Google Guice, Dagger, CDI, Micronaut DI, Quarkus CDI (Java)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123
+- WebSocket library detection: websockets, python-socketio, Django Channels, Starlette WebSocket, Tornado WebSocket, Autobahn, aiohttp WebSocket, wsproto (Python), Socket.IO, ws, SockJS, Primus, tRPC WebSocket, graphql-ws, Pusher, Ably, Action Cable, Centrifugo (JS/TS), Gorilla WebSocket, nhooyr/websocket, gobwas/ws, Melody (Go), Tungstenite, Axum/Actix/Warp WebSocket (Rust), Spring WebSocket, Jakarta WebSocket, Tyrus, Netty WebSocket (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -661,6 +663,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-126: WebSocket Library Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_websocket_libs()` in detector.py. Detects WebSocket/real-time libraries across ecosystems: Python (websockets, python-socketio, Django Channels, Starlette WebSocket, Tornado WebSocket, Autobahn, aiohttp WebSocket, wsproto), JS/TS (Socket.IO, ws, SockJS, Primus, tRPC WebSocket, graphql-ws, Pusher, Ably, Action Cable, Centrifugo), Go (Gorilla WebSocket, nhooyr/websocket, gobwas/ws, Melody), Rust (Tungstenite, Axum/Actix/Warp WebSocket), Java (Spring WebSocket, Jakarta WebSocket, Tyrus, Netty WebSocket). Added `websocket_libs` field to TechStack model. Shows in project card, portfolio summary, all exports. 17 detection tests.
+**Shipped**: 2026-03-21. Total test count: 1969 → 1986. 39th detection category.
 
 ### N-125: Connections Project Filter
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1

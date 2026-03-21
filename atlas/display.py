@@ -692,6 +692,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         di_parts = [f"{df} ({count})" for df, count in top_di]
         lines.append(f"  [bold]DI:[/bold]            {has_di}/{n} projects \u00b7 {', '.join(di_parts)}")
 
+    # WebSocket libs
+    has_ws = sum(1 for p in projects if p.tech_stack.websocket_libs)
+    if has_ws:
+        ws_counter: Counter[str] = Counter()
+        for p in projects:
+            for wl in p.tech_stack.websocket_libs:
+                ws_counter[wl] += 1
+        top_ws = ws_counter.most_common(6)
+        ws_parts = [f"{wl} ({count})" for wl, count in top_ws]
+        lines.append(f"  [bold]WebSocket:[/bold]    {has_ws}/{n} projects \u00b7 {', '.join(ws_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1121,6 +1132,10 @@ def show_project_card(project: Project):
     if project.tech_stack.di_frameworks:
         di = ", ".join(project.tech_stack.di_frameworks[:8])
         lines.append(f"  [bold]DI:[/bold]            {di}")
+
+    if project.tech_stack.websocket_libs:
+        ws = ", ".join(project.tech_stack.websocket_libs[:8])
+        lines.append(f"  [bold]WebSocket:[/bold]  {ws}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

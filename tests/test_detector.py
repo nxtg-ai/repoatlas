@@ -44,6 +44,7 @@ from atlas.detector import (
     detect_template_engines,
     detect_serialization_formats,
     detect_di_frameworks,
+    detect_websocket_libs,
     walk_files,
 )
 
@@ -5009,3 +5010,83 @@ class TestDetectDIFrameworks:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         assert detect_di_frameworks(tmp_path) == []
+
+
+# ---------------------------------------------------------------------------
+# detect_websocket_libs
+# ---------------------------------------------------------------------------
+
+
+class TestDetectWebSocketLibs:
+    def test_empty(self, tmp_path):
+        assert detect_websocket_libs(tmp_path) == []
+
+    # --- Python ---
+    def test_python_websockets(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("websockets>=12.0\n")
+        assert "websockets" in detect_websocket_libs(tmp_path)
+
+    def test_python_socketio(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("python-socketio>=5.0\n")
+        assert "python-socketio" in detect_websocket_libs(tmp_path)
+
+    def test_python_channels(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("channels>=4.0\n")
+        assert "Django Channels" in detect_websocket_libs(tmp_path)
+
+    def test_python_starlette(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("fastapi>=0.100\n")
+        assert "Starlette WebSocket" in detect_websocket_libs(tmp_path)
+
+    def test_python_tornado(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("tornado>=6.0\n")
+        assert "Tornado WebSocket" in detect_websocket_libs(tmp_path)
+
+    # --- JS/TS ---
+    def test_js_socketio(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"socket.io": "^4.0"}}))
+        assert "Socket.IO" in detect_websocket_libs(tmp_path)
+
+    def test_js_ws(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"ws": "^8.0"}}))
+        assert "ws" in detect_websocket_libs(tmp_path)
+
+    def test_js_pusher(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"pusher": "^5.0"}}))
+        assert "Pusher" in detect_websocket_libs(tmp_path)
+
+    def test_js_graphql_ws(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"graphql-ws": "^5.0"}}))
+        assert "graphql-ws" in detect_websocket_libs(tmp_path)
+
+    # --- Go ---
+    def test_go_gorilla(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/gorilla/websocket v1.5\n")
+        assert "Gorilla WebSocket" in detect_websocket_libs(tmp_path)
+
+    def test_go_nhooyr(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire nhooyr.io/websocket v1.8\n")
+        assert "nhooyr/websocket" in detect_websocket_libs(tmp_path)
+
+    # --- Rust ---
+    def test_rust_tungstenite(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ntokio-tungstenite = "0.20"\n')
+        assert "Tungstenite" in detect_websocket_libs(tmp_path)
+
+    # --- Java ---
+    def test_java_spring_websocket(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><artifactId>spring-boot-starter-websocket</artifactId></dependency>")
+        assert "Spring WebSocket" in detect_websocket_libs(tmp_path)
+
+    def test_java_jakarta(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'jakarta.websocket:jakarta.websocket-api:2.1'\n")
+        assert "Jakarta WebSocket" in detect_websocket_libs(tmp_path)
+
+    def test_sorted(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("websockets>=12.0\nfastapi>=0.100\ntornado>=6.0\n")
+        result = detect_websocket_libs(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        assert detect_websocket_libs(tmp_path) == []
