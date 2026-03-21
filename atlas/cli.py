@@ -153,7 +153,13 @@ def scan():
 
 
 @app.command()
-def status():
+def status(
+    grade: Optional[str] = typer.Option(None, help="Filter by health grade (A, B+, B, C, D, F)"),
+    lang: Optional[str] = typer.Option(None, help="Filter by language (e.g. Python, TypeScript)"),
+    has: Optional[str] = typer.Option(None, help="Filter by tech (e.g. Docker, FastAPI, pytest)"),
+    min_health: Optional[int] = typer.Option(None, help="Filter projects with health >= N%"),
+    max_health: Optional[int] = typer.Option(None, help="Filter projects with health <= N%"),
+):
     """Display the portfolio dashboard."""
     portfolio = _load_portfolio()
 
@@ -161,14 +167,76 @@ def status():
         console.print("[yellow]No projects in portfolio.[/yellow]")
         return
 
-    show_status(portfolio)
+    filtered = portfolio.projects
+    active_filters: list[str] = []
+
+    if grade:
+        grade_upper = grade.upper()
+        filtered = [p for p in filtered if p.health.grade == grade_upper]
+        active_filters.append(f"grade={grade_upper}")
+
+    if lang:
+        lang_lower = lang.lower()
+        filtered = [p for p in filtered if any(
+            name.lower() == lang_lower for name in p.tech_stack.languages
+        )]
+        active_filters.append(f"lang={lang}")
+
+    if has:
+        has_lower = has.lower()
+        filtered = [p for p in filtered if _project_has_tech(p, has_lower)]
+        active_filters.append(f"has={has}")
+
+    if min_health is not None:
+        filtered = [p for p in filtered if p.health.percent >= min_health]
+        active_filters.append(f"health>={min_health}%")
+
+    if max_health is not None:
+        filtered = [p for p in filtered if p.health.percent <= max_health]
+        active_filters.append(f"health<={max_health}%")
+
+    if active_filters and not filtered:
+        console.print(f"[yellow]No projects match filters: {', '.join(active_filters)}[/yellow]")
+        return
+
+    if active_filters:
+        view = Portfolio(
+            name=portfolio.name,
+            projects=filtered,
+            created=portfolio.created,
+            last_scan=portfolio.last_scan,
+        )
+        console.print(f"  [dim]Filtered: {', '.join(active_filters)} ({len(filtered)}/{len(portfolio.projects)} projects)[/dim]")
+        show_status(view)
+    else:
+        show_status(portfolio)
 
     # Cross-project intelligence
-    if len(portfolio.projects) > 1:
-        conns = find_connections(portfolio.projects)
+    display_projects = filtered if active_filters else portfolio.projects
+    if len(display_projects) > 1:
+        conns = find_connections(display_projects)
         if conns:
             console.print()
             show_connections(conns)
+
+
+def _project_has_tech(project, term: str) -> bool:
+    """Check if a project has a given technology anywhere in its tech stack."""
+    ts = project.tech_stack
+    all_items = (
+        list(ts.languages.keys())
+        + ts.frameworks
+        + ts.databases
+        + ts.infrastructure
+        + ts.security_tools
+        + ts.ai_tools
+        + ts.quality_tools
+        + ts.testing_frameworks
+        + ts.package_managers
+        + ts.docs_artifacts
+        + ts.ci_config
+    )
+    return any(term == item.lower() for item in all_items)
 
 
 @app.command()

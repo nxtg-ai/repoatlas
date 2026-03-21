@@ -731,3 +731,114 @@ class TestTrends:
         assert "Portfolio Trends" in result.output
         assert "proj" in result.output
         assert "2 scans" in result.output
+
+
+# ===========================================================================
+# atlas status --filter
+# ===========================================================================
+
+
+def _make_varied_project(name, path, grade="B", lang="Python", framework="FastAPI",
+                         health_pct=0.8) -> Project:
+    """Create a Project with configurable health and tech for filter tests."""
+    hs = HealthScore(tests=health_pct, git_hygiene=health_pct,
+                     documentation=health_pct, structure=health_pct)
+    hs.compute()
+    return Project(
+        name=name,
+        path=path,
+        tech_stack=TechStack(
+            languages={lang: 10},
+            frameworks=[framework] if framework else [],
+            infrastructure=["Docker"],
+        ),
+        git_info=GitInfo(branch="main", total_commits=10),
+        health=hs,
+        test_file_count=5,
+        source_file_count=20,
+        loc=500,
+    )
+
+
+class TestStatusFilters:
+    def test_filter_by_grade(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        p1 = _make_varied_project("good", str(tmp_path / "good"), health_pct=0.95)
+        p2 = _make_varied_project("bad", str(tmp_path / "bad"), health_pct=0.3)
+        with patch("atlas.cli.scan_project", side_effect=[p1, p2]):
+            for name in ("good", "bad"):
+                d = tmp_path / name
+                d.mkdir(exist_ok=True)
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--grade", "A"])
+        assert result.exit_code == 0
+        assert "good" in result.output
+        assert "Filtered" in result.output
+
+    def test_filter_by_lang(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        p1 = _make_varied_project("pyproj", str(tmp_path / "pyproj"), lang="Python")
+        p2 = _make_varied_project("tsproj", str(tmp_path / "tsproj"), lang="TypeScript")
+        with patch("atlas.cli.scan_project", side_effect=[p1, p2]):
+            for name in ("pyproj", "tsproj"):
+                d = tmp_path / name
+                d.mkdir(exist_ok=True)
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--lang", "TypeScript"])
+        assert result.exit_code == 0
+        assert "tsproj" in result.output
+        assert "Filtered" in result.output
+
+    def test_filter_by_has(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        p1 = _make_varied_project("api", str(tmp_path / "api"), framework="FastAPI")
+        p2 = _make_varied_project("web", str(tmp_path / "web"), framework="React")
+        with patch("atlas.cli.scan_project", side_effect=[p1, p2]):
+            for name in ("api", "web"):
+                d = tmp_path / name
+                d.mkdir(exist_ok=True)
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--has", "FastAPI"])
+        assert result.exit_code == 0
+        assert "api" in result.output
+        assert "Filtered" in result.output
+
+    def test_filter_by_min_health(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        p1 = _make_varied_project("good", str(tmp_path / "good"), health_pct=0.95)
+        p2 = _make_varied_project("bad", str(tmp_path / "bad"), health_pct=0.3)
+        with patch("atlas.cli.scan_project", side_effect=[p1, p2]):
+            for name in ("good", "bad"):
+                d = tmp_path / name
+                d.mkdir(exist_ok=True)
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--min-health", "80"])
+        assert result.exit_code == 0
+        assert "good" in result.output
+        assert "Filtered" in result.output
+
+    def test_filter_no_match(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        p1 = _make_varied_project("proj", str(tmp_path / "proj"))
+        with patch("atlas.cli.scan_project", return_value=p1):
+            d = tmp_path / "proj"
+            d.mkdir(exist_ok=True)
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--lang", "Haskell"])
+        assert result.exit_code == 0
+        assert "No projects match" in result.output
+
+    def test_no_filter_shows_all(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        p1 = _make_varied_project("a", str(tmp_path / "a"))
+        p2 = _make_varied_project("b", str(tmp_path / "b"))
+        with patch("atlas.cli.scan_project", side_effect=[p1, p2]):
+            for name in ("a", "b"):
+                d = tmp_path / name
+                d.mkdir(exist_ok=True)
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status"])
+        assert result.exit_code == 0
+        assert "a" in result.output
+        assert "b" in result.output
+        assert "Filtered" not in result.output
