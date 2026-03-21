@@ -32,6 +32,7 @@ from atlas.detector import (
     detect_validation_tools,
     detect_logging_tools,
     detect_container_orchestration,
+    detect_cloud_providers,
     walk_files,
 )
 
@@ -3660,3 +3661,110 @@ class TestDetectContainerOrchestration:
         (tmp_path / "kubernetes" / "b.yaml").write_text("kind: Service")
         result = detect_container_orchestration(tmp_path)
         assert result.count("Kubernetes") == 1
+
+
+# ---------------------------------------------------------------------------
+# detect_cloud_providers
+# ---------------------------------------------------------------------------
+class TestDetectCloudProviders:
+    def test_empty_project(self, tmp_path):
+        assert detect_cloud_providers(tmp_path) == []
+
+    def test_aws_python_boto3(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("boto3>=1.28.0\n")
+        assert "AWS" in detect_cloud_providers(tmp_path)
+
+    def test_aws_python_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = [\n    "boto3>=1.28.0",\n]\n')
+        assert "AWS" in detect_cloud_providers(tmp_path)
+
+    def test_gcp_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("google-cloud-storage>=2.0\n")
+        assert "GCP" in detect_cloud_providers(tmp_path)
+
+    def test_azure_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("azure-storage-blob>=12.0\n")
+        assert "Azure" in detect_cloud_providers(tmp_path)
+
+    def test_aws_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@aws-sdk/client-s3": "^3.0.0"}
+        }))
+        assert "AWS" in detect_cloud_providers(tmp_path)
+
+    def test_gcp_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@google-cloud/storage": "^6.0.0"}
+        }))
+        assert "GCP" in detect_cloud_providers(tmp_path)
+
+    def test_azure_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@azure/storage-blob": "^12.0.0"}
+        }))
+        assert "Azure" in detect_cloud_providers(tmp_path)
+
+    def test_cloudflare_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"wrangler": "^3.0.0"}
+        }))
+        assert "Cloudflare" in detect_cloud_providers(tmp_path)
+
+    def test_cloudflare_config(self, tmp_path):
+        (tmp_path / "wrangler.toml").write_text('name = "my-worker"')
+        assert "Cloudflare" in detect_cloud_providers(tmp_path)
+
+    def test_fly_io(self, tmp_path):
+        (tmp_path / "fly.toml").write_text('app = "myapp"')
+        assert "Fly.io" in detect_cloud_providers(tmp_path)
+
+    def test_railway(self, tmp_path):
+        (tmp_path / "railway.json").write_text("{}")
+        assert "Railway" in detect_cloud_providers(tmp_path)
+
+    def test_render(self, tmp_path):
+        (tmp_path / "render.yaml").write_text("services: []")
+        assert "Render" in detect_cloud_providers(tmp_path)
+
+    def test_aws_go(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire github.com/aws/aws-sdk-go v1.44.0\n")
+        assert "AWS" in detect_cloud_providers(tmp_path)
+
+    def test_gcp_go(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire cloud.google.com/go v0.110.0\n")
+        assert "GCP" in detect_cloud_providers(tmp_path)
+
+    def test_aws_rust(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\naws-sdk-s3 = "0.28"\n')
+        assert "AWS" in detect_cloud_providers(tmp_path)
+
+    def test_aws_java_maven(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><groupId>software.amazon.awssdk</groupId></dependency>")
+        assert "AWS" in detect_cloud_providers(tmp_path)
+
+    def test_gcp_java_gradle(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'com.google.cloud:google-cloud-storage:2.0'")
+        assert "GCP" in detect_cloud_providers(tmp_path)
+
+    def test_multiple_providers(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("boto3\ngoogle-cloud-storage\n")
+        result = detect_cloud_providers(tmp_path)
+        assert "AWS" in result
+        assert "GCP" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("boto3\ngoogle-cloud-storage\nazure-storage-blob\n")
+        result = detect_cloud_providers(tmp_path)
+        assert result == sorted(result)
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("boto3\naws-cdk-lib\n")
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"aws-sdk": "^2.0.0"}
+        }))
+        result = detect_cloud_providers(tmp_path)
+        assert result.count("AWS") == 1
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        assert detect_cloud_providers(tmp_path) == []

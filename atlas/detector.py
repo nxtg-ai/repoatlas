@@ -2595,3 +2595,172 @@ def detect_container_orchestration(project_path: Path) -> list[str]:
             break
 
     return sorted(tools)
+
+
+def detect_cloud_providers(project_path: Path) -> list[str]:
+    """Detect cloud provider SDKs and services."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str):
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Python deps
+    pyproject = project_path / "pyproject.toml"
+    reqs_txt = project_path / "requirements.txt"
+    py_deps: set[str] = set()
+    if pyproject.exists():
+        try:
+            content = pyproject.read_text()
+            for line in content.splitlines():
+                cleaned = line.strip().strip('",\' ').lower()
+                if cleaned:
+                    dep = cleaned.split("[")[0].split(">=")[0].split("==")[0].split("<")[0].split(">")[0].split("~=")[0].strip()
+                    if dep and not dep.startswith(("[", "#", "{")) and "=" not in dep:
+                        py_deps.add(dep)
+        except Exception:
+            pass
+    if reqs_txt.exists():
+        try:
+            for line in reqs_txt.read_text().splitlines():
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    dep = line.split(">=")[0].split("==")[0].split("<")[0].split(">")[0].split("[")[0].strip()
+                    py_deps.add(dep.lower())
+        except Exception:
+            pass
+
+    # AWS
+    aws_py = {"boto3", "botocore", "aws-cdk-lib", "aws-cdk.core", "moto", "aiobotocore",
+              "aws-lambda-powertools", "troposphere", "sagemaker"}
+    if py_deps & aws_py:
+        _add("AWS")
+
+    # GCP
+    gcp_py = {"google-cloud-storage", "google-cloud-bigquery", "google-cloud-firestore",
+              "google-cloud-pubsub", "google-cloud-logging", "google-cloud-compute",
+              "google-api-python-client", "firebase-admin", "google-cloud-aiplatform"}
+    if py_deps & gcp_py:
+        _add("GCP")
+
+    # Azure
+    azure_py = {"azure-storage-blob", "azure-identity", "azure-cosmos", "azure-functions",
+                "azure-mgmt-compute", "azure-servicebus", "azure-keyvault-secrets",
+                "azure-ai-ml", "azure-core"}
+    if py_deps & azure_py:
+        _add("Azure")
+
+    # JS/TS deps
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = __import__("json").loads(pkg_json.read_text())
+            all_deps: set[str] = set()
+            for key in ("dependencies", "devDependencies"):
+                all_deps.update(data.get(key, {}).keys())
+
+            # AWS
+            aws_js = {"@aws-sdk/client-s3", "@aws-sdk/client-dynamodb", "@aws-sdk/client-lambda",
+                       "@aws-sdk/client-sqs", "aws-sdk", "aws-cdk-lib", "aws-amplify",
+                       "@aws-amplify/core", "sst"}
+            if all_deps & aws_js:
+                _add("AWS")
+
+            # GCP
+            gcp_js = {"@google-cloud/storage", "@google-cloud/bigquery", "@google-cloud/pubsub",
+                       "@google-cloud/firestore", "firebase", "firebase-admin",
+                       "@google-cloud/functions-framework"}
+            if all_deps & gcp_js:
+                _add("GCP")
+
+            # Azure
+            azure_js = {"@azure/storage-blob", "@azure/identity", "@azure/cosmos",
+                         "@azure/service-bus", "@azure/keyvault-secrets",
+                         "@azure/functions"}
+            if all_deps & azure_js:
+                _add("Azure")
+
+            # Cloudflare
+            cf_js = {"wrangler", "@cloudflare/workers-types", "@cloudflare/kv-asset-handler",
+                      "hono"}
+            if all_deps & cf_js:
+                _add("Cloudflare")
+
+            # DigitalOcean
+            if "do-wrapper" in all_deps or "@digitalocean/openapi" in all_deps:
+                _add("DigitalOcean")
+
+        except (ValueError, KeyError):
+            pass
+
+    # Go deps
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            if "github.com/aws/aws-sdk-go" in content:
+                _add("AWS")
+            if "cloud.google.com/go" in content:
+                _add("GCP")
+            if "github.com/azure/azure-sdk-for-go" in content:
+                _add("Azure")
+        except Exception:
+            pass
+
+    # Rust deps
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content = cargo.read_text().lower()
+            if "aws-sdk-" in content or "rusoto" in content:
+                _add("AWS")
+            if "google-cloud" in content:
+                _add("GCP")
+            if "azure_" in content:
+                _add("Azure")
+        except Exception:
+            pass
+
+    # Java deps
+    pom = project_path / "pom.xml"
+    if pom.exists():
+        try:
+            content = pom.read_text().lower()
+            if "software.amazon.awssdk" in content or "com.amazonaws" in content:
+                _add("AWS")
+            if "com.google.cloud" in content:
+                _add("GCP")
+            if "com.azure" in content:
+                _add("Azure")
+        except Exception:
+            pass
+
+    build_gradle = project_path / "build.gradle"
+    if build_gradle.exists():
+        try:
+            content = build_gradle.read_text().lower()
+            if "software.amazon.awssdk" in content or "com.amazonaws" in content:
+                _add("AWS")
+            if "com.google.cloud" in content:
+                _add("GCP")
+            if "com.azure" in content:
+                _add("Azure")
+        except Exception:
+            pass
+
+    # Config files
+    if (project_path / "wrangler.toml").exists() or (project_path / "wrangler.jsonc").exists():
+        _add("Cloudflare")
+
+    if (project_path / "fly.toml").exists():
+        _add("Fly.io")
+
+    if (project_path / "railway.json").exists() or (project_path / "railway.toml").exists():
+        _add("Railway")
+
+    if (project_path / "render.yaml").exists():
+        _add("Render")
+
+    return sorted(tools)

@@ -34,6 +34,7 @@ class TechStack:
     validation_tools: list[str] = field(default_factory=list)
     logging_tools: list[str] = field(default_factory=list)
     container_orchestration: list[str] = field(default_factory=list)
+    cloud_providers: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -149,6 +150,7 @@ class Project:
                 "validation_tools": self.tech_stack.validation_tools,
                 "logging_tools": self.tech_stack.logging_tools,
                 "container_orchestration": self.tech_stack.container_orchestration,
+                "cloud_providers": self.tech_stack.cloud_providers,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -209,6 +211,7 @@ class Project:
                 validation_tools=ts.get("validation_tools", []),
                 logging_tools=ts.get("logging_tools", []),
                 container_orchestration=ts.get("container_orchestration", []),
+                cloud_providers=ts.get("cloud_providers", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

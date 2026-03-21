@@ -100,8 +100,9 @@
 | N-87 | [Rename Project Command](#n-87-rename-project-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-88 | [Container Orchestration Detection](#n-88-container-orchestration-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-89 | [Container Orchestration Intelligence](#n-89-container-orchestration-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-90 | [Cloud Provider & SDK Detection](#n-90-cloud-provider--sdk-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 86/89 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 87/90 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -135,7 +136,8 @@
 - Validation & schema libraries: Pydantic, marshmallow, Cerberus, attrs, cattrs, Voluptuous, schema, jsonschema, Colander, Schematics, Zod, Yup, Joi, class-validator, Ajv, Superstruct, Valibot, io-ts, TypeBox, Vest, ArkType, Effect Schema, go-playground/validator, ozzo-validation, validator (Rust), garde, Hibernate Validator, Jakarta Validation
 - Logging frameworks: Loguru, structlog, python-json-logger, coloredlogs, Logbook, Winston, Pino, Bunyan, log4js, Morgan, Consola, tslog, Zap, Logrus, zerolog, slog, tracing (Rust), env_logger, log4rs, Logback, Log4j, SLF4J
 - Container orchestration: Docker Compose, Kubernetes, Helm, Kustomize, Skaffold, Tilt, Terraform, Pulumi, Ansible, Nomad, Docker Swarm, Vagrant, Packer
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88
+- Cloud provider & SDK detection: AWS (boto3, aws-sdk, aws-cdk), GCP (google-cloud-*, firebase), Azure (azure-*), Cloudflare (wrangler), Fly.io, Railway, Render, DigitalOcean — across Python, JS/TS, Go, Rust, Java
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -543,6 +545,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project container orchestration intelligence: shared orchestration tools (shared_container_orch), IaC vs Kubernetes-native vs Compose strategy divergence (container_orch_divergence), orchestration gaps for Docker projects (container_orch_gap). New CONNECTION_CATEGORIES entry "containers". 10 tests.
 **Shipped**: 2026-03-21. Total test count: 1566 → 1575. 28th intelligence feature.
+
+### N-90: Cloud Provider & SDK Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects cloud provider SDKs across Python (boto3, google-cloud-*, azure-*), JS/TS (@aws-sdk/*, @google-cloud/*, @azure/*), Go (aws-sdk-go, cloud.google.com/go), Rust (aws-sdk-*, google-cloud), Java (software.amazon.awssdk, com.google.cloud, com.azure). Also detects Cloudflare (wrangler), Fly.io, Railway, Render via config files. Added TechStack.cloud_providers field wired through scanner, display, export, CLI search. 22 tests.
+**Shipped**: 2026-03-21. Total test count: 1575 → 1597. 27th detection feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
