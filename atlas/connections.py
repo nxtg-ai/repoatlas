@@ -47,6 +47,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_cli_framework_patterns(projects))
     connections.extend(_find_config_tool_patterns(projects))
     connections.extend(_find_caching_patterns(projects))
+    connections.extend(_find_template_engine_patterns(projects))
     return connections
 
 
@@ -2746,5 +2747,61 @@ def _find_caching_patterns(projects: list[Project]) -> list[Connection]:
                 projects=[p.name],
                 severity="info",
             ))
+
+    return connections[:10]
+
+
+def _find_template_engine_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project template engine patterns."""
+    connections: list[Connection] = []
+
+    # Shared template engines — same engine used by 2+ projects
+    tool_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for t in p.tech_stack.template_engines:
+            tool_to_projects[t].append(p.name)
+
+    for t, projs in sorted(tool_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_template_engine",
+                detail=f"{t} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Template engine divergence — different paradigms
+    string_based = {"Jinja2", "Mako", "Chameleon", "Genshi", "Cheetah", "Django Templates",
+                    "Handlebars", "EJS", "Pug", "Nunjucks", "Mustache", "Liquid", "Eta",
+                    "Edge.js", "Marko", "Tera", "Askama", "Handlebars (Rust)", "MiniJinja",
+                    "Pongo2", "Raymond", "Jet", "Amber", "Thymeleaf", "FreeMarker",
+                    "Velocity", "Mustache (Java)", "Pebble", "Go Templates"}
+    component_based = {"Vue SFC", "Svelte", "Solid", "Astro", "Maud"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "string_based": {}, "component_based": {},
+    }
+    cat_sets = [("string_based", string_based), ("component_based", component_based)]
+    for p in projects:
+        for t in p.tech_stack.template_engines:
+            for cat_name, cat_set in cat_sets:
+                if t in cat_set:
+                    cat_found[cat_name].setdefault(t, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, fws in active_cats.items():
+            fw_names = ", ".join(sorted(fws.keys())[:3])
+            parts.append(f"{cat_name} ({fw_names})")
+            for ps in fws.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="template_engine_divergence",
+            detail=f"Mixed template approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
 
     return connections[:10]

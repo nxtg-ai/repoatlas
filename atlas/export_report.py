@@ -687,6 +687,8 @@ def _connections_section(conns: list) -> list[str]:
         "shared_caching_tool": "Shared Caching Tools",
         "caching_divergence": "Caching Divergence",
         "caching_gap": "Caching Gaps",
+        "shared_template_engine": "Shared Template Engines",
+        "template_engine_divergence": "Template Engine Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

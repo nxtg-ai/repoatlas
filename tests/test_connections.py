@@ -32,6 +32,7 @@ from atlas.connections import (
     _find_feature_flag_patterns,
     _find_config_tool_patterns,
     _find_caching_patterns,
+    _find_template_engine_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -4619,3 +4620,69 @@ class TestFindCachingPatterns:
         conns = find_connections(projects)
         caching_types = {c.type for c in conns if "caching" in c.type}
         assert "shared_caching_tool" in caching_types
+
+
+# ---------------------------------------------------------------------------
+# _find_template_engine_patterns
+# ---------------------------------------------------------------------------
+class TestFindTemplateEnginePatterns:
+    def test_no_template_engines(self):
+        projects = [_proj("a"), _proj("b")]
+        assert _find_template_engine_patterns(projects) == []
+
+    def test_shared_template_engine(self):
+        projects = [
+            _proj("a", template_engines=["Jinja2"]),
+            _proj("b", template_engines=["Jinja2"]),
+        ]
+        conns = _find_template_engine_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_template_engine"]
+        assert len(shared) == 1
+        assert "Jinja2" in shared[0].detail
+
+    def test_no_shared_if_unique(self):
+        projects = [
+            _proj("a", template_engines=["Jinja2"]),
+            _proj("b", template_engines=["Tera"]),
+        ]
+        conns = _find_template_engine_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_template_engine"]
+        assert len(shared) == 0
+
+    def test_divergence_string_vs_component(self):
+        projects = [
+            _proj("a", template_engines=["Jinja2"]),
+            _proj("b", template_engines=["Svelte"]),
+        ]
+        conns = _find_template_engine_patterns(projects)
+        divs = [c for c in conns if c.type == "template_engine_divergence"]
+        assert len(divs) == 1
+        assert "string_based" in divs[0].detail
+        assert "component_based" in divs[0].detail
+
+    def test_no_divergence_same_paradigm(self):
+        projects = [
+            _proj("a", template_engines=["Jinja2"]),
+            _proj("b", template_engines=["Mako"]),
+        ]
+        conns = _find_template_engine_patterns(projects)
+        divs = [c for c in conns if c.type == "template_engine_divergence"]
+        assert len(divs) == 0
+
+    def test_cap_at_10(self):
+        engines = [f"engine{i}" for i in range(15)]
+        projects = [
+            _proj("a", template_engines=engines),
+            _proj("b", template_engines=engines),
+        ]
+        conns = _find_template_engine_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", template_engines=["Jinja2"]),
+            _proj("b", template_engines=["Jinja2", "Handlebars"]),
+        ]
+        conns = find_connections(projects)
+        tpl_types = {c.type for c in conns if "template_engine" in c.type}
+        assert "shared_template_engine" in tpl_types
