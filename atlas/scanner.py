@@ -23,6 +23,7 @@ from atlas.detector import (
     detect_ci_config,
     detect_runtime_versions,
     detect_build_tools,
+    detect_api_specs,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -48,6 +49,7 @@ def scan_project(project_path: Path) -> Project:
     ci_config = detect_ci_config(path)
     runtime_versions = detect_runtime_versions(path)
     build_tools = detect_build_tools(path)
+    api_specs = detect_api_specs(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -68,6 +70,7 @@ def scan_project(project_path: Path) -> Project:
         ci_config=ci_config,
         runtime_versions=runtime_versions,
         build_tools=build_tools,
+        api_specs=api_specs,
     )
 
     project = Project(

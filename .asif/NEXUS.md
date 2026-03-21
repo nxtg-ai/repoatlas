@@ -62,8 +62,9 @@
 | N-49 | [CSV Export](#n-49-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-50 | [Build & Task Runner Detection](#n-50-build--task-runner-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-51 | [Build Tool Intelligence](#n-51-build-tool-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-52 | [API Specification Detection](#n-52-api-specification-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 48/51 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 49/52 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -84,7 +85,8 @@
 - CI/CD configuration: GitHub Actions workflows (release/deploy detection), GitLab CI, PR templates, issue templates, CODEOWNERS, Dependabot/Renovate config, pre-commit, git hooks (.husky/.githooks), .gitattributes
 - Runtime version detection: .python-version, .node-version, .nvmrc, .ruby-version, .java-version, go.mod, rust-toolchain, .tool-versions (asdf), pyproject.toml requires-python, package.json engines
 - Build & task runner detection: Make, Taskfile, Just, tox, nox, Invoke, doit, npm scripts, Gradle, Maven, CMake, Meson, Bazel, Rake, Earthly
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50
+- API specification detection: OpenAPI/Swagger, GraphQL, gRPC/Protobuf, AsyncAPI, JSON Schema, tRPC, WSDL/SOAP
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -277,6 +279,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_runtime_versions()` in detector.py. Detects pinned runtime/language versions from config files: Python (.python-version, pyproject.toml requires-python), Node.js (.node-version, .nvmrc, package.json engines.node), Ruby (.ruby-version), Go (go.mod go directive), Rust (rust-toolchain.toml channel, rust-toolchain plain file), Java (.java-version), and multi-runtime via asdf (.tool-versions with language mapping). Priority rules: specific version files override asdf entries; .node-version overrides .nvmrc; rust-toolchain.toml overrides plain rust-toolchain. Returns `dict[str, str]` (language → version). Added `runtime_versions` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py and export_report.py), markdown export project details, and JSON export portfolio_summary. `_project_has_tech()` searches runtime version keys. 17 detection tests.
 **Shipped**: 2026-03-21. Total test count: 903 → 920. 12th detection category.
+
+### N-52: API Specification Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_api_specs()` in detector.py. Detects API specification formats and protocols: OpenAPI/Swagger (JSON/YAML in root, docs/, api/, spec/ directories), GraphQL (schema.graphql, schema.gql, .graphqlrc configs, codegen configs, .graphql files in src/), gRPC/Protobuf (.proto files in root, proto/, protos/ directories), AsyncAPI (asyncapi.json/yaml/yml), JSON Schema (schema.json, schemas/ directory), tRPC (via @trpc/* package.json dependencies), WSDL/SOAP (.wsdl files). Returns sorted list. Added `api_specs` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py), markdown export details and summary, JSON export portfolio_summary, and CSV export. `_project_has_tech()` searches api_specs. 20 detection tests.
+**Shipped**: 2026-03-21. Total test count: 979 → 999. 14th detection category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

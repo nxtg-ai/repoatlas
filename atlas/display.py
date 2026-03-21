@@ -330,6 +330,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         bt_parts = [f"{bt} ({count})" for bt, count in top_bt]
         lines.append(f"  [bold]Build Tools:[/bold]  {has_build}/{n} projects \u00b7 {', '.join(bt_parts)}")
 
+    # API specs
+    has_api = sum(1 for p in projects if p.tech_stack.api_specs)
+    if has_api:
+        api_counter: Counter[str] = Counter()
+        for p in projects:
+            for spec in p.tech_stack.api_specs:
+                api_counter[spec] += 1
+        top_api = api_counter.most_common(6)
+        api_parts = [f"{spec} ({count})" for spec, count in top_api]
+        lines.append(f"  [bold]API Specs:[/bold]   {has_api}/{n} projects \u00b7 {', '.join(api_parts)}")
+
     # License distribution
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -485,6 +496,10 @@ def show_project_card(project: Project):
     if project.tech_stack.build_tools:
         bt = ", ".join(project.tech_stack.build_tools[:8])
         lines.append(f"  [bold]Build:[/bold]     {bt}")
+
+    if project.tech_stack.api_specs:
+        api = ", ".join(project.tech_stack.api_specs[:8])
+        lines.append(f"  [bold]API Specs:[/bold] {api}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

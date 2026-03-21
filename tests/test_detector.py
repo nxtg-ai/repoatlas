@@ -19,6 +19,7 @@ from atlas.detector import (
     detect_package_managers,
     detect_runtime_versions,
     detect_build_tools,
+    detect_api_specs,
     walk_files,
 )
 
@@ -1623,4 +1624,122 @@ class TestDetectBuildTools:
         (tmp_path / "tox.ini").write_text("[tox]\n")
         (tmp_path / "Makefile").write_text("all:\n")
         result = detect_build_tools(tmp_path)
+        assert result == sorted(result)
+
+
+# ---------------------------------------------------------------------------
+# detect_api_specs
+# ---------------------------------------------------------------------------
+class TestDetectApiSpecs:
+    def test_openapi_json(self, tmp_path):
+        (tmp_path / "openapi.json").write_text('{"openapi": "3.0.0"}')
+        result = detect_api_specs(tmp_path)
+        assert "OpenAPI" in result
+
+    def test_openapi_yaml(self, tmp_path):
+        (tmp_path / "openapi.yaml").write_text("openapi: 3.0.0\n")
+        result = detect_api_specs(tmp_path)
+        assert "OpenAPI" in result
+
+    def test_swagger_json(self, tmp_path):
+        (tmp_path / "swagger.json").write_text('{"swagger": "2.0"}')
+        result = detect_api_specs(tmp_path)
+        assert "OpenAPI" in result
+
+    def test_openapi_in_docs_subdir(self, tmp_path):
+        (tmp_path / "docs").mkdir()
+        (tmp_path / "docs" / "openapi.yml").write_text("openapi: 3.0.0\n")
+        result = detect_api_specs(tmp_path)
+        assert "OpenAPI" in result
+
+    def test_openapi_in_api_subdir(self, tmp_path):
+        (tmp_path / "api").mkdir()
+        (tmp_path / "api" / "swagger.yaml").write_text("swagger: 2.0\n")
+        result = detect_api_specs(tmp_path)
+        assert "OpenAPI" in result
+
+    def test_graphql_schema(self, tmp_path):
+        (tmp_path / "schema.graphql").write_text("type Query { hello: String }\n")
+        result = detect_api_specs(tmp_path)
+        assert "GraphQL" in result
+
+    def test_graphql_gql(self, tmp_path):
+        (tmp_path / "schema.gql").write_text("type Query { hello: String }\n")
+        result = detect_api_specs(tmp_path)
+        assert "GraphQL" in result
+
+    def test_graphqlrc(self, tmp_path):
+        (tmp_path / ".graphqlrc.yml").write_text("schema: schema.graphql\n")
+        result = detect_api_specs(tmp_path)
+        assert "GraphQL" in result
+
+    def test_graphql_in_src(self, tmp_path):
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "queries.graphql").write_text("query { users { id } }\n")
+        result = detect_api_specs(tmp_path)
+        assert "GraphQL" in result
+
+    def test_grpc_proto(self, tmp_path):
+        (tmp_path / "service.proto").write_text('syntax = "proto3";\n')
+        result = detect_api_specs(tmp_path)
+        assert "gRPC/Protobuf" in result
+
+    def test_grpc_proto_subdir(self, tmp_path):
+        (tmp_path / "proto").mkdir()
+        (tmp_path / "proto" / "service.proto").write_text('syntax = "proto3";\n')
+        result = detect_api_specs(tmp_path)
+        assert "gRPC/Protobuf" in result
+
+    def test_asyncapi(self, tmp_path):
+        (tmp_path / "asyncapi.yaml").write_text("asyncapi: 2.0.0\n")
+        result = detect_api_specs(tmp_path)
+        assert "AsyncAPI" in result
+
+    def test_json_schema(self, tmp_path):
+        (tmp_path / "schema.json").write_text('{"type": "object"}')
+        result = detect_api_specs(tmp_path)
+        assert "JSON Schema" in result
+
+    def test_json_schema_dir(self, tmp_path):
+        (tmp_path / "schemas").mkdir()
+        result = detect_api_specs(tmp_path)
+        assert "JSON Schema" in result
+
+    def test_trpc(self, tmp_path):
+        (tmp_path / "package.json").write_text(
+            json.dumps({"dependencies": {"@trpc/server": "^10.0"}})
+        )
+        result = detect_api_specs(tmp_path)
+        assert "tRPC" in result
+
+    def test_trpc_not_detected_without_dep(self, tmp_path):
+        (tmp_path / "package.json").write_text(
+            json.dumps({"dependencies": {"express": "^4.18"}})
+        )
+        result = detect_api_specs(tmp_path)
+        assert "tRPC" not in result
+
+    def test_wsdl(self, tmp_path):
+        (tmp_path / "service.wsdl").write_text("<definitions></definitions>")
+        result = detect_api_specs(tmp_path)
+        assert "WSDL/SOAP" in result
+
+    def test_empty_project(self, tmp_path):
+        result = detect_api_specs(tmp_path)
+        assert result == []
+
+    def test_multiple_specs(self, tmp_path):
+        (tmp_path / "openapi.json").write_text('{"openapi": "3.0.0"}')
+        (tmp_path / "schema.graphql").write_text("type Query { hello: String }\n")
+        (tmp_path / "service.proto").write_text('syntax = "proto3";\n')
+        result = detect_api_specs(tmp_path)
+        assert "OpenAPI" in result
+        assert "GraphQL" in result
+        assert "gRPC/Protobuf" in result
+
+    def test_result_sorted(self, tmp_path):
+        (tmp_path / "schema.graphql").write_text("type Query {}\n")
+        (tmp_path / "openapi.json").write_text('{"openapi": "3.0.0"}')
+        result = detect_api_specs(tmp_path)
         assert result == sorted(result)

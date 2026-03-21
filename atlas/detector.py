@@ -1262,3 +1262,97 @@ def detect_build_tools(project_path: Path) -> list[str]:
         _add("Earthly")
 
     return sorted(tools)
+
+
+def detect_api_specs(project_path: Path) -> list[str]:
+    """Detect API specification formats and protocols."""
+    specs: list[str] = []
+
+    def _add(name: str) -> None:
+        if name not in specs:
+            specs.append(name)
+
+    # OpenAPI / Swagger — check common file names and locations
+    openapi_names = [
+        "openapi.json", "openapi.yaml", "openapi.yml",
+        "swagger.json", "swagger.yaml", "swagger.yml",
+    ]
+    for name in openapi_names:
+        if (project_path / name).exists():
+            _add("OpenAPI")
+            break
+    # Also check docs/ and api/ subdirectories
+    if "OpenAPI" not in specs:
+        for subdir in ("docs", "api", "spec"):
+            d = project_path / subdir
+            if d.is_dir():
+                for name in openapi_names:
+                    if (d / name).exists():
+                        _add("OpenAPI")
+                        break
+            if "OpenAPI" in specs:
+                break
+
+    # GraphQL — schema files and config
+    graphql_indicators = [
+        "schema.graphql", "schema.gql",
+        ".graphqlrc", ".graphqlrc.yml", ".graphqlrc.yaml", ".graphqlrc.json",
+        "codegen.yml", "codegen.yaml", "codegen.ts",
+    ]
+    for name in graphql_indicators:
+        if (project_path / name).exists():
+            _add("GraphQL")
+            break
+    # Check for .graphql files in src/
+    if "GraphQL" not in specs:
+        src = project_path / "src"
+        if src.is_dir():
+            for f in src.rglob("*.graphql"):
+                _add("GraphQL")
+                break
+
+    # gRPC / Protocol Buffers
+    proto_found = False
+    for pattern_dir in [project_path, project_path / "proto", project_path / "protos"]:
+        if pattern_dir.is_dir():
+            for f in pattern_dir.glob("*.proto"):
+                proto_found = True
+                break
+        if proto_found:
+            break
+    if proto_found:
+        _add("gRPC/Protobuf")
+
+    # AsyncAPI — event-driven API specs
+    asyncapi_names = [
+        "asyncapi.json", "asyncapi.yaml", "asyncapi.yml",
+    ]
+    for name in asyncapi_names:
+        if (project_path / name).exists():
+            _add("AsyncAPI")
+            break
+
+    # JSON Schema — standalone schema definitions
+    for name in ("schema.json", "schemas"):
+        p = project_path / name
+        if p.exists():
+            _add("JSON Schema")
+            break
+
+    # tRPC — check package.json dependencies
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text(errors="ignore"))
+            all_deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
+            if any(k.startswith("@trpc/") for k in all_deps):
+                _add("tRPC")
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    # WSDL — SOAP web services
+    for f in project_path.glob("*.wsdl"):
+        _add("WSDL/SOAP")
+        break
+
+    return sorted(specs)
