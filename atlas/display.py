@@ -625,6 +625,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         clf_parts = [f"{clf} ({count})" for clf, count in top_clf]
         lines.append(f"  [bold]CLI:[/bold]         {has_clf}/{n} projects \u00b7 {', '.join(clf_parts)}")
 
+    # Config tools
+    has_cfg = sum(1 for p in projects if p.tech_stack.config_tools)
+    if has_cfg:
+        cfg_counter: Counter[str] = Counter()
+        for p in projects:
+            for cfg in p.tech_stack.config_tools:
+                cfg_counter[cfg] += 1
+        top_cfg = cfg_counter.most_common(6)
+        cfg_parts = [f"{cfg} ({count})" for cfg, count in top_cfg]
+        lines.append(f"  [bold]Config:[/bold]      {has_cfg}/{n} projects \u00b7 {', '.join(cfg_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1017,6 +1028,10 @@ def show_project_card(project: Project):
     if project.tech_stack.cli_frameworks:
         clf = ", ".join(project.tech_stack.cli_frameworks[:8])
         lines.append(f"  [bold]CLI:[/bold]        {clf}")
+
+    if project.tech_stack.config_tools:
+        cfg = ", ".join(project.tech_stack.config_tools[:8])
+        lines.append(f"  [bold]Config:[/bold]     {cfg}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

@@ -39,6 +39,7 @@ from atlas.detector import (
     detect_http_clients,
     detect_doc_generators,
     detect_cli_frameworks,
+    detect_config_tools,
     walk_files,
 )
 
@@ -4446,3 +4447,128 @@ class TestDetectCliFrameworks:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         assert detect_cli_frameworks(tmp_path) == []
+
+
+class TestDetectConfigTools:
+    def test_empty_project(self, tmp_path):
+        assert detect_config_tools(tmp_path) == []
+
+    def test_python_dotenv(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("python-dotenv\n")
+        result = detect_config_tools(tmp_path)
+        assert "python-dotenv" in result
+
+    def test_python_dynaconf(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("dynaconf\n")
+        result = detect_config_tools(tmp_path)
+        assert "Dynaconf" in result
+
+    def test_python_hydra(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = [\n    "hydra-core",\n]\n')
+        result = detect_config_tools(tmp_path)
+        assert "Hydra" in result
+
+    def test_python_pydantic_settings(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pydantic-settings\n")
+        result = detect_config_tools(tmp_path)
+        assert "Pydantic Settings" in result
+
+    def test_python_decouple(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("python-decouple\n")
+        result = detect_config_tools(tmp_path)
+        assert "python-decouple" in result
+
+    def test_env_file_detection(self, tmp_path):
+        (tmp_path / ".env").write_text("KEY=value\n")
+        result = detect_config_tools(tmp_path)
+        assert "dotenv" in result
+
+    def test_env_example_detection(self, tmp_path):
+        (tmp_path / ".env.example").write_text("KEY=\n")
+        result = detect_config_tools(tmp_path)
+        assert "dotenv" in result
+
+    def test_js_dotenv(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"dotenv": "^16.0.0"}
+        }))
+        result = detect_config_tools(tmp_path)
+        assert "dotenv" in result
+
+    def test_js_convict(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"convict": "^6.0.0"}
+        }))
+        result = detect_config_tools(tmp_path)
+        assert "Convict" in result
+
+    def test_js_envalid(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"envalid": "^8.0.0"}
+        }))
+        result = detect_config_tools(tmp_path)
+        assert "envalid" in result
+
+    def test_js_cross_env(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"cross-env": "^7.0.0"}
+        }))
+        result = detect_config_tools(tmp_path)
+        assert "cross-env" in result
+
+    def test_js_t3_env(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@t3-oss/env-nextjs": "^0.7.0"}
+        }))
+        result = detect_config_tools(tmp_path)
+        assert "t3-env" in result
+
+    def test_go_viper(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/spf13/viper v1.17.0\n")
+        result = detect_config_tools(tmp_path)
+        assert "Viper" in result
+
+    def test_go_envconfig(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/kelseyhightower/envconfig v1.4.0\n")
+        result = detect_config_tools(tmp_path)
+        assert "envconfig" in result
+
+    def test_go_godotenv(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/joho/godotenv v1.5.0\n")
+        result = detect_config_tools(tmp_path)
+        assert "godotenv" in result
+
+    def test_rust_figment(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nfigment = "0.10"\n')
+        result = detect_config_tools(tmp_path)
+        assert "Figment" in result
+
+    def test_rust_dotenvy(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ndotenvy = "0.15"\n')
+        result = detect_config_tools(tmp_path)
+        assert "dotenvy" in result
+
+    def test_java_spring_config(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<project><spring-boot-starter-configuration-processor/></project>\n")
+        result = detect_config_tools(tmp_path)
+        assert "Spring Config" in result
+
+    def test_multiple_tools(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("python-dotenv\ndynaconf\npydantic-settings\n")
+        result = detect_config_tools(tmp_path)
+        assert len(result) == 3
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("python-dotenv\n")
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = [\n    "python-dotenv",\n]\n')
+        result = detect_config_tools(tmp_path)
+        assert result.count("python-dotenv") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pydantic-settings\ndynaconf\npython-dotenv\n")
+        result = detect_config_tools(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        assert detect_config_tools(tmp_path) == []

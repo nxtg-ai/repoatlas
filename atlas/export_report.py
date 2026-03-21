@@ -393,6 +393,17 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         clf_names = ", ".join(t for t, _ in top_clf)
         lines.append(f"**CLI Frameworks**: {has_clf}/{n} projects \u00b7 {clf_names}")
 
+    # Config tools
+    has_cfg = sum(1 for p in projects if p.tech_stack.config_tools)
+    if has_cfg:
+        cfg_counter: Counter[str] = Counter()
+        for p in projects:
+            for cfg in p.tech_stack.config_tools:
+                cfg_counter[cfg] += 1
+        top_cfg = cfg_counter.most_common(6)
+        cfg_names = ", ".join(t for t, _ in top_cfg)
+        lines.append(f"**Config Tools**: {has_cfg}/{n} projects \u00b7 {cfg_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -505,6 +516,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.cli_frameworks:
             lines.append(f"- **CLI Frameworks**: {', '.join(p.tech_stack.cli_frameworks[:8])}")
+
+        if p.tech_stack.config_tools:
+            lines.append(f"- **Config Tools**: {', '.join(p.tech_stack.config_tools[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -941,6 +955,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             clf_counter2[clf] += 1
     has_clf = sum(1 for p in projects if p.tech_stack.cli_frameworks)
 
+    # Config tools
+    cfg_counter2: Counter[str] = Counter()
+    for p in projects:
+        for cfg in p.tech_stack.config_tools:
+            cfg_counter2[cfg] += 1
+    has_cfg = sum(1 for p in projects if p.tech_stack.config_tools)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -986,6 +1007,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "http_clients": {"coverage": f"{has_hc}/{n}", "clients": dict(hc_counter2.most_common(10))},
         "doc_generators": {"coverage": f"{has_dg}/{n}", "tools": dict(dg_counter2.most_common(10))},
         "cli_frameworks": {"coverage": f"{has_clf}/{n}", "tools": dict(clf_counter2.most_common(10))},
+        "config_tools": {"coverage": f"{has_cfg}/{n}", "tools": dict(cfg_counter2.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1006,7 +1028,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1060,6 +1082,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.http_clients),
             "; ".join(ts.doc_generators),
             "; ".join(ts.cli_frameworks),
+            "; ".join(ts.config_tools),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

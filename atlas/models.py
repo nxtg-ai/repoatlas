@@ -41,6 +41,7 @@ class TechStack:
     http_clients: list[str] = field(default_factory=list)
     doc_generators: list[str] = field(default_factory=list)
     cli_frameworks: list[str] = field(default_factory=list)
+    config_tools: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -163,6 +164,7 @@ class Project:
                 "http_clients": self.tech_stack.http_clients,
                 "doc_generators": self.tech_stack.doc_generators,
                 "cli_frameworks": self.tech_stack.cli_frameworks,
+                "config_tools": self.tech_stack.config_tools,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -230,6 +232,7 @@ class Project:
                 http_clients=ts.get("http_clients", []),
                 doc_generators=ts.get("doc_generators", []),
                 cli_frameworks=ts.get("cli_frameworks", []),
+                config_tools=ts.get("config_tools", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

@@ -3485,6 +3485,123 @@ def detect_cli_frameworks(project_path: Path) -> list[str]:
     return sorted(tools)
 
 
+def detect_config_tools(project_path: Path) -> list[str]:
+    """Detect configuration management tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # Python config tools
+    py_mapping = {
+        "python-dotenv": "python-dotenv",
+        "dynaconf": "Dynaconf",
+        "hydra-core": "Hydra",
+        "omegaconf": "OmegaConf",
+        "pydantic-settings": "Pydantic Settings",
+        "python-decouple": "python-decouple",
+        "environs": "environs",
+        "everett": "Everett",
+        "configparser": "configparser",
+        "confuse": "Confuse",
+        "configobj": "ConfigObj",
+    }
+    for dep, name in py_mapping.items():
+        if dep in py_deps:
+            _add(name)
+
+    # File-based config detection
+    if (project_path / ".env").exists() or (project_path / ".env.example").exists():
+        _add("dotenv")
+
+    # JS/TS config tools — package.json
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            content = pkg_json.read_text().lower()
+            if "\"dotenv\"" in content:
+                _add("dotenv")
+            if "\"convict\"" in content:
+                _add("Convict")
+            if "\"config\"" in content and "\"config\":" in content:
+                _add("node-config")
+            if "\"envalid\"" in content:
+                _add("envalid")
+            if "\"env-cmd\"" in content:
+                _add("env-cmd")
+            if "\"cross-env\"" in content:
+                _add("cross-env")
+            if "\"nconf\"" in content:
+                _add("nconf")
+            if "\"cosmiconfig\"" in content:
+                _add("cosmiconfig")
+            if "\"rc\"" in content and "\"rc\":" in content:
+                _add("rc")
+            if "\"@t3-oss/env" in content:
+                _add("t3-env")
+        except Exception:
+            pass
+
+    # Go config tools — go.mod
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            if "spf13/viper" in content:
+                _add("Viper")
+            if "kelseyhightower/envconfig" in content:
+                _add("envconfig")
+            if "joho/godotenv" in content:
+                _add("godotenv")
+            if "koanf" in content and "knadh/koanf" in content:
+                _add("koanf")
+            if "caarlos0/env" in content:
+                _add("env")
+            if "ilyakaznacheev/cleanenv" in content:
+                _add("cleanenv")
+        except Exception:
+            pass
+
+    # Rust config tools — Cargo.toml
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content = cargo.read_text().lower()
+            if "config" in content and "config =" in content:
+                _add("config-rs")
+            if "dotenv" in content or "dotenvy" in content:
+                _add("dotenvy")
+            if "figment" in content:
+                _add("Figment")
+            if "envy" in content:
+                _add("envy")
+        except Exception:
+            pass
+
+    # Java config tools — pom.xml / build.gradle
+    for jpath in [project_path / "pom.xml", project_path / "build.gradle", project_path / "build.gradle.kts"]:
+        if jpath.exists():
+            try:
+                content = jpath.read_text().lower()
+                if "spring-boot" in content and "configuration" in content:
+                    _add("Spring Config")
+                if "typesafe" in content and "config" in content:
+                    _add("Typesafe Config")
+                if "apache" in content and "commons-configuration" in content:
+                    _add("Commons Configuration")
+                if "dotenv-java" in content:
+                    _add("dotenv-java")
+            except Exception:
+                pass
+
+    return sorted(tools)
+
+
 def _collect_python_deps(project_path: Path) -> set[str]:
     """Collect Python dependency names from pyproject.toml and requirements.txt."""
     py_deps: set[str] = set()

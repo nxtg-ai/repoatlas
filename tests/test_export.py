@@ -541,7 +541,7 @@ class TestCsvExport:
         assert row[0] == "myapp"
         assert "FastAPI" in row[13]  # frameworks column
         assert "PostgreSQL" in row[14]  # databases column
-        assert "MIT" in row[45]  # license column
+        assert "MIT" in row[46]  # license column
         assert "Python=3.12" in row[23]  # runtime versions column
 
     def test_multiple_projects(self):
@@ -583,8 +583,8 @@ class TestCsvExport:
         reader = csv.reader(io.StringIO(result))
         next(reader)
         row = next(reader)
-        assert row[46] == "main"  # branch
-        assert row[48] == "50"  # commits
+        assert row[47] == "main"  # branch
+        assert row[49] == "50"  # commits
 
     def test_valid_csv(self):
         result = build_csv_report(_portfolio(
