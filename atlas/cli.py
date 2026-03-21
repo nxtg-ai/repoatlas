@@ -160,6 +160,7 @@ def status(
     min_health: Optional[int] = typer.Option(None, help="Filter projects with health >= N%"),
     max_health: Optional[int] = typer.Option(None, help="Filter projects with health <= N%"),
     format: Optional[str] = typer.Option(None, help="Output format: json for structured output"),
+    grades: bool = typer.Option(False, "--grades", help="Show grade distribution summary"),
 ):
     """Display the portfolio dashboard."""
     portfolio = _load_portfolio()
@@ -204,6 +205,34 @@ def status(
         return
 
     display_projects = filtered if active_filters else portfolio.projects
+
+    if grades:
+        from collections import Counter
+        grade_counts: Counter[str] = Counter()
+        for p in display_projects:
+            grade_counts[p.health.grade] += 1
+        if format and format.lower() == "json":
+            import json as json_mod
+            data = {"total": len(display_projects), "grades": dict(grade_counts.most_common())}
+            print(json_mod.dumps(data, indent=2))
+            return
+        grade_order = ["A", "B+", "B", "C", "D", "F"]
+        console.print()
+        console.print("  [bold]Grade Distribution[/bold]")
+        console.print()
+        max_count = max(grade_counts.values()) if grade_counts else 1
+        for g in grade_order:
+            count = grade_counts.get(g, 0)
+            if count == 0:
+                continue
+            bar_len = int((count / max_count) * 20)
+            bar = "\u2588" * bar_len
+            color = {"A": "green", "B+": "green", "B": "cyan", "C": "yellow", "D": "red", "F": "bold red"}.get(g, "white")
+            console.print(f"  [{color}]{g:2s}[/{color}] [{color}]{bar}[/{color}] {count}")
+        console.print()
+        console.print(f"  [dim]{len(display_projects)} projects[/dim]")
+        console.print()
+        return
 
     if format and format.lower() == "json":
         import json as json_mod

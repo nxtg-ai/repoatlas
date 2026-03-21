@@ -227,6 +227,41 @@ class TestStatus:
         assert data["total"] == 0
         assert data["projects"] == []
 
+    def test_status_grades(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--grades"])
+        assert result.exit_code == 0
+        assert "Grade Distribution" in result.output
+        assert "1 projects" in result.output
+
+    def test_status_grades_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--grades", "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert "total" in data
+        assert "grades" in data
+
+    def test_status_grades_with_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--grades", "--lang", "Python"])
+        assert result.exit_code == 0
+
 
 # ===========================================================================
 # atlas connections
