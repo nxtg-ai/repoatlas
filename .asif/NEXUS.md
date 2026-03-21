@@ -36,8 +36,9 @@
 | N-23 | [Security Intelligence](#n-23-security-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-24 | [Code Quality Tooling Detection](#n-24-code-quality-tooling-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 | N-25 | [Quality Intelligence](#n-25-quality-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
+| N-26 | [Enhanced Doctor Recommendations](#n-26-enhanced-doctor-recommendations) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 22/25 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 23/26 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -68,7 +69,8 @@
 - Persistent TOML configuration
 - Portfolio summary panel: language distribution, framework adoption, infra coverage, security posture
 - Rich markdown export for portfolio reports
-- **Shipped**: N-04, N-13, N-16, N-20, N-22
+- Enhanced doctor recommendations leveraging all detection data
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -138,7 +140,7 @@
 
 ### N-12: Doctor — Actionable Recommendations
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
-**What**: New `atlas doctor` command with recommendations engine (`recommendations.py`). Analyzes per-project health (tests, git, docs, structure) and cross-project patterns (version mismatches, health focus). Outputs prioritized suggestions (critical/high/medium/low) with specific fix actions. 24 recommendation tests + 4 CLI doctor tests.
+**What**: New `atlas doctor` command with recommendations engine (`recommendations.py`). Analyzes per-project health (tests, git, docs, structure) and cross-project patterns (version mismatches, health focus). Outputs prioritized suggestions (critical/high/medium/low) with specific fix actions. 24 recommendation tests + 4 CLI doctor tests. Enhanced by N-26 to cover security, quality, and infrastructure.
 **Shipped**: 2026-03-13. Total test count: 284 → 312. README commands table updated.
 
 ### N-13: Scan History & Trends
@@ -200,6 +202,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project security pattern detection via `_find_security_patterns()` in connections.py. Analyzes security tooling from N-19 across the portfolio to detect: shared security tools (Dependabot/Gitleaks across 2+ projects), security adoption gaps (no tooling, missing dep scanning, missing secret scanning), and security tool divergence (multiple dep scanners across portfolio). New connection types (`shared_security`, `security_divergence`, `security_gap`) displayed in `atlas connections` and markdown export. 16 security pattern tests.
 **Shipped**: 2026-03-13. Total test count: 506 → 522. Builds on N-19 detection data. Parallels N-17→N-18 (detection→intelligence) pattern.
+
+### N-26: Enhanced Doctor Recommendations
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Enhanced `atlas doctor` recommendations engine to leverage all detection data from N-17/N-19/N-24/N-25. Per-project: security (no tooling, missing dep scanning, missing secret scanning), quality (no tooling, missing linting, missing type checking), infrastructure (no CI/CD). Cross-project: maps security_gap/security_divergence, quality_gap/quality_divergence, infra_gap/infra_divergence connections to prioritized recommendations. 23 new recommendation tests.
+**Shipped**: 2026-03-13. Total test count: 583 → 606. Surfaces all detection+intelligence data through actionable `atlas doctor` output.
 
 ### N-18: Infrastructure Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

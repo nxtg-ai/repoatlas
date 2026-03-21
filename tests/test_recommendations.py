@@ -29,6 +29,9 @@ def _make_project(
     has_remote: bool = True,
     total_commits: int = 50,
     key_deps: dict | None = None,
+    security_tools: list[str] | None = None,
+    quality_tools: list[str] | None = None,
+    infrastructure: list[str] | None = None,
 ) -> Project:
     hs = HealthScore(tests=tests, git_hygiene=git, documentation=docs, structure=structure)
     hs.compute()
@@ -39,6 +42,9 @@ def _make_project(
             languages={"Python": 10},
             frameworks=["FastAPI"],
             key_deps=key_deps or {},
+            security_tools=security_tools or [],
+            quality_tools=quality_tools or [],
+            infrastructure=infrastructure or [],
         ),
         git_info=GitInfo(
             branch="main",
@@ -169,6 +175,9 @@ class TestProjectRecommendations:
         proj = _make_project(
             tests=0.9, git=1.0, docs=0.8, structure=0.9,
             test_files=15, source_files=20,
+            security_tools=["Dependabot", "Gitleaks"],
+            quality_tools=["Ruff", "mypy"],
+            infrastructure=["GitHub Actions"],
         )
         recs = _project_recommendations(proj)
         assert len(recs) == 0
@@ -206,8 +215,14 @@ class TestCrossProjectRecommendations:
         assert "bad" in focus_recs[0].message
 
     def test_all_healthy_minimal_recs(self):
-        a = _make_project("a", tests=0.9, git=1.0, docs=0.8, structure=0.9)
-        b = _make_project("b", tests=0.9, git=1.0, docs=0.8, structure=0.9)
+        a = _make_project("a", tests=0.9, git=1.0, docs=0.8, structure=0.9,
+                          security_tools=["Dependabot", "Gitleaks"],
+                          quality_tools=["Ruff", "mypy"],
+                          infrastructure=["GitHub Actions"])
+        b = _make_project("b", tests=0.9, git=1.0, docs=0.8, structure=0.9,
+                          security_tools=["Dependabot", "Gitleaks"],
+                          quality_tools=["Ruff", "mypy"],
+                          infrastructure=["GitHub Actions"])
         portfolio = _make_portfolio(a, b)
         recs = _cross_project_recommendations(portfolio)
         # Should only have low-priority recs or none
@@ -237,7 +252,12 @@ class TestGenerateRecommendations:
         assert recs == []
 
     def test_single_healthy_project(self):
-        proj = _make_project(tests=0.9, git=1.0, docs=0.8, structure=0.9, test_files=15)
+        proj = _make_project(
+            tests=0.9, git=1.0, docs=0.8, structure=0.9, test_files=15,
+            security_tools=["Dependabot", "Gitleaks"],
+            quality_tools=["Ruff", "mypy"],
+            infrastructure=["GitHub Actions"],
+        )
         portfolio = _make_portfolio(proj)
         recs = generate_recommendations(portfolio)
         assert len(recs) == 0
@@ -255,3 +275,213 @@ class TestGenerateRecommendations:
         assert "git" in categories
         assert "docs" in categories
         assert "structure" in categories
+        assert "security" in categories
+        assert "quality" in categories
+        assert "infra" in categories
+
+
+# ===========================================================================
+# Per-project security recommendations
+# ===========================================================================
+
+
+class TestProjectSecurityRecommendations:
+    def test_no_security_tooling_high(self):
+        proj = _make_project(security_tools=[], source_files=20)
+        recs = _project_recommendations(proj)
+        sec_recs = [r for r in recs if r.category == "security"]
+        assert len(sec_recs) == 1
+        assert sec_recs[0].priority == "high"
+        assert "no security tooling" in sec_recs[0].message
+
+    def test_no_dep_scanning_medium(self):
+        proj = _make_project(security_tools=["Gitleaks"], source_files=20)
+        recs = _project_recommendations(proj)
+        sec_recs = [r for r in recs if r.category == "security" and "dependency" in r.message]
+        assert len(sec_recs) == 1
+        assert sec_recs[0].priority == "medium"
+
+    def test_no_secret_scanning_medium(self):
+        proj = _make_project(security_tools=["Dependabot"], source_files=20)
+        recs = _project_recommendations(proj)
+        sec_recs = [r for r in recs if r.category == "security" and "secret" in r.message]
+        assert len(sec_recs) == 1
+        assert sec_recs[0].priority == "medium"
+
+    def test_full_security_no_rec(self):
+        proj = _make_project(security_tools=["Dependabot", "Gitleaks"], source_files=20)
+        recs = _project_recommendations(proj)
+        sec_recs = [r for r in recs if r.category == "security"]
+        assert len(sec_recs) == 0
+
+    def test_small_project_skips_security(self):
+        proj = _make_project(security_tools=[], source_files=3)
+        recs = _project_recommendations(proj)
+        sec_recs = [r for r in recs if r.category == "security"]
+        assert len(sec_recs) == 0
+
+    def test_multiple_dep_scanners_accepted(self):
+        proj = _make_project(security_tools=["Renovate", "Snyk"], source_files=20)
+        recs = _project_recommendations(proj)
+        sec_recs = [r for r in recs if r.category == "security" and "dependency" in r.message]
+        assert len(sec_recs) == 0
+
+
+# ===========================================================================
+# Per-project quality recommendations
+# ===========================================================================
+
+
+class TestProjectQualityRecommendations:
+    def test_no_quality_tooling_high(self):
+        proj = _make_project(quality_tools=[], source_files=20)
+        recs = _project_recommendations(proj)
+        qt_recs = [r for r in recs if r.category == "quality"]
+        assert len(qt_recs) == 1
+        assert qt_recs[0].priority == "high"
+        assert "no code quality tooling" in qt_recs[0].message
+
+    def test_no_linter_medium(self):
+        proj = _make_project(quality_tools=["mypy"], source_files=20)
+        recs = _project_recommendations(proj)
+        qt_recs = [r for r in recs if r.category == "quality" and "linter" in r.message]
+        assert len(qt_recs) == 1
+        assert qt_recs[0].priority == "medium"
+
+    def test_no_type_checking_medium(self):
+        proj = _make_project(quality_tools=["Ruff"], source_files=20)
+        recs = _project_recommendations(proj)
+        qt_recs = [r for r in recs if r.category == "quality" and "type checking" in r.message]
+        assert len(qt_recs) == 1
+        assert qt_recs[0].priority == "medium"
+
+    def test_full_quality_no_rec(self):
+        proj = _make_project(quality_tools=["Ruff", "mypy"], source_files=20)
+        recs = _project_recommendations(proj)
+        qt_recs = [r for r in recs if r.category == "quality"]
+        assert len(qt_recs) == 0
+
+    def test_small_project_skips_quality(self):
+        proj = _make_project(quality_tools=[], source_files=3)
+        recs = _project_recommendations(proj)
+        qt_recs = [r for r in recs if r.category == "quality"]
+        assert len(qt_recs) == 0
+
+    def test_eslint_counts_as_linter(self):
+        proj = _make_project(quality_tools=["ESLint", "TypeScript"], source_files=20)
+        recs = _project_recommendations(proj)
+        qt_recs = [r for r in recs if r.category == "quality"]
+        assert len(qt_recs) == 0
+
+    def test_only_formatter_still_needs_linter(self):
+        proj = _make_project(quality_tools=["Black", "isort"], source_files=20)
+        recs = _project_recommendations(proj)
+        linter_recs = [r for r in recs if r.category == "quality" and "linter" in r.message]
+        assert len(linter_recs) == 1
+
+
+# ===========================================================================
+# Per-project infrastructure recommendations
+# ===========================================================================
+
+
+class TestProjectInfraRecommendations:
+    def test_no_ci_high(self):
+        proj = _make_project(infrastructure=[], source_files=20)
+        recs = _project_recommendations(proj)
+        infra_recs = [r for r in recs if r.category == "infra"]
+        assert len(infra_recs) == 1
+        assert infra_recs[0].priority == "high"
+        assert "CI/CD" in infra_recs[0].message
+
+    def test_has_ci_no_rec(self):
+        proj = _make_project(infrastructure=["GitHub Actions"], source_files=20)
+        recs = _project_recommendations(proj)
+        infra_recs = [r for r in recs if r.category == "infra"]
+        assert len(infra_recs) == 0
+
+    def test_docker_only_still_needs_ci(self):
+        proj = _make_project(infrastructure=["Docker"], source_files=20)
+        recs = _project_recommendations(proj)
+        infra_recs = [r for r in recs if r.category == "infra"]
+        assert len(infra_recs) == 1
+
+    def test_small_project_skips_infra(self):
+        proj = _make_project(infrastructure=[], source_files=3)
+        recs = _project_recommendations(proj)
+        infra_recs = [r for r in recs if r.category == "infra"]
+        assert len(infra_recs) == 0
+
+
+# ===========================================================================
+# Cross-project enhanced recommendations
+# ===========================================================================
+
+
+class TestCrossProjectEnhancedRecommendations:
+    def test_security_gap_critical(self):
+        a = _make_project("a", security_tools=["Dependabot", "Gitleaks"],
+                          quality_tools=["Ruff", "mypy"], infrastructure=["GitHub Actions"])
+        b = _make_project("b", security_tools=[],
+                          quality_tools=["Ruff", "mypy"], infrastructure=["GitHub Actions"])
+        portfolio = _make_portfolio(a, b)
+        recs = _cross_project_recommendations(portfolio)
+        sec_recs = [r for r in recs if r.category == "security" and r.priority == "critical"]
+        assert len(sec_recs) >= 1
+
+    def test_security_gap_warning(self):
+        # Both have security tools but one lacks dep scanning
+        a = _make_project("a", security_tools=["Dependabot", "Gitleaks"],
+                          quality_tools=["Ruff", "mypy"], infrastructure=["GitHub Actions"])
+        b = _make_project("b", security_tools=["Gitleaks"],
+                          quality_tools=["Ruff", "mypy"], infrastructure=["GitHub Actions"])
+        portfolio = _make_portfolio(a, b)
+        recs = _cross_project_recommendations(portfolio)
+        sec_recs = [r for r in recs if r.category == "security" and r.priority == "high"]
+        assert len(sec_recs) >= 1
+
+    def test_security_divergence_medium(self):
+        a = _make_project("a", security_tools=["Dependabot", "Gitleaks"],
+                          quality_tools=["Ruff", "mypy"], infrastructure=["GitHub Actions"])
+        b = _make_project("b", security_tools=["Renovate", "Gitleaks"],
+                          quality_tools=["Ruff", "mypy"], infrastructure=["GitHub Actions"])
+        portfolio = _make_portfolio(a, b)
+        recs = _cross_project_recommendations(portfolio)
+        div_recs = [r for r in recs if r.category == "security" and "standardize" in r.message.lower()]
+        assert len(div_recs) >= 1
+
+    def test_quality_gap_critical(self):
+        a = _make_project("a", quality_tools=["Ruff", "mypy"],
+                          security_tools=["Dependabot", "Gitleaks"],
+                          infrastructure=["GitHub Actions"])
+        b = _make_project("b", quality_tools=[],
+                          security_tools=["Dependabot", "Gitleaks"],
+                          infrastructure=["GitHub Actions"])
+        portfolio = _make_portfolio(a, b)
+        recs = _cross_project_recommendations(portfolio)
+        qt_recs = [r for r in recs if r.category == "quality" and r.priority == "critical"]
+        assert len(qt_recs) >= 1
+
+    def test_infra_gap_critical(self):
+        a = _make_project("a", infrastructure=["GitHub Actions"],
+                          security_tools=["Dependabot", "Gitleaks"],
+                          quality_tools=["Ruff", "mypy"])
+        b = _make_project("b", infrastructure=[],
+                          security_tools=["Dependabot", "Gitleaks"],
+                          quality_tools=["Ruff", "mypy"])
+        portfolio = _make_portfolio(a, b)
+        recs = _cross_project_recommendations(portfolio)
+        infra_recs = [r for r in recs if r.category == "infra" and r.priority == "critical"]
+        assert len(infra_recs) >= 1
+
+    def test_infra_divergence_medium(self):
+        a = _make_project("a", infrastructure=["GitHub Actions", "Docker"],
+                          security_tools=["Dependabot", "Gitleaks"],
+                          quality_tools=["Ruff", "mypy"])
+        b = _make_project("b", infrastructure=["GitLab CI", "Docker"],
+                          security_tools=["Dependabot", "Gitleaks"],
+                          quality_tools=["Ruff", "mypy"])
+        portfolio = _make_portfolio(a, b)
+        recs = _cross_project_recommendations(portfolio)
+        div_recs = [r for r in recs if r.category == "infra" and "standardize" in r.message.lower()]
+        assert len(div_recs) >= 1

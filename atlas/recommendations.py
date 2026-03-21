@@ -10,7 +10,7 @@ from atlas.models import Portfolio, Project
 @dataclass
 class Recommendation:
     priority: str  # critical, high, medium, low
-    category: str  # tests, git, docs, structure, deps
+    category: str  # tests, git, docs, structure, deps, security, quality, infra
     message: str
     projects: list[str]
 
@@ -111,6 +111,80 @@ def _project_recommendations(project: Project) -> list[Recommendation]:
             projects=[name],
         ))
 
+    # --- Security ---
+    if not project.tech_stack.security_tools and project.source_file_count > 5:
+        recs.append(Recommendation(
+            priority="high",
+            category="security",
+            message=f"{name} has no security tooling. Add Dependabot + Gitleaks.",
+            projects=[name],
+        ))
+    else:
+        dep_scanners = {"Dependabot", "Renovate", "Snyk", "pip-audit", "Safety"}
+        if project.tech_stack.security_tools and not any(
+            t in dep_scanners for t in project.tech_stack.security_tools
+        ):
+            recs.append(Recommendation(
+                priority="medium",
+                category="security",
+                message=f"{name} has no dependency scanning. Add Dependabot or Renovate.",
+                projects=[name],
+            ))
+
+        secret_scanners = {"Gitleaks", "detect-secrets", "SOPS"}
+        if project.tech_stack.security_tools and not any(
+            t in secret_scanners for t in project.tech_stack.security_tools
+        ):
+            recs.append(Recommendation(
+                priority="medium",
+                category="security",
+                message=f"{name} has no secret scanning. Add Gitleaks or detect-secrets.",
+                projects=[name],
+            ))
+
+    # --- Quality ---
+    if not project.tech_stack.quality_tools and project.source_file_count > 5:
+        recs.append(Recommendation(
+            priority="high",
+            category="quality",
+            message=f"{name} has no code quality tooling. Add a linter and type checker.",
+            projects=[name],
+        ))
+    else:
+        linters = {"Ruff", "Flake8", "Pylint", "ESLint", "Biome", "golangci-lint", "Clippy"}
+        if project.tech_stack.quality_tools and not any(
+            t in linters for t in project.tech_stack.quality_tools
+        ):
+            recs.append(Recommendation(
+                priority="medium",
+                category="quality",
+                message=f"{name} has no linter. Add Ruff (Python) or ESLint (JS/TS).",
+                projects=[name],
+            ))
+
+        type_checkers = {"mypy", "Pyright", "TypeScript"}
+        if project.tech_stack.quality_tools and not any(
+            t in type_checkers for t in project.tech_stack.quality_tools
+        ):
+            recs.append(Recommendation(
+                priority="medium",
+                category="quality",
+                message=f"{name} has no type checking. Add mypy or Pyright.",
+                projects=[name],
+            ))
+
+    # --- Infrastructure ---
+    ci_systems = {"GitHub Actions", "GitLab CI", "Jenkins", "CircleCI"}
+    if project.source_file_count > 5 and not any(
+        i in ci_systems for i in project.tech_stack.infrastructure
+    ):
+        recs.append(Recommendation(
+            priority="high",
+            category="infra",
+            message=f"{name} has no CI/CD pipeline. Add GitHub Actions.",
+            projects=[name],
+        ))
+
     return recs
 
 
@@ -118,6 +192,16 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
     """Generate recommendations from cross-project analysis."""
     recs: list[Recommendation] = []
     connections = find_connections(portfolio.projects)
+
+    severity_to_priority = {"critical": "critical", "warning": "high", "info": "medium"}
+    type_to_category = {
+        "security_gap": "security",
+        "security_divergence": "security",
+        "infra_gap": "infra",
+        "infra_divergence": "infra",
+        "quality_gap": "quality",
+        "quality_divergence": "quality",
+    }
 
     for conn in connections:
         if conn.type == "version_mismatch":
@@ -131,6 +215,13 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
             recs.append(Recommendation(
                 priority="critical",
                 category="tests",
+                message=conn.detail,
+                projects=conn.projects,
+            ))
+        elif conn.type in type_to_category:
+            recs.append(Recommendation(
+                priority=severity_to_priority.get(conn.severity, "medium"),
+                category=type_to_category[conn.type],
                 message=conn.detail,
                 projects=conn.projects,
             ))
