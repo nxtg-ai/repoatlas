@@ -34,6 +34,7 @@ from atlas.detector import (
     detect_orm_tools,
     detect_i18n_tools,
     detect_validation_tools,
+    detect_logging_tools,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -70,6 +71,7 @@ def scan_project(project_path: Path) -> Project:
     orm_tools = detect_orm_tools(path)
     i18n_tools = detect_i18n_tools(path)
     validation_tools = detect_validation_tools(path)
+    logging_tools = detect_logging_tools(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -101,6 +103,7 @@ def scan_project(project_path: Path) -> Project:
         orm_tools=orm_tools,
         i18n_tools=i18n_tools,
         validation_tools=validation_tools,
+        logging_tools=logging_tools,
     )
 
     project = Project(

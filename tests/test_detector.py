@@ -30,6 +30,7 @@ from atlas.detector import (
     detect_orm_tools,
     detect_i18n_tools,
     detect_validation_tools,
+    detect_logging_tools,
     walk_files,
 )
 
@@ -3420,4 +3421,132 @@ class TestDetectValidationTools:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         result = detect_validation_tools(tmp_path)
+        assert result == []
+
+
+# ---------------------------------------------------------------------------
+# detect_logging_tools
+# ---------------------------------------------------------------------------
+class TestDetectLoggingTools:
+    def test_empty_project(self, tmp_path):
+        assert detect_logging_tools(tmp_path) == []
+
+    # --- Python ---
+    def test_loguru_from_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["loguru"]\n')
+        result = detect_logging_tools(tmp_path)
+        assert "Loguru" in result
+
+    def test_structlog_from_requirements(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("structlog>=23.0\n")
+        result = detect_logging_tools(tmp_path)
+        assert "structlog" in result
+
+    def test_python_json_logger(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["python-json-logger"]\n')
+        result = detect_logging_tools(tmp_path)
+        assert "python-json-logger" in result
+
+    # --- JavaScript / TypeScript ---
+    def test_winston_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"winston": "^3.0.0"}
+        }))
+        result = detect_logging_tools(tmp_path)
+        assert "Winston" in result
+
+    def test_pino_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"pino": "^8.0.0"}
+        }))
+        result = detect_logging_tools(tmp_path)
+        assert "Pino" in result
+
+    def test_bunyan_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"bunyan": "^1.0.0"}
+        }))
+        result = detect_logging_tools(tmp_path)
+        assert "Bunyan" in result
+
+    def test_morgan_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"morgan": "^1.0.0"}
+        }))
+        result = detect_logging_tools(tmp_path)
+        assert "Morgan" in result
+
+    def test_tslog_from_dev_deps(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"tslog": "^4.0.0"}
+        }))
+        result = detect_logging_tools(tmp_path)
+        assert "tslog" in result
+
+    # --- Go ---
+    def test_zap_from_go_mod(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire go.uber.org/zap v1.27.0\n")
+        result = detect_logging_tools(tmp_path)
+        assert "Zap" in result
+
+    def test_logrus_from_go_mod(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/sirupsen/logrus v1.9.0\n")
+        result = detect_logging_tools(tmp_path)
+        assert "Logrus" in result
+
+    def test_zerolog_from_go_mod(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/rs/zerolog v1.32.0\n")
+        result = detect_logging_tools(tmp_path)
+        assert "zerolog" in result
+
+    # --- Rust ---
+    def test_tracing_from_cargo(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ntracing = "0.1"\n')
+        result = detect_logging_tools(tmp_path)
+        assert "tracing (Rust)" in result
+
+    def test_env_logger_from_cargo(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nenv_logger = "0.11"\n')
+        result = detect_logging_tools(tmp_path)
+        assert "env_logger" in result
+
+    # --- Java ---
+    def test_logback_from_gradle(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'ch.qos.logback:logback-classic:1.4'\n")
+        result = detect_logging_tools(tmp_path)
+        assert "Logback" in result
+
+    def test_slf4j_from_pom(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><groupId>org.slf4j</groupId></dependency>\n")
+        result = detect_logging_tools(tmp_path)
+        assert "SLF4J" in result
+
+    def test_log4j_from_gradle(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.apache.logging.log4j:log4j-core:2.0'\n")
+        result = detect_logging_tools(tmp_path)
+        assert "Log4j" in result
+
+    # --- Edge cases ---
+    def test_multiple_tools(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["loguru", "structlog"]\n')
+        result = detect_logging_tools(tmp_path)
+        assert "Loguru" in result
+        assert "structlog" in result
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["loguru"]\n')
+        (tmp_path / "requirements.txt").write_text("loguru>=0.7\n")
+        result = detect_logging_tools(tmp_path)
+        assert result.count("Loguru") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"winston": "^3.0.0", "pino": "^8.0.0", "morgan": "^1.0.0"}
+        }))
+        result = detect_logging_tools(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        result = detect_logging_tools(tmp_path)
         assert result == []

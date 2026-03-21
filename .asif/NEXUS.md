@@ -95,8 +95,9 @@
 | N-82 | [Validation & Schema Library Detection](#n-82-validation--schema-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-83 | [Validation Intelligence](#n-83-validation-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-84 | [Batch Remove Stale Projects](#n-84-batch-remove-stale-projects) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-85 | [Logging Framework Detection](#n-85-logging-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 81/84 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 82/85 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -128,7 +129,8 @@
 - ORM & database clients: SQLAlchemy, Django ORM, Peewee, Tortoise ORM, SQLModel, Prisma, TypeORM, Sequelize, Drizzle, Knex, Mongoose, Kysely, MikroORM, GORM, sqlx, ent, Diesel, SeaORM, Hibernate, MyBatis, jOOQ, Spring Data JPA
 - i18n & localization: i18next, react-i18next, next-i18next, next-intl, react-intl, FormatJS, vue-i18n, Angular i18n, Lingui, typesafe-i18n, Babel, Flask-Babel, go-i18n, Go x/text, Fluent, rust-i18n, locale directories
 - Validation & schema libraries: Pydantic, marshmallow, Cerberus, attrs, cattrs, Voluptuous, schema, jsonschema, Colander, Schematics, Zod, Yup, Joi, class-validator, Ajv, Superstruct, Valibot, io-ts, TypeBox, Vest, ArkType, Effect Schema, go-playground/validator, ozzo-validation, validator (Rust), garde, Hibernate Validator, Jakarta Validation
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82
+- Logging frameworks: Loguru, structlog, python-json-logger, coloredlogs, Logbook, Winston, Pino, Bunyan, log4js, Morgan, Consola, tslog, Zap, Logrus, zerolog, slog, tracing (Rust), env_logger, log4rs, Logback, Log4j, SLF4J
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -508,6 +510,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: New `atlas batch-remove` command that prunes stale projects whose directories no longer exist on disk. Lists each stale project with name and path, removes them from portfolio, and saves. Handles empty portfolios and portfolios where all projects still exist gracefully. 4 tests.
 **Shipped**: 2026-03-21. Total test count: 1505 → 1509. 25th experience feature.
+
+### N-85: Logging Framework Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects logging and structured logging frameworks across 5 ecosystems via `detect_logging_tools()` in detector.py. Python: Loguru, structlog, python-json-logger, coloredlogs, Rich (logging), Logbook, Eliot, Twiggy. JS/TS: Winston, Pino, Bunyan, log4js, loglevel, Signale, Consola, Roarr, tslog, Winston Rotate, Morgan, debug. Go: Zap, Logrus, zerolog, slog. Rust: tracing, env_logger, log4rs, fern, slog. Java: Logback, Log4j, SLF4J. Full pipeline: models.py field, scanner.py import/call, display.py project card + portfolio summary, export_report.py markdown/JSON/CSV, cli.py search integration. 21 tests.
+**Shipped**: 2026-03-21. Total test count: 1509 → 1530. 25th detection feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

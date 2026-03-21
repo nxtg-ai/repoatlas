@@ -2383,3 +2383,130 @@ def detect_validation_tools(project_path: Path) -> list[str]:
             pass
 
     return sorted(tools)
+
+
+def detect_logging_tools(project_path: Path) -> list[str]:
+    """Detect logging and structured logging frameworks."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str):
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Python (pyproject.toml, requirements.txt)
+    py_deps = {
+        "loguru": "Loguru",
+        "structlog": "structlog",
+        "python-json-logger": "python-json-logger",
+        "logging-tree": "logging-tree",
+        "coloredlogs": "coloredlogs",
+        "rich": "Rich (logging)",
+        "logbook": "Logbook",
+        "eliot": "Eliot",
+        "twiggy": "Twiggy",
+    }
+    for cfg in ("pyproject.toml", "requirements.txt"):
+        f = project_path / cfg
+        if f.exists():
+            try:
+                content = f.read_text().lower()
+                for dep, name in py_deps.items():
+                    if dep in content:
+                        _add(name)
+            except OSError:
+                pass
+
+    # JavaScript / TypeScript (package.json)
+    pkg = project_path / "package.json"
+    if pkg.exists():
+        try:
+            data = json.loads(pkg.read_text())
+            all_deps = set()
+            for section in ("dependencies", "devDependencies"):
+                all_deps.update(data.get(section, {}).keys())
+
+            js_deps = {
+                "winston": "Winston",
+                "pino": "Pino",
+                "bunyan": "Bunyan",
+                "log4js": "log4js",
+                "loglevel": "loglevel",
+                "signale": "Signale",
+                "consola": "Consola",
+                "roarr": "Roarr",
+                "tslog": "tslog",
+                "winston-daily-rotate-file": "Winston Rotate",
+                "morgan": "Morgan",
+                "debug": "debug",
+            }
+            for dep, name in js_deps.items():
+                if dep in all_deps:
+                    _add(name)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    # Go (go.mod)
+    gomod = project_path / "go.mod"
+    if gomod.exists():
+        try:
+            content = gomod.read_text()
+            go_deps = {
+                "go.uber.org/zap": "Zap",
+                "github.com/sirupsen/logrus": "Logrus",
+                "github.com/rs/zerolog": "zerolog",
+                "log/slog": "slog",
+                "golang.org/x/exp/slog": "slog",
+            }
+            for dep, name in go_deps.items():
+                if dep in content:
+                    _add(name)
+        except OSError:
+            pass
+
+    # Rust (Cargo.toml)
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content = cargo.read_text().lower()
+            if "tracing" in content:
+                _add("tracing (Rust)")
+            if "env_logger" in content:
+                _add("env_logger")
+            if "log4rs" in content:
+                _add("log4rs")
+            if "fern" in content:
+                _add("fern")
+            if "slog" in content:
+                _add("slog (Rust)")
+        except OSError:
+            pass
+
+    # Java (build.gradle, pom.xml)
+    java_deps = {
+        "logback": "Logback",
+        "log4j": "Log4j",
+        "slf4j": "SLF4J",
+    }
+    for gradle_file in ("build.gradle", "build.gradle.kts"):
+        gradle = project_path / gradle_file
+        if gradle.exists():
+            try:
+                content = gradle.read_text().lower()
+                for dep, name in java_deps.items():
+                    if dep in content:
+                        _add(name)
+            except OSError:
+                pass
+    pom = project_path / "pom.xml"
+    if pom.exists():
+        try:
+            content = pom.read_text().lower()
+            for dep, name in java_deps.items():
+                if dep in content:
+                    _add(name)
+        except OSError:
+            pass
+
+    return sorted(tools)

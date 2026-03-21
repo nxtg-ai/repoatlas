@@ -500,6 +500,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         val_parts = [f"{val} ({count})" for val, count in top_val]
         lines.append(f"  [bold]Validation:[/bold]  {has_val}/{n} projects \u00b7 {', '.join(val_parts)}")
 
+    # Logging
+    has_log = sum(1 for p in projects if p.tech_stack.logging_tools)
+    if has_log:
+        log_counter: Counter[str] = Counter()
+        for p in projects:
+            for lt in p.tech_stack.logging_tools:
+                log_counter[lt] += 1
+        top_log = log_counter.most_common(6)
+        log_parts = [f"{lt} ({count})" for lt, count in top_log]
+        lines.append(f"  [bold]Logging:[/bold]     {has_log}/{n} projects \u00b7 {', '.join(log_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -821,6 +832,10 @@ def show_project_card(project: Project):
     if project.tech_stack.validation_tools:
         val = ", ".join(project.tech_stack.validation_tools[:8])
         lines.append(f"  [bold]Validation:[/bold] {val}")
+
+    if project.tech_stack.logging_tools:
+        log = ", ".join(project.tech_stack.logging_tools[:8])
+        lines.append(f"  [bold]Logging:[/bold]    {log}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

@@ -294,6 +294,17 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         val_names = ", ".join(t for t, _ in top_val)
         lines.append(f"**Validation**: {has_val}/{n} projects \u00b7 {val_names}")
 
+    # Logging
+    has_log = sum(1 for p in projects if p.tech_stack.logging_tools)
+    if has_log:
+        log_counter: Counter[str] = Counter()
+        for p in projects:
+            for lt in p.tech_stack.logging_tools:
+                log_counter[lt] += 1
+        top_log = log_counter.most_common(6)
+        log_names = ", ".join(t for t, _ in top_log)
+        lines.append(f"**Logging**: {has_log}/{n} projects \u00b7 {log_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -379,6 +390,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.validation_tools:
             lines.append(f"- **Validation**: {', '.join(p.tech_stack.validation_tools[:8])}")
+
+        if p.tech_stack.logging_tools:
+            lines.append(f"- **Logging**: {', '.join(p.tech_stack.logging_tools[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -726,6 +740,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             val_counter2[val] += 1
     has_val = sum(1 for p in projects if p.tech_stack.validation_tools)
 
+    # Logging
+    log_counter2: Counter[str] = Counter()
+    for p in projects:
+        for lt in p.tech_stack.logging_tools:
+            log_counter2[lt] += 1
+    has_log = sum(1 for p in projects if p.tech_stack.logging_tools)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -762,6 +783,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "orm_tools": {"coverage": f"{has_orm}/{n}", "tools": dict(orm_counter2.most_common(10))},
         "i18n_tools": {"coverage": f"{has_i18n}/{n}", "tools": dict(i18n_counter2.most_common(10))},
         "validation_tools": {"coverage": f"{has_val}/{n}", "tools": dict(val_counter2.most_common(10))},
+        "logging_tools": {"coverage": f"{has_log}/{n}", "tools": dict(log_counter2.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -780,7 +802,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Testing Frameworks", "Package Managers", "AI/ML Tools",
         "Docs Artifacts", "CI Config", "Runtime Versions", "Build Tools", "API Specs",
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
-        "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation",
+        "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
@@ -826,6 +848,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.orm_tools),
             "; ".join(ts.i18n_tools),
             "; ".join(ts.validation_tools),
+            "; ".join(ts.logging_tools),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",
