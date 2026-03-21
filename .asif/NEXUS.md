@@ -18,10 +18,10 @@
 | N-05 | [GitHub CI](#n-05-github-ci) | DISTRIBUTION | SHIPPED | P1 | 2026-03-04 |
 | N-06 | [PyPI Publishing](#n-06-pypi-publishing) | DISTRIBUTION | DECIDED | P0 | 2026-03-13 |
 | N-07 | [README + GIF Demo](#n-07-readme-gif-demo) | DISTRIBUTION | SHIPPED | P1 | 2026-03-13 |
-| N-08 | [Show HN Launch](#n-08-show-hn-launch) | DISTRIBUTION | IDEA | P1 | — |
+| N-08 | [Show HN Launch](#n-08-show-hn-launch) | DISTRIBUTION | DECIDED | P1 | 2026-03-13 |
 | N-09 | [Pro Tier / Monetization](#n-09-pro-tier-monetization) | DISTRIBUTION | IDEA | P2 | — |
 
-**Summary**: 6/9 SHIPPED | 1 DECIDED | 2 IDEA | 0 BUILDING
+**Summary**: 6/9 SHIPPED | 2 DECIDED | 1 IDEA | 0 BUILDING
 
 ---
 
@@ -89,9 +89,11 @@
 **Shipped**: 2026-03-13. GIF recorded via asciinema + agg (271KB). Shows `atlas status`, `atlas connections`, `atlas inspect`. VHS tape also included at `demo/demo.tape`.
 
 ### N-08: Show HN Launch
-**Pillar**: DISTRIBUTION | **Status**: IDEA | **Priority**: P1
+**Pillar**: DISTRIBUTION | **Status**: DECIDED | **Priority**: P1
 **What**: Launch on Hacker News + Reddit + Twitter same day. Product Hunt day 2-3.
-**Next step**: Depends on N-06 (PyPI) and N-07 (README).
+**Launch kit ready**: `launch/` directory has drafted posts for Show HN, Reddit (r/Python + r/commandline), Twitter/X thread, Product Hunt listing, and a day-of checklist with metrics targets.
+**Blocker**: N-06 (PyPI publish). Everything else is ready.
+**Next step**: Asif reviews launch copy in `launch/`, publishes to PyPI, then executes checklist.
 
 ### N-09: Pro Tier / Monetization
 **Pillar**: DISTRIBUTION | **Status**: IDEA | **Priority**: P2
