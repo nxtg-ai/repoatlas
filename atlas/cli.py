@@ -438,6 +438,7 @@ def connections(
     project: Optional[str] = typer.Option(None, "--project", "-p", help="Filter connections involving a specific project"),
     format: Optional[str] = typer.Option(None, help="Output format: json or csv for structured output"),
     summary: bool = typer.Option(False, "--summary", help="Show compact category summary table"),
+    sort: Optional[str] = typer.Option(None, "--sort", help="Sort by: type, severity, projects"),
 ):
     """Show cross-project intelligence."""
     portfolio = _load_portfolio()
@@ -491,6 +492,16 @@ def connections(
         if not (format and format.lower() in ("json", "csv")):
             console.print()
             console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (project: {project})[/dim]")
+
+    if sort:
+        sort_lower = sort.lower()
+        severity_rank = {"critical": 0, "warning": 1, "info": 2}
+        if sort_lower == "type":
+            conns.sort(key=lambda c: c.type)
+        elif sort_lower == "severity":
+            conns.sort(key=lambda c: (severity_rank.get(c.severity, 99), c.type))
+        elif sort_lower == "projects":
+            conns.sort(key=lambda c: len(c.projects), reverse=True)
 
     if summary:
         from collections import Counter

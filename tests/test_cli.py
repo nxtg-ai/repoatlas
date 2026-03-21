@@ -611,6 +611,47 @@ class TestConnections:
         result = runner.invoke(app, ["connections", "--project", "nonexistent"])
         assert result.exit_code == 0
 
+    def test_connections_sort_type_csv(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--format", "csv", "--sort", "type"])
+        assert result.exit_code == 0
+        import csv
+        import io
+        reader = csv.reader(io.StringIO(result.output))
+        next(reader)  # skip header
+        types = [row[0] for row in reader if row]
+        assert types == sorted(types)
+
+    def test_connections_sort_severity_csv(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--format", "csv", "--sort", "severity"])
+        assert result.exit_code == 0
+        assert "Type" in result.output
+
+    def test_connections_sort_projects_csv(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--format", "csv", "--sort", "projects"])
+        assert result.exit_code == 0
+        assert "Type" in result.output
+
     def test_connections_summary(self, portfolio_dir, tmp_path):
         runner.invoke(app, ["init"])
         for name in ("proj-a", "proj-b"):

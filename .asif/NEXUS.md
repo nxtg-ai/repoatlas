@@ -157,8 +157,9 @@
 | N-144 | [Image Processing Intelligence](#n-144-image-processing-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-145 | [Cryptography Library Detection](#n-145-cryptography-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-146 | [PDF & Document Library Detection](#n-146-pdf--document-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-147 | [Connections Sort Command](#n-147-connections-sort-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 143/146 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 144/147 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -311,7 +312,8 @@
 - Compare CSV export: `atlas compare A B --format csv` outputs CSV with Metric/A/B/Delta columns. Rows: Grade, Health%, Tests%, Git%, Docs%, Structure%, LOC, Source Files, Test Files, Commits, Languages, Frameworks, License
 - Top projects CSV export: `atlas top --format csv` outputs CSV with Rank, Name, metric value, Grade, Stack columns. Works with --by and --limit options
 - Status sort: `atlas status --sort name|health|loc|grade` sorts project list. Works with all filters and output formats (rich, json, csv)
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130, N-133, N-136, N-137, N-140, N-143
+- Connections sort: `atlas connections --sort type|severity|projects` sorts connections. Works with all filters and output formats (rich, json, csv)
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130, N-133, N-136, N-137, N-140, N-143, N-147
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -703,6 +705,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-147: Connections Sort Command
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--sort` option to `atlas connections` command. Supports sorting by type (alphabetical), severity (critical→warning→info), and projects (most involved first). Works with all existing filters (--type, --severity, --project) and output formats (rich, json, csv). 3 tests.
+**Shipped**: 2026-03-21. Total test count: 2199 → 2202. 46th experience feature.
 
 ### N-146: PDF & Document Library Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
