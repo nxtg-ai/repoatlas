@@ -21,6 +21,7 @@ from atlas.connections import (
     _find_monitoring_patterns,
     _find_auth_patterns,
     _find_messaging_patterns,
+    _find_deploy_target_patterns,
     _find_version_mismatches,
     find_connections,
 )
@@ -32,7 +33,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           ai_tools=None, testing_frameworks=None, package_managers=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
-          auth_tools=None, messaging_tools=None, project_license="",
+          auth_tools=None, messaging_tools=None, deploy_targets=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -56,6 +57,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             monitoring_tools=monitoring_tools or [],
             auth_tools=auth_tools or [],
             messaging_tools=messaging_tools or [],
+            deploy_targets=deploy_targets or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -2696,3 +2698,165 @@ class TestFindMessagingPatterns:
         msg_types = {c.type for c in conns if "messaging" in c.type}
         assert "shared_messaging" in msg_types
         assert "messaging_divergence" in msg_types
+
+
+# ---------------------------------------------------------------------------
+# N-65: Deployment Target Intelligence
+# ---------------------------------------------------------------------------
+class TestFindDeployTargetPatterns:
+    def test_shared_deploy_target(self):
+        projects = [
+            _proj("a", deploy_targets=["Vercel"]),
+            _proj("b", deploy_targets=["Vercel"]),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_deploy"]
+        assert len(shared) == 1
+        assert "Vercel" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_shared_deploy_multiple(self):
+        projects = [
+            _proj("a", deploy_targets=["Vercel", "Netlify"]),
+            _proj("b", deploy_targets=["Vercel", "Netlify"]),
+            _proj("c", deploy_targets=["Vercel"]),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_deploy"]
+        assert len(shared) == 2
+
+    def test_no_shared_with_different_targets(self):
+        projects = [
+            _proj("a", deploy_targets=["Vercel"]),
+            _proj("b", deploy_targets=["Netlify"]),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_deploy"]
+        assert len(shared) == 0
+
+    def test_platform_divergence_serverless_vs_container(self):
+        projects = [
+            _proj("a", deploy_targets=["Vercel"]),
+            _proj("b", deploy_targets=["Fly.io"]),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        div = [c for c in conns if c.type == "deploy_divergence"]
+        assert len(div) == 1
+        assert "serverless/edge" in div[0].detail
+        assert "container PaaS" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_no_divergence_same_category(self):
+        projects = [
+            _proj("a", deploy_targets=["Vercel"]),
+            _proj("b", deploy_targets=["Netlify"]),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        div = [c for c in conns if c.type == "deploy_divergence"]
+        assert len(div) == 0
+
+    def test_deploy_gap(self):
+        projects = [
+            _proj("a", frameworks=["FastAPI"], deploy_targets=["Fly.io"], source_files=20),
+            _proj("b", frameworks=["FastAPI"], deploy_targets=[], source_files=20),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        gaps = [c for c in conns if c.type == "deploy_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "warning"
+
+    def test_no_gap_without_framework(self):
+        projects = [
+            _proj("a", deploy_targets=["Vercel"]),
+            _proj("b", frameworks=[], deploy_targets=[], source_files=20),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        gaps = [c for c in conns if c.type == "deploy_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", deploy_targets=["Vercel"]),
+            _proj("b", frameworks=["FastAPI"], deploy_targets=[], source_files=3),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        gaps = [c for c in conns if c.type == "deploy_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_when_none_have_deploy(self):
+        projects = [
+            _proj("a", frameworks=["FastAPI"], deploy_targets=[], source_files=20),
+            _proj("b", frameworks=["Django"], deploy_targets=[], source_files=20),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        gaps = [c for c in conns if c.type == "deploy_gap"]
+        assert len(gaps) == 0
+
+    def test_empty_projects(self):
+        conns = _find_deploy_target_patterns([])
+        assert conns == []
+
+    def test_no_deploy_targets(self):
+        projects = [
+            _proj("a", deploy_targets=[]),
+            _proj("b", deploy_targets=[]),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_sorted_by_count(self):
+        projects = [
+            _proj("a", deploy_targets=["Vercel", "Heroku"]),
+            _proj("b", deploy_targets=["Vercel", "Heroku"]),
+            _proj("c", deploy_targets=["Vercel"]),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_deploy"]
+        assert len(shared) == 2
+        assert "3 projects" in shared[0].detail  # Vercel first (3 > 2)
+
+    def test_divergence_container_vs_iaas(self):
+        projects = [
+            _proj("a", deploy_targets=["Heroku"]),
+            _proj("b", deploy_targets=["Serverless Framework"]),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        div = [c for c in conns if c.type == "deploy_divergence"]
+        assert len(div) == 1
+
+    def test_projects_sorted_in_shared(self):
+        projects = [
+            _proj("z-proj", deploy_targets=["Vercel"]),
+            _proj("a-proj", deploy_targets=["Vercel"]),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_deploy"]
+        assert shared[0].projects == ["a-proj", "z-proj"]
+
+    def test_limit_10(self):
+        targets = [f"Target{i}" for i in range(20)]
+        projects = [_proj("a", deploy_targets=targets), _proj("b", deploy_targets=targets)]
+        conns = _find_deploy_target_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_gap_multiple_web_projects(self):
+        projects = [
+            _proj("a", frameworks=["FastAPI"], deploy_targets=["Fly.io"], source_files=20),
+            _proj("b", frameworks=["Django"], deploy_targets=[], source_files=20),
+            _proj("c", frameworks=["Express"], deploy_targets=[], source_files=20),
+        ]
+        conns = _find_deploy_target_patterns(projects)
+        gaps = [c for c in conns if c.type == "deploy_gap"]
+        assert len(gaps) == 1
+        assert "2 web project(s)" in gaps[0].detail
+        assert sorted(gaps[0].projects) == ["b", "c"]
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", deploy_targets=["Vercel"]),
+            _proj("b", deploy_targets=["Vercel", "Fly.io"]),
+        ]
+        conns = find_connections(projects)
+        deploy_types = {c.type for c in conns if "deploy" in c.type}
+        assert "shared_deploy" in deploy_types

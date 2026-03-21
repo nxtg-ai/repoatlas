@@ -92,6 +92,9 @@ CONNECTION_ICONS = {
     "shared_messaging": "[green]\u2302[/green]",
     "messaging_divergence": "[yellow]\u2300[/yellow]",
     "messaging_gap": "[red]\u2301[/red]",
+    "shared_deploy": "[green]\u2601[/green]",
+    "deploy_divergence": "[yellow]\u2601[/yellow]",
+    "deploy_gap": "[red]\u2601[/red]",
 }
 
 
@@ -513,6 +516,9 @@ def show_connections(connections: list[Connection]):
         "shared_messaging": "Shared Messaging Tools",
         "messaging_divergence": "Messaging Divergence",
         "messaging_gap": "Messaging Gaps",
+        "shared_deploy": "Shared Deploy Targets",
+        "deploy_divergence": "Deploy Target Divergence",
+        "deploy_gap": "Deploy Target Gaps",
     }
 
     lines = []
@@ -569,6 +575,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_monitoring": "monitoring", "monitoring_divergence": "monitoring", "monitoring_gap": "monitoring",
         "shared_auth": "auth", "auth_divergence": "auth", "auth_gap": "auth",
         "shared_messaging": "messaging", "messaging_divergence": "messaging", "messaging_gap": "messaging",
+        "shared_deploy": "deploy", "deploy_divergence": "deploy", "deploy_gap": "deploy",
     }
 
     for conn in connections:

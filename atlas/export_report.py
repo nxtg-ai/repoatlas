@@ -373,6 +373,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_messaging": "Shared Messaging Tools",
         "messaging_divergence": "Messaging Divergence",
         "messaging_gap": "Messaging Gaps",
+        "shared_deploy": "Shared Deploy Targets",
+        "deploy_divergence": "Deploy Target Divergence",
+        "deploy_gap": "Deploy Target Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

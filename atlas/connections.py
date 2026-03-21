@@ -29,6 +29,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_monitoring_patterns(projects))
     connections.extend(_find_auth_patterns(projects))
     connections.extend(_find_messaging_patterns(projects))
+    connections.extend(_find_deploy_target_patterns(projects))
     return connections
 
 
@@ -1352,6 +1353,82 @@ def _find_messaging_patterns(projects: list[Project]) -> list[Connection]:
                 type="messaging_gap",
                 detail=f"{len(no_messaging)} web project(s) have no messaging/notification tooling",
                 projects=sorted(no_messaging),
+                severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_deploy_target_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project deployment target patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared deploy targets — same platform in 2+ projects
+    target_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for target in p.tech_stack.deploy_targets:
+            target_to_projects[target].append(p.name)
+
+    for target, projs in sorted(target_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_deploy",
+                detail=f"{target} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Platform divergence — projects using different hosting categories
+    serverless_paas = {"Vercel", "Netlify", "Cloudflare Workers", "AWS Amplify",
+                       "Firebase Hosting", "GitHub Pages"}
+    container_paas = {"Fly.io", "Railway", "Render", "Heroku",
+                      "Google App Engine", "DigitalOcean App Platform"}
+    iaas_serverless = {"Serverless Framework"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "serverless/edge": {}, "container PaaS": {}, "IaC serverless": {},
+    }
+    cat_sets = [
+        ("serverless/edge", serverless_paas),
+        ("container PaaS", container_paas),
+        ("IaC serverless", iaas_serverless),
+    ]
+    for p in projects:
+        for target in p.tech_stack.deploy_targets:
+            for cat_name, cat_set in cat_sets:
+                if target in cat_set:
+                    cat_found[cat_name].setdefault(target, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys()))
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="deploy_divergence",
+            detail=f"Mixed hosting strategies: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # Deploy gap — web projects with frameworks but no deploy target configured
+    web_frameworks = {"FastAPI", "Django", "Flask", "Express", "Next.js", "Nuxt",
+                      "Rails", "Spring Boot", "Actix", "Axum", "Gin", "Echo", "Fiber"}
+    has_deploy = {p.name for p in projects if p.tech_stack.deploy_targets}
+    if has_deploy:
+        no_deploy = [p.name for p in projects
+                     if not p.tech_stack.deploy_targets
+                     and any(fw in web_frameworks for fw in p.tech_stack.frameworks)
+                     and p.source_file_count > 5]
+        if no_deploy:
+            connections.append(Connection(
+                type="deploy_gap",
+                detail=f"{len(no_deploy)} web project(s) have no deployment target configured",
+                projects=sorted(no_deploy),
                 severity="warning",
             ))
 

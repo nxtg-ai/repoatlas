@@ -75,8 +75,9 @@
 | N-62 | [Messaging & Notification Intelligence](#n-62-messaging--notification-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-63 | [Connection Statistics Panel](#n-63-connection-statistics-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-64 | [Deployment Target Detection](#n-64-deployment-target-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-65 | [Deployment Target Intelligence](#n-65-deployment-target-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 61/64 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 62/65 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -124,7 +125,8 @@
 - Cross-project monitoring intelligence (shared tools, error tracker divergence, APM divergence, monitoring gaps)
 - Cross-project authentication intelligence (shared auth tools, auth provider divergence, session-vs-token strategy divergence, auth gaps for web projects)
 - Cross-project messaging intelligence (shared messaging tools, email provider divergence, real-time/push divergence, messaging gaps for web projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62
+- Cross-project deployment target intelligence (shared targets, serverless/edge vs container PaaS vs IaC divergence, deploy gaps for web projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -144,7 +146,7 @@
 - CSV export: `atlas export --format csv` for spreadsheet-friendly portfolio data
 - Health trend sparklines: Unicode mini-charts in `atlas status` showing per-project health history
 - Markdown badge generation: shields.io badges for portfolio README (health grade, project count, test files, LOC, primary language)
-- Connection category filtering: `atlas connections --type security` to filter cross-project intelligence by category (18 categories)
+- Connection category filtering: `atlas connections --type security` to filter cross-project intelligence by category (19 categories)
 - Connection statistics panel: summary of total connections, severity breakdown (critical/warning/info), top categories by count
 - **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63
 
@@ -368,6 +370,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: Detects deployment platforms from config files and package deps. Supports 13 platforms: Vercel (vercel.json/.vercel/@vercel/node), Netlify (netlify.toml/_redirects/netlify-cli/@netlify/functions), Fly.io (fly.toml), Railway (railway.json/railway.toml), Render (render.yaml), Heroku (Procfile), Firebase Hosting (firebase.json/firebase-tools), AWS Amplify (amplify.yml/amplify/), Serverless Framework (serverless.yml), Google App Engine (app.yaml with runtime:), DigitalOcean App Platform (.do/do-app.yaml), Cloudflare Workers (wrangler.toml/wrangler), GitHub Pages (workflow detection/gh-pages dep). Adds `deploy_targets` field to TechStack. Updates models.py, detector.py, scanner.py, display.py (project card + portfolio summary), export_report.py (CSV + markdown + JSON), cli.py. 31 tests.
 **Shipped**: 2026-03-21. Total test count: 1191 → 1222. 18th detection category.
+
+### N-65: Deployment Target Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project deployment target intelligence — detects shared deploy targets, platform strategy divergence (serverless/edge vs container PaaS vs IaC serverless), and deploy gaps for web projects with frameworks but no deploy target configured (>5 source files). Adds `_find_deploy_target_patterns()` to connections.py (shared_deploy, deploy_divergence, deploy_gap). Updates display.py icons/labels, export_report.py type_labels, recommendations.py type_to_category, cli.py CONNECTION_CATEGORIES (19 categories). 17 connection tests.
+**Shipped**: 2026-03-21. Total test count: 1222 → 1239. 20th intelligence category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
