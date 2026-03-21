@@ -1963,3 +1963,181 @@ def detect_bundlers(project_path: Path) -> list[str]:
             pass
 
     return sorted(tools)
+
+
+def detect_orm_tools(project_path: Path) -> list[str]:
+    """Detect ORM and database client libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Config file detection
+    config_files = {
+        "ormconfig.js": "TypeORM",
+        "ormconfig.ts": "TypeORM",
+        "ormconfig.json": "TypeORM",
+        "mikro-orm.config.ts": "MikroORM",
+        "mikro-orm.config.js": "MikroORM",
+        "drizzle.config.ts": "Drizzle",
+        "drizzle.config.js": "Drizzle",
+        "knexfile.js": "Knex",
+        "knexfile.ts": "Knex",
+    }
+    for filename, name in config_files.items():
+        if (project_path / filename).exists():
+            _add(name)
+
+    # Prisma schema
+    prisma_schema = project_path / "prisma" / "schema.prisma"
+    if prisma_schema.exists():
+        _add("Prisma")
+
+    # Python deps (pyproject.toml, requirements.txt)
+    py_orm_deps = {
+        "sqlalchemy": "SQLAlchemy",
+        "sqlmodel": "SQLModel",
+        "django": "Django ORM",
+        "peewee": "Peewee",
+        "tortoise-orm": "Tortoise ORM",
+        "pony": "Pony ORM",
+        "asyncpg": "asyncpg",
+        "psycopg2": "psycopg2",
+        "psycopg2-binary": "psycopg2",
+        "psycopg": "psycopg",
+        "pymongo": "PyMongo",
+        "motor": "Motor",
+        "mongoengine": "MongoEngine",
+        "redis": "redis-py",
+        "aioredis": "aioredis",
+        "databases": "databases",
+        "alembic": "Alembic",
+    }
+    pyproject = project_path / "pyproject.toml"
+    if pyproject.exists():
+        try:
+            content = pyproject.read_text().lower()
+            for dep, name in py_orm_deps.items():
+                if dep in content:
+                    _add(name)
+        except OSError:
+            pass
+
+    for req_file in ("requirements.txt", "requirements-dev.txt", "requirements.in"):
+        req_path = project_path / req_file
+        if req_path.exists():
+            try:
+                content = req_path.read_text().lower()
+                for dep, name in py_orm_deps.items():
+                    if dep in content:
+                        _add(name)
+            except OSError:
+                pass
+
+    # package.json dependency detection
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text())
+            all_deps: set[str] = set()
+            for key in ("dependencies", "devDependencies"):
+                all_deps.update(data.get(key, {}).keys())
+
+            js_orm_deps = {
+                "prisma": "Prisma",
+                "@prisma/client": "Prisma",
+                "typeorm": "TypeORM",
+                "sequelize": "Sequelize",
+                "drizzle-orm": "Drizzle",
+                "knex": "Knex",
+                "mongoose": "Mongoose",
+                "bookshelf": "Bookshelf",
+                "objection": "Objection.js",
+                "@mikro-orm/core": "MikroORM",
+                "kysely": "Kysely",
+                "better-sqlite3": "better-sqlite3",
+                "pg": "node-postgres",
+                "ioredis": "ioredis",
+                "mongodb": "MongoDB Driver",
+            }
+            for dep, name in js_orm_deps.items():
+                if dep in all_deps:
+                    _add(name)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    # Go modules (go.mod)
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text()
+            go_orm_deps = {
+                "gorm.io/gorm": "GORM",
+                "github.com/jmoiron/sqlx": "sqlx (Go)",
+                "entgo.io/ent": "ent",
+                "github.com/jackc/pgx": "pgx",
+                "github.com/sqlc-dev/sqlc": "sqlc",
+                "github.com/uptrace/bun": "Bun (Go)",
+            }
+            for dep, name in go_orm_deps.items():
+                if dep in content:
+                    _add(name)
+        except OSError:
+            pass
+
+    # Rust (Cargo.toml)
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content = cargo.read_text().lower()
+            rust_orm_deps = {
+                "diesel": "Diesel",
+                "sqlx": "sqlx (Rust)",
+                "sea-orm": "SeaORM",
+                "rusqlite": "Rusqlite",
+            }
+            for dep, name in rust_orm_deps.items():
+                if dep in content:
+                    _add(name)
+        except OSError:
+            pass
+
+    # Java (build.gradle, pom.xml)
+    for gradle_file in ("build.gradle", "build.gradle.kts"):
+        gradle = project_path / gradle_file
+        if gradle.exists():
+            try:
+                content = gradle.read_text().lower()
+                if "hibernate" in content:
+                    _add("Hibernate")
+                if "mybatis" in content:
+                    _add("MyBatis")
+                if "jooq" in content:
+                    _add("jOOQ")
+                if "spring-data-jpa" in content or "spring-boot-starter-data-jpa" in content:
+                    _add("Spring Data JPA")
+                if "jdbi" in content:
+                    _add("JDBI")
+            except OSError:
+                pass
+    pom = project_path / "pom.xml"
+    if pom.exists():
+        try:
+            content = pom.read_text().lower()
+            if "hibernate" in content:
+                _add("Hibernate")
+            if "mybatis" in content:
+                _add("MyBatis")
+            if "jooq" in content:
+                _add("jOOQ")
+            if "spring-data-jpa" in content:
+                _add("Spring Data JPA")
+            if "jdbi" in content:
+                _add("JDBI")
+        except OSError:
+            pass
+
+    return sorted(tools)

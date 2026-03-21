@@ -27,6 +27,7 @@ from atlas.detector import (
     detect_state_management,
     detect_css_frameworks,
     detect_bundlers,
+    detect_orm_tools,
     walk_files,
 )
 
@@ -2869,3 +2870,204 @@ class TestDetectBundlers:
         }))
         result = detect_bundlers(tmp_path)
         assert "microbundle" in result
+
+
+class TestDetectOrmTools:
+    def test_empty_project(self, tmp_path):
+        result = detect_orm_tools(tmp_path)
+        assert result == []
+
+    def test_prisma_schema(self, tmp_path):
+        (tmp_path / "prisma").mkdir()
+        (tmp_path / "prisma" / "schema.prisma").write_text("model User {}")
+        result = detect_orm_tools(tmp_path)
+        assert "Prisma" in result
+
+    def test_typeorm_config(self, tmp_path):
+        (tmp_path / "ormconfig.json").write_text("{}")
+        result = detect_orm_tools(tmp_path)
+        assert "TypeORM" in result
+
+    def test_drizzle_config(self, tmp_path):
+        (tmp_path / "drizzle.config.ts").write_text("export default {}")
+        result = detect_orm_tools(tmp_path)
+        assert "Drizzle" in result
+
+    def test_knexfile(self, tmp_path):
+        (tmp_path / "knexfile.js").write_text("module.exports = {}")
+        result = detect_orm_tools(tmp_path)
+        assert "Knex" in result
+
+    def test_mikro_orm_config(self, tmp_path):
+        (tmp_path / "mikro-orm.config.ts").write_text("export default {}")
+        result = detect_orm_tools(tmp_path)
+        assert "MikroORM" in result
+
+    def test_sqlalchemy_from_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["sqlalchemy>=2.0"]')
+        result = detect_orm_tools(tmp_path)
+        assert "SQLAlchemy" in result
+
+    def test_django_orm_from_requirements(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("django>=4.2\n")
+        result = detect_orm_tools(tmp_path)
+        assert "Django ORM" in result
+
+    def test_peewee_from_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["peewee>=3.0"]')
+        result = detect_orm_tools(tmp_path)
+        assert "Peewee" in result
+
+    def test_tortoise_orm(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("tortoise-orm>=0.20\n")
+        result = detect_orm_tools(tmp_path)
+        assert "Tortoise ORM" in result
+
+    def test_asyncpg_from_requirements(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("asyncpg>=0.28\n")
+        result = detect_orm_tools(tmp_path)
+        assert "asyncpg" in result
+
+    def test_psycopg2_from_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["psycopg2-binary>=2.9"]')
+        result = detect_orm_tools(tmp_path)
+        assert "psycopg2" in result
+
+    def test_pymongo_from_requirements(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pymongo>=4.0\n")
+        result = detect_orm_tools(tmp_path)
+        assert "PyMongo" in result
+
+    def test_alembic_from_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["alembic>=1.12"]')
+        result = detect_orm_tools(tmp_path)
+        assert "Alembic" in result
+
+    def test_sequelize_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"sequelize": "^6.0.0"}
+        }))
+        result = detect_orm_tools(tmp_path)
+        assert "Sequelize" in result
+
+    def test_mongoose_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"mongoose": "^7.0.0"}
+        }))
+        result = detect_orm_tools(tmp_path)
+        assert "Mongoose" in result
+
+    def test_drizzle_orm_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"drizzle-orm": "^0.30.0"}
+        }))
+        result = detect_orm_tools(tmp_path)
+        assert "Drizzle" in result
+
+    def test_kysely_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"kysely": "^0.27.0"}
+        }))
+        result = detect_orm_tools(tmp_path)
+        assert "Kysely" in result
+
+    def test_prisma_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"prisma": "^5.0.0", "@prisma/client": "^5.0.0"}
+        }))
+        result = detect_orm_tools(tmp_path)
+        assert "Prisma" in result
+
+    def test_gorm_from_go_mod(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example.com\nrequire gorm.io/gorm v1.25.0\n")
+        result = detect_orm_tools(tmp_path)
+        assert "GORM" in result
+
+    def test_sqlx_go_from_go_mod(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example.com\nrequire github.com/jmoiron/sqlx v1.3.5\n")
+        result = detect_orm_tools(tmp_path)
+        assert "sqlx (Go)" in result
+
+    def test_ent_from_go_mod(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example.com\nrequire entgo.io/ent v0.13.0\n")
+        result = detect_orm_tools(tmp_path)
+        assert "ent" in result
+
+    def test_diesel_from_cargo(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ndiesel = "2.1"\n')
+        result = detect_orm_tools(tmp_path)
+        assert "Diesel" in result
+
+    def test_sqlx_rust_from_cargo(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nsqlx = { version = "0.7", features = ["postgres"] }\n')
+        result = detect_orm_tools(tmp_path)
+        assert "sqlx (Rust)" in result
+
+    def test_sea_orm_from_cargo(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nsea-orm = "0.12"\n')
+        result = detect_orm_tools(tmp_path)
+        assert "SeaORM" in result
+
+    def test_hibernate_from_gradle(self, tmp_path):
+        (tmp_path / "build.gradle").write_text('implementation "org.hibernate:hibernate-core:6.0"')
+        result = detect_orm_tools(tmp_path)
+        assert "Hibernate" in result
+
+    def test_mybatis_from_pom(self, tmp_path):
+        (tmp_path / "pom.xml").write_text('<dependency><artifactId>mybatis</artifactId></dependency>')
+        result = detect_orm_tools(tmp_path)
+        assert "MyBatis" in result
+
+    def test_spring_data_jpa_from_gradle(self, tmp_path):
+        (tmp_path / "build.gradle").write_text('implementation "org.springframework.boot:spring-boot-starter-data-jpa"')
+        result = detect_orm_tools(tmp_path)
+        assert "Spring Data JPA" in result
+
+    def test_multiple_orms(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["sqlalchemy", "alembic"]')
+        result = detect_orm_tools(tmp_path)
+        assert "SQLAlchemy" in result
+        assert "Alembic" in result
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "prisma").mkdir()
+        (tmp_path / "prisma" / "schema.prisma").write_text("model User {}")
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"prisma": "^5.0.0"}
+        }))
+        result = detect_orm_tools(tmp_path)
+        assert result.count("Prisma") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["sqlalchemy", "pymongo", "alembic"]')
+        result = detect_orm_tools(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        result = detect_orm_tools(tmp_path)
+        assert result == []
+
+    def test_ioredis_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"ioredis": "^5.0.0"}
+        }))
+        result = detect_orm_tools(tmp_path)
+        assert "ioredis" in result
+
+    def test_node_postgres_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"pg": "^8.0.0"}
+        }))
+        result = detect_orm_tools(tmp_path)
+        assert "node-postgres" in result
+
+    def test_jooq_from_gradle_kts(self, tmp_path):
+        (tmp_path / "build.gradle.kts").write_text('implementation("org.jooq:jooq:3.18")')
+        result = detect_orm_tools(tmp_path)
+        assert "jOOQ" in result
+
+    def test_sqlmodel_from_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["sqlmodel>=0.0.14"]')
+        result = detect_orm_tools(tmp_path)
+        assert "SQLModel" in result

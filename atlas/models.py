@@ -29,6 +29,7 @@ class TechStack:
     state_management: list[str] = field(default_factory=list)
     css_frameworks: list[str] = field(default_factory=list)
     bundlers: list[str] = field(default_factory=list)
+    orm_tools: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -139,6 +140,7 @@ class Project:
                 "state_management": self.tech_stack.state_management,
                 "css_frameworks": self.tech_stack.css_frameworks,
                 "bundlers": self.tech_stack.bundlers,
+                "orm_tools": self.tech_stack.orm_tools,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -194,6 +196,7 @@ class Project:
                 state_management=ts.get("state_management", []),
                 css_frameworks=ts.get("css_frameworks", []),
                 bundlers=ts.get("bundlers", []),
+                orm_tools=ts.get("orm_tools", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

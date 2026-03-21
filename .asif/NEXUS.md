@@ -86,8 +86,9 @@
 | N-73 | [Bundler & Module Tool Detection](#n-73-bundler--module-tool-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-74 | [Bundler Intelligence](#n-74-bundler-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-75 | [Export Connection Summary Stats](#n-75-export-connection-summary-stats) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-76 | [ORM & Database Client Detection](#n-76-orm--database-client-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 72/75 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 73/76 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -116,7 +117,8 @@
 - Frontend state management: Redux, Zustand, Recoil, Jotai, Valtio, MobX, XState, Pinia, Vuex, NgRx, Signals, Effector, Nanostores, Legend State
 - CSS & styling frameworks: Tailwind CSS, Styled Components, Emotion, Sass, Less, PostCSS, CSS Modules, Vanilla Extract, Linaria, Panda CSS, UnoCSS, Windi CSS, Bootstrap, Bulma, Chakra UI, Mantine, Material UI, Vuetify, Ant Design, Radix UI, shadcn/ui, Stitches, Twin Macro, Stylelint
 - Bundlers & module tools: Webpack, Vite, esbuild, Rollup, Parcel, SWC, Turborepo, Rspack, tsup, unbuild, microbundle, Snowpack, WMR, Turbopack, Bun
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73
+- ORM & database clients: SQLAlchemy, Django ORM, Peewee, Tortoise ORM, SQLModel, Prisma, TypeORM, Sequelize, Drizzle, Knex, Mongoose, Kysely, MikroORM, GORM, sqlx, ent, Diesel, SeaORM, Hibernate, MyBatis, jOOQ, Spring Data JPA
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -445,6 +447,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Markdown export now shows a connection summary line at the top of the Cross-Project Intelligence section (e.g., "**12 connections**: 3 warning, 9 info"). JSON export now includes a `connection_summary` object with `total`, `critical`, `warning`, and `info` counts alongside the full connections array. Gives consumers a quick overview of portfolio intelligence without parsing individual connections. 5 tests.
 **Shipped**: 2026-03-21. Total test count: 1370 → 1375. 22nd experience feature.
+
+### N-76: ORM & Database Client Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects ORM frameworks and database client libraries across all supported languages. Python: SQLAlchemy, SQLModel, Django ORM, Peewee, Tortoise ORM, Pony ORM, asyncpg, psycopg2/psycopg, PyMongo, Motor, MongoEngine, redis-py, aioredis, databases, Alembic. JavaScript/TypeScript: Prisma, TypeORM, Sequelize, Drizzle, Knex, Mongoose, Bookshelf, Objection.js, MikroORM, Kysely, better-sqlite3, node-postgres, ioredis, MongoDB Driver. Go: GORM, sqlx, ent, pgx, sqlc, Bun. Rust: Diesel, sqlx, SeaORM, Rusqlite. Java: Hibernate, MyBatis, jOOQ, Spring Data JPA, JDBI. Detects from config files (prisma/schema.prisma, ormconfig.*, drizzle.config.*, knexfile.*, mikro-orm.config.*), pyproject.toml, requirements.txt, package.json, go.mod, Cargo.toml, build.gradle, pom.xml. New TechStack field: orm_tools. 36 tests.
+**Shipped**: 2026-03-21. Total test count: 1375 → 1411. 22nd detection feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

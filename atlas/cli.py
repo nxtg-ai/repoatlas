@@ -257,6 +257,7 @@ def _project_has_tech(project, term: str) -> bool:
         + ts.state_management
         + ts.css_frameworks
         + ts.bundlers
+        + ts.orm_tools
     )
     return any(term == item.lower() for item in all_items)
 

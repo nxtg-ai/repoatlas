@@ -461,6 +461,16 @@ def _show_portfolio_summary(portfolio: Portfolio):
         bnd_parts = [f"{bnd} ({count})" for bnd, count in top_bnd]
         lines.append(f"  [bold]Bundlers:[/bold]    {has_bnd}/{n} projects \u00b7 {', '.join(bnd_parts)}")
 
+    has_orm = sum(1 for p in projects if p.tech_stack.orm_tools)
+    if has_orm:
+        orm_counter: Counter[str] = Counter()
+        for p in projects:
+            for orm in p.tech_stack.orm_tools:
+                orm_counter[orm] += 1
+        top_orm = orm_counter.most_common(6)
+        orm_parts = [f"{orm} ({count})" for orm, count in top_orm]
+        lines.append(f"  [bold]ORM/DB Clients:[/bold] {has_orm}/{n} projects \u00b7 {', '.join(orm_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -758,6 +768,10 @@ def show_project_card(project: Project):
     if project.tech_stack.bundlers:
         bnd = ", ".join(project.tech_stack.bundlers[:8])
         lines.append(f"  [bold]Bundlers:[/bold]   {bnd}")
+
+    if project.tech_stack.orm_tools:
+        orm = ", ".join(project.tech_stack.orm_tools[:8])
+        lines.append(f"  [bold]ORM/DB:[/bold]     {orm}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")
