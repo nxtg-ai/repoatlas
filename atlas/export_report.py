@@ -151,6 +151,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         top_ci = ci_counter.most_common(6)
         lines.append(f"**CI Config**: {has_ci_config}/{n} projects · {', '.join(t for t, _ in top_ci)}")
 
+    # Runtime versions
+    has_runtimes = sum(1 for p in projects if p.tech_stack.runtime_versions)
+    if has_runtimes:
+        rv_counter: Counter[str] = Counter()
+        for p in projects:
+            for rt in p.tech_stack.runtime_versions:
+                rv_counter[rt] += 1
+        top_rv = rv_counter.most_common(6)
+        lines.append(f"**Runtimes**: {has_runtimes}/{n} projects · {', '.join(t for t, _ in top_rv)}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -204,6 +214,9 @@ def _project_details(projects: list[Project]) -> list[str]:
             lines.append(f"- **Docs**: {', '.join(p.tech_stack.docs_artifacts[:8])}")
         if p.tech_stack.ci_config:
             lines.append(f"- **CI Config**: {', '.join(p.tech_stack.ci_config[:8])}")
+        if p.tech_stack.runtime_versions:
+            rv = ", ".join(f"{k} {v}" for k, v in p.tech_stack.runtime_versions.items())
+            lines.append(f"- **Runtimes**: {rv}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -403,6 +416,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             ci_counter[ci] += 1
     has_ci_config = sum(1 for p in projects if p.tech_stack.ci_config)
 
+    # Runtime versions
+    rv_counter: Counter[str] = Counter()
+    for p in projects:
+        for rt in p.tech_stack.runtime_versions:
+            rv_counter[rt] += 1
+    has_runtimes = sum(1 for p in projects if p.tech_stack.runtime_versions)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -426,5 +446,6 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "ai_ml": {"coverage": f"{has_ai}/{n}", "tools": dict(ai_counter.most_common(10))},
         "docs_artifacts": {"coverage": f"{has_docs}/{n}", "artifacts": dict(da_counter.most_common(10))},
         "ci_config": {"coverage": f"{has_ci_config}/{n}", "config": dict(ci_counter.most_common(10))},
+        "runtime_versions": {"coverage": f"{has_runtimes}/{n}", "runtimes": dict(rv_counter.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }

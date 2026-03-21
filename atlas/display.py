@@ -302,6 +302,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         ci_parts = [f"{ci} ({count})" for ci, count in top_ci]
         lines.append(f"  [bold]CI Config:[/bold]    {has_ci_config}/{n} projects · {', '.join(ci_parts)}")
 
+    # Runtime versions
+    has_runtimes = sum(1 for p in projects if p.tech_stack.runtime_versions)
+    if has_runtimes:
+        rv_counter: Counter[str] = Counter()
+        for p in projects:
+            for rt in p.tech_stack.runtime_versions:
+                rv_counter[rt] += 1
+        top_rv = rv_counter.most_common(6)
+        rv_parts = [f"{rt} ({count})" for rt, count in top_rv]
+        lines.append(f"  [bold]Runtimes:[/bold]     {has_runtimes}/{n} projects · {', '.join(rv_parts)}")
+
     # License distribution
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -443,6 +454,10 @@ def show_project_card(project: Project):
     if project.tech_stack.ci_config:
         ci = ", ".join(project.tech_stack.ci_config[:8])
         lines.append(f"  [bold]CI/CD:[/bold]      {ci}")
+
+    if project.tech_stack.runtime_versions:
+        rv = ", ".join(f"{k} {v}" for k, v in project.tech_stack.runtime_versions.items())
+        lines.append(f"  [bold]Runtimes:[/bold]   {rv}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

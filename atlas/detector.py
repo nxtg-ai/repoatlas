@@ -1070,3 +1070,115 @@ def detect_ci_config(project_path: Path) -> list[str]:
         config.append(".gitattributes")
 
     return sorted(config)
+
+
+def detect_runtime_versions(project_path: Path) -> dict[str, str]:
+    """Detect pinned runtime/language versions from config files."""
+    versions: dict[str, str] = {}
+
+    # Python: .python-version
+    python_version_file = project_path / ".python-version"
+    if python_version_file.exists():
+        ver = python_version_file.read_text(errors="ignore").strip().split("\n")[0].strip()
+        if ver:
+            versions["Python"] = ver
+
+    # Python: pyproject.toml requires-python
+    pyproject = project_path / "pyproject.toml"
+    if pyproject.exists() and "Python" not in versions:
+        content = pyproject.read_text(errors="ignore")
+        for line in content.split("\n"):
+            stripped = line.strip()
+            if stripped.startswith("requires-python"):
+                # Extract value after = sign, strip quotes
+                _, _, val = stripped.partition("=")
+                val = val.strip().strip('"').strip("'")
+                if val:
+                    versions["Python"] = val
+                break
+
+    # Node: .node-version
+    node_version_file = project_path / ".node-version"
+    if node_version_file.exists():
+        ver = node_version_file.read_text(errors="ignore").strip().split("\n")[0].strip()
+        if ver:
+            versions["Node"] = ver
+
+    # Node: .nvmrc
+    nvmrc = project_path / ".nvmrc"
+    if nvmrc.exists() and "Node" not in versions:
+        ver = nvmrc.read_text(errors="ignore").strip().split("\n")[0].strip()
+        if ver:
+            versions["Node"] = ver
+
+    # Node: package.json engines.node
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists() and "Node" not in versions:
+        try:
+            data = json.loads(pkg_json.read_text())
+            node_engine = data.get("engines", {}).get("node", "")
+            if node_engine:
+                versions["Node"] = node_engine
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    # Ruby: .ruby-version
+    ruby_version_file = project_path / ".ruby-version"
+    if ruby_version_file.exists():
+        ver = ruby_version_file.read_text(errors="ignore").strip().split("\n")[0].strip()
+        if ver:
+            versions["Ruby"] = ver
+
+    # Go: go.mod go directive
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        content = go_mod.read_text(errors="ignore")
+        for line in content.split("\n"):
+            stripped = line.strip()
+            if stripped.startswith("go ") and not stripped.startswith("go."):
+                ver = stripped[3:].strip()
+                if ver:
+                    versions["Go"] = ver
+                break
+
+    # Rust: rust-toolchain.toml or rust-toolchain
+    rust_toolchain_toml = project_path / "rust-toolchain.toml"
+    rust_toolchain = project_path / "rust-toolchain"
+    if rust_toolchain_toml.exists():
+        content = rust_toolchain_toml.read_text(errors="ignore")
+        for line in content.split("\n"):
+            stripped = line.strip()
+            if stripped.startswith("channel"):
+                _, _, val = stripped.partition("=")
+                val = val.strip().strip('"').strip("'")
+                if val:
+                    versions["Rust"] = val
+                break
+    elif rust_toolchain.exists():
+        ver = rust_toolchain.read_text(errors="ignore").strip().split("\n")[0].strip()
+        if ver:
+            versions["Rust"] = ver
+
+    # Java: .java-version
+    java_version_file = project_path / ".java-version"
+    if java_version_file.exists():
+        ver = java_version_file.read_text(errors="ignore").strip().split("\n")[0].strip()
+        if ver:
+            versions["Java"] = ver
+
+    # asdf: .tool-versions
+    tool_versions = project_path / ".tool-versions"
+    if tool_versions.exists():
+        content = tool_versions.read_text(errors="ignore")
+        asdf_map = {
+            "python": "Python", "nodejs": "Node", "ruby": "Ruby",
+            "golang": "Go", "rust": "Rust", "java": "Java",
+        }
+        for line in content.split("\n"):
+            parts = line.strip().split()
+            if len(parts) >= 2:
+                tool_name = parts[0].lower()
+                if tool_name in asdf_map and asdf_map[tool_name] not in versions:
+                    versions[asdf_map[tool_name]] = parts[1]
+
+    return versions

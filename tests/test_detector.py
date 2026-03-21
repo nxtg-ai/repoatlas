@@ -17,6 +17,7 @@ from atlas.detector import (
     detect_languages,
     detect_license,
     detect_package_managers,
+    detect_runtime_versions,
     walk_files,
 )
 
@@ -1355,3 +1356,139 @@ class TestDetectCiConfig:
         (proj / "CODEOWNERS").write_text("* @team")
         result = detect_ci_config(proj)
         assert result == sorted(result)
+
+
+# ---------------------------------------------------------------------------
+# detect_runtime_versions
+# ---------------------------------------------------------------------------
+class TestDetectRuntimeVersions:
+    def test_python_version_file(self, tmp_path):
+        proj = tmp_path / "pyproj"
+        proj.mkdir()
+        (proj / ".python-version").write_text("3.12.1\n")
+        result = detect_runtime_versions(proj)
+        assert result["Python"] == "3.12.1"
+
+    def test_python_requires_python(self, tmp_path):
+        proj = tmp_path / "pyproj"
+        proj.mkdir()
+        (proj / "pyproject.toml").write_text('[project]\nrequires-python = ">=3.11"\n')
+        result = detect_runtime_versions(proj)
+        assert result["Python"] == ">=3.11"
+
+    def test_python_version_file_takes_priority(self, tmp_path):
+        proj = tmp_path / "pyproj"
+        proj.mkdir()
+        (proj / ".python-version").write_text("3.12\n")
+        (proj / "pyproject.toml").write_text('[project]\nrequires-python = ">=3.11"\n')
+        result = detect_runtime_versions(proj)
+        assert result["Python"] == "3.12"
+
+    def test_node_version_file(self, tmp_path):
+        proj = tmp_path / "nodeproj"
+        proj.mkdir()
+        (proj / ".node-version").write_text("20.11.0\n")
+        result = detect_runtime_versions(proj)
+        assert result["Node"] == "20.11.0"
+
+    def test_nvmrc(self, tmp_path):
+        proj = tmp_path / "nodeproj"
+        proj.mkdir()
+        (proj / ".nvmrc").write_text("18\n")
+        result = detect_runtime_versions(proj)
+        assert result["Node"] == "18"
+
+    def test_node_version_file_takes_priority_over_nvmrc(self, tmp_path):
+        proj = tmp_path / "nodeproj"
+        proj.mkdir()
+        (proj / ".node-version").write_text("20\n")
+        (proj / ".nvmrc").write_text("18\n")
+        result = detect_runtime_versions(proj)
+        assert result["Node"] == "20"
+
+    def test_package_json_engines(self, tmp_path):
+        proj = tmp_path / "nodeproj"
+        proj.mkdir()
+        (proj / "package.json").write_text(json.dumps({
+            "engines": {"node": ">=18"}
+        }))
+        result = detect_runtime_versions(proj)
+        assert result["Node"] == ">=18"
+
+    def test_ruby_version_file(self, tmp_path):
+        proj = tmp_path / "rubyproj"
+        proj.mkdir()
+        (proj / ".ruby-version").write_text("3.2.2\n")
+        result = detect_runtime_versions(proj)
+        assert result["Ruby"] == "3.2.2"
+
+    def test_go_mod(self, tmp_path):
+        proj = tmp_path / "goproj"
+        proj.mkdir()
+        (proj / "go.mod").write_text("module example.com/app\n\ngo 1.22\n")
+        result = detect_runtime_versions(proj)
+        assert result["Go"] == "1.22"
+
+    def test_rust_toolchain_toml(self, tmp_path):
+        proj = tmp_path / "rustproj"
+        proj.mkdir()
+        (proj / "rust-toolchain.toml").write_text('[toolchain]\nchannel = "1.77.0"\n')
+        result = detect_runtime_versions(proj)
+        assert result["Rust"] == "1.77.0"
+
+    def test_rust_toolchain_plain(self, tmp_path):
+        proj = tmp_path / "rustproj"
+        proj.mkdir()
+        (proj / "rust-toolchain").write_text("nightly\n")
+        result = detect_runtime_versions(proj)
+        assert result["Rust"] == "nightly"
+
+    def test_rust_toolchain_toml_takes_priority(self, tmp_path):
+        proj = tmp_path / "rustproj"
+        proj.mkdir()
+        (proj / "rust-toolchain.toml").write_text('[toolchain]\nchannel = "stable"\n')
+        (proj / "rust-toolchain").write_text("nightly\n")
+        result = detect_runtime_versions(proj)
+        assert result["Rust"] == "stable"
+
+    def test_java_version_file(self, tmp_path):
+        proj = tmp_path / "javaproj"
+        proj.mkdir()
+        (proj / ".java-version").write_text("21\n")
+        result = detect_runtime_versions(proj)
+        assert result["Java"] == "21"
+
+    def test_tool_versions_asdf(self, tmp_path):
+        proj = tmp_path / "multiproj"
+        proj.mkdir()
+        (proj / ".tool-versions").write_text("python 3.12.1\nnodejs 20.11.0\nruby 3.2.2\n")
+        result = detect_runtime_versions(proj)
+        assert result["Python"] == "3.12.1"
+        assert result["Node"] == "20.11.0"
+        assert result["Ruby"] == "3.2.2"
+
+    def test_tool_versions_does_not_override_specific_files(self, tmp_path):
+        proj = tmp_path / "multiproj"
+        proj.mkdir()
+        (proj / ".python-version").write_text("3.13\n")
+        (proj / ".tool-versions").write_text("python 3.12\n")
+        result = detect_runtime_versions(proj)
+        assert result["Python"] == "3.13"
+
+    def test_empty_project(self, tmp_path):
+        proj = tmp_path / "empty"
+        proj.mkdir()
+        result = detect_runtime_versions(proj)
+        assert result == {}
+
+    def test_multiple_runtimes(self, tmp_path):
+        proj = tmp_path / "fullstack"
+        proj.mkdir()
+        (proj / ".python-version").write_text("3.12\n")
+        (proj / ".nvmrc").write_text("20\n")
+        (proj / "go.mod").write_text("module app\n\ngo 1.22\n")
+        result = detect_runtime_versions(proj)
+        assert len(result) == 3
+        assert result["Python"] == "3.12"
+        assert result["Node"] == "20"
+        assert result["Go"] == "1.22"

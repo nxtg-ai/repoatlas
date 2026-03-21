@@ -247,6 +247,7 @@ def _project_has_tech(project, term: str) -> bool:
         + ts.package_managers
         + ts.docs_artifacts
         + ts.ci_config
+        + list(ts.runtime_versions.keys())
     )
     return any(term == item.lower() for item in all_items)
 
