@@ -296,6 +296,42 @@ class TestStatus:
         assert result.exit_code == 0
         assert "Name,Path,Grade" in result.output
 
+    def test_status_sort_name_csv(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ["charlie", "alpha", "bravo"]:
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--format", "csv", "--sort", "name"])
+        assert result.exit_code == 0
+        lines = [l for l in result.output.strip().split("\n") if l and not l.startswith("Name")]
+        names = [l.split(",")[0] for l in lines]
+        assert names == sorted(names, key=str.lower)
+
+    def test_status_sort_health_csv(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--format", "csv", "--sort", "health"])
+        assert result.exit_code == 0
+        assert "proj" in result.output
+
+    def test_status_sort_loc_csv(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--format", "csv", "--sort", "loc"])
+        assert result.exit_code == 0
+        assert "proj" in result.output
+
 
 # ===========================================================================
 # atlas connections

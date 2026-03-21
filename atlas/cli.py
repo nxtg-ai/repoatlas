@@ -161,6 +161,7 @@ def status(
     max_health: Optional[int] = typer.Option(None, help="Filter projects with health <= N%"),
     format: Optional[str] = typer.Option(None, help="Output format: json or csv"),
     grades: bool = typer.Option(False, "--grades", help="Show grade distribution summary"),
+    sort: Optional[str] = typer.Option(None, help="Sort by: name, health, loc, grade"),
 ):
     """Display the portfolio dashboard."""
     portfolio = _load_portfolio()
@@ -169,7 +170,7 @@ def status(
         console.print("[yellow]No projects in portfolio.[/yellow]")
         return
 
-    filtered = portfolio.projects
+    filtered = list(portfolio.projects)
     active_filters: list[str] = []
 
     if grade:
@@ -207,7 +208,19 @@ def status(
         console.print(f"[yellow]No projects match filters: {', '.join(active_filters)}[/yellow]")
         return
 
-    display_projects = filtered if active_filters else portfolio.projects
+    display_projects = filtered if active_filters else list(portfolio.projects)
+
+    if sort:
+        sort_lower = sort.lower()
+        grade_rank = {"A": 0, "B+": 1, "B": 2, "C": 3, "D": 4, "F": 5}
+        if sort_lower == "name":
+            display_projects.sort(key=lambda p: p.name.lower())
+        elif sort_lower == "health":
+            display_projects.sort(key=lambda p: p.health.percent, reverse=True)
+        elif sort_lower == "loc":
+            display_projects.sort(key=lambda p: p.loc, reverse=True)
+        elif sort_lower == "grade":
+            display_projects.sort(key=lambda p: (grade_rank.get(p.health.grade, 99), p.name.lower()))
 
     if grades:
         from collections import Counter
@@ -284,20 +297,18 @@ def status(
         print(buf.getvalue(), end="")
         return
 
-    if active_filters:
+    if active_filters or sort:
         view = Portfolio(
             name=portfolio.name,
-            projects=filtered,
+            projects=display_projects,
             created=portfolio.created,
             last_scan=portfolio.last_scan,
         )
-        console.print(f"  [dim]Filtered: {', '.join(active_filters)} ({len(filtered)}/{len(portfolio.projects)} projects)[/dim]")
+        if active_filters:
+            console.print(f"  [dim]Filtered: {', '.join(active_filters)} ({len(filtered)}/{len(portfolio.projects)} projects)[/dim]")
         show_status(view, history=load_history())
     else:
         show_status(portfolio, history=load_history())
-
-    # Cross-project intelligence
-    display_projects = filtered if active_filters else portfolio.projects
     if len(display_projects) > 1:
         conns = find_connections(display_projects)
         if conns:
