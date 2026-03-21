@@ -42,6 +42,9 @@ CONNECTION_ICONS = {
     "shared_quality": "[green]\u2714[/green]",
     "quality_divergence": "[yellow]\u2702[/yellow]",
     "quality_gap": "[red]\u2718[/red]",
+    "shared_ai": "[magenta]\u2b50[/magenta]",
+    "ai_divergence": "[yellow]\u2b53[/yellow]",
+    "ai_gap": "[red]\u2b54[/red]",
 }
 
 
@@ -264,6 +267,9 @@ def show_connections(connections: list[Connection]):
         "shared_quality": "Shared Quality Tools",
         "quality_divergence": "Quality Divergence",
         "quality_gap": "Quality Gaps",
+        "shared_ai": "Shared AI/ML Tools",
+        "ai_divergence": "AI/ML Divergence",
+        "ai_gap": "AI/ML Gaps",
     }
 
     lines = []

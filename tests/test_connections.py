@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from atlas.connections import (
+    _find_ai_patterns,
     _find_health_gaps,
     _find_infra_patterns,
     _find_quality_patterns,
@@ -17,6 +18,7 @@ from atlas.models import GitInfo, HealthScore, Project, TechStack
 
 def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           infrastructure=None, security_tools=None, quality_tools=None,
+          ai_tools=None,
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -29,6 +31,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             infrastructure=infrastructure or [],
             security_tools=security_tools or [],
             quality_tools=quality_tools or [],
+            ai_tools=ai_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -740,3 +743,155 @@ class TestFindQualityPatterns:
         conns = find_connections(projects)
         qt_types = {c.type for c in conns if "quality" in c.type}
         assert "shared_quality" in qt_types
+
+
+# ===========================================================================
+# AI/ML patterns
+# ===========================================================================
+
+
+class TestFindAIPatterns:
+    def test_shared_ai_tools(self):
+        projects = [
+            _proj("a", ai_tools=["Anthropic SDK", "LangChain"]),
+            _proj("b", ai_tools=["Anthropic SDK"]),
+        ]
+        conns = _find_ai_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_ai"]
+        assert len(shared) == 1
+        assert "Anthropic SDK" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_shared_ai_multiple_tools(self):
+        projects = [
+            _proj("a", ai_tools=["Anthropic SDK", "LangChain"]),
+            _proj("b", ai_tools=["Anthropic SDK", "LangChain"]),
+        ]
+        conns = _find_ai_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_ai"]
+        assert len(shared) == 2
+
+    def test_no_shared_ai_when_unique(self):
+        projects = [
+            _proj("a", ai_tools=["Anthropic SDK"]),
+            _proj("b", ai_tools=["OpenAI"]),
+        ]
+        conns = _find_ai_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_ai"]
+        assert len(shared) == 0
+
+    def test_llm_provider_divergence(self):
+        projects = [
+            _proj("a", ai_tools=["Anthropic SDK"]),
+            _proj("b", ai_tools=["OpenAI"]),
+        ]
+        conns = _find_ai_patterns(projects)
+        div = [c for c in conns if c.type == "ai_divergence" and "LLM" in c.detail]
+        assert len(div) == 1
+        assert div[0].severity == "warning"
+        assert "standardize" in div[0].detail.lower()
+
+    def test_no_llm_divergence_single_provider(self):
+        projects = [
+            _proj("a", ai_tools=["Anthropic SDK"]),
+            _proj("b", ai_tools=["Anthropic SDK"]),
+        ]
+        conns = _find_ai_patterns(projects)
+        div = [c for c in conns if c.type == "ai_divergence" and "LLM" in c.detail]
+        assert len(div) == 0
+
+    def test_vector_db_divergence(self):
+        projects = [
+            _proj("a", ai_tools=["ChromaDB"]),
+            _proj("b", ai_tools=["Pinecone"]),
+        ]
+        conns = _find_ai_patterns(projects)
+        div = [c for c in conns if c.type == "ai_divergence" and "vector" in c.detail.lower()]
+        assert len(div) == 1
+        assert div[0].severity == "warning"
+
+    def test_no_vector_db_divergence_single(self):
+        projects = [
+            _proj("a", ai_tools=["ChromaDB"]),
+            _proj("b", ai_tools=["ChromaDB"]),
+        ]
+        conns = _find_ai_patterns(projects)
+        div = [c for c in conns if c.type == "ai_divergence" and "vector" in c.detail.lower()]
+        assert len(div) == 0
+
+    def test_ml_without_experiment_tracking(self):
+        projects = [
+            _proj("a", ai_tools=["PyTorch"]),
+            _proj("b", ai_tools=["TensorFlow"]),
+        ]
+        conns = _find_ai_patterns(projects)
+        gap = [c for c in conns if c.type == "ai_gap"]
+        assert len(gap) == 1
+        assert "experiment tracking" in gap[0].detail
+        assert gap[0].severity == "warning"
+        assert len(gap[0].projects) == 2
+
+    def test_ml_with_experiment_tracking_no_gap(self):
+        projects = [
+            _proj("a", ai_tools=["PyTorch", "MLflow"]),
+            _proj("b", ai_tools=["TensorFlow", "W&B"]),
+        ]
+        conns = _find_ai_patterns(projects)
+        gap = [c for c in conns if c.type == "ai_gap"]
+        assert len(gap) == 0
+
+    def test_partial_experiment_tracking(self):
+        projects = [
+            _proj("a", ai_tools=["PyTorch", "MLflow"]),
+            _proj("b", ai_tools=["scikit-learn"]),
+        ]
+        conns = _find_ai_patterns(projects)
+        gap = [c for c in conns if c.type == "ai_gap"]
+        assert len(gap) == 1
+        assert "b" in gap[0].projects
+        assert "a" not in gap[0].projects
+
+    def test_non_ml_ai_tools_no_tracking_gap(self):
+        # LLM SDKs should not trigger experiment tracking gap
+        projects = [
+            _proj("a", ai_tools=["Anthropic SDK", "LangChain"]),
+        ]
+        conns = _find_ai_patterns(projects)
+        gap = [c for c in conns if c.type == "ai_gap"]
+        assert len(gap) == 0
+
+    def test_no_ai_tools_no_connections(self):
+        projects = [
+            _proj("a", ai_tools=[]),
+            _proj("b", ai_tools=[]),
+        ]
+        conns = _find_ai_patterns(projects)
+        assert len(conns) == 0
+
+    def test_dvc_counts_as_tracking(self):
+        projects = [
+            _proj("a", ai_tools=["Transformers", "DVC"]),
+        ]
+        conns = _find_ai_patterns(projects)
+        gap = [c for c in conns if c.type == "ai_gap"]
+        assert len(gap) == 0
+
+    def test_max_connections_capped(self):
+        # Many AI tools across many projects
+        projects = [
+            _proj(f"p{i}", ai_tools=["Anthropic SDK", "OpenAI", "LangChain",
+                                      "PyTorch", "ChromaDB", "Pinecone"])
+            for i in range(10)
+        ]
+        conns = _find_ai_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", ai_tools=["Anthropic SDK", "LangChain"]),
+            _proj("b", ai_tools=["Anthropic SDK", "OpenAI"]),
+        ]
+        conns = find_connections(projects)
+        ai_types = {c.type for c in conns if "ai" in c.type}
+        assert "shared_ai" in ai_types
+        assert "ai_divergence" in ai_types

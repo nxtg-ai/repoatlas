@@ -17,6 +17,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_infra_patterns(projects))
     connections.extend(_find_security_patterns(projects))
     connections.extend(_find_quality_patterns(projects))
+    connections.extend(_find_ai_patterns(projects))
     return connections
 
 
@@ -413,6 +414,78 @@ def _find_quality_patterns(projects: list[Project]) -> list[Connection]:
             type="quality_divergence",
             detail=f"Multiple linters: {', '.join(detail_parts)} — standardize",
             projects=all_projects,
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_ai_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project AI/ML patterns."""
+    connections: list[Connection] = []
+    ai_to_projects: dict[str, list[str]] = defaultdict(list)
+
+    for proj in projects:
+        for tool in proj.tech_stack.ai_tools:
+            ai_to_projects[tool].append(proj.name)
+
+    # Shared AI/ML tools (2+ projects)
+    for tool, projs in sorted(ai_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_ai",
+                detail=f"{tool} used across {len(projs)} projects — share patterns",
+                projects=projs,
+                severity="info",
+            ))
+
+    # LLM provider divergence — multiple providers across portfolio
+    llm_providers = {"Anthropic SDK", "OpenAI"}
+    llm_to_projects: dict[str, list[str]] = defaultdict(list)
+    for proj in projects:
+        for tool in proj.tech_stack.ai_tools:
+            if tool in llm_providers:
+                llm_to_projects[tool].append(proj.name)
+    if len(llm_to_projects) >= 2:
+        detail_parts = [f"{p} ({', '.join(ps[:3])})" for p, ps in llm_to_projects.items()]
+        all_projects = list({p for ps in llm_to_projects.values() for p in ps})
+        connections.append(Connection(
+            type="ai_divergence",
+            detail=f"Multiple LLM providers: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
+        ))
+
+    # Vector DB divergence — multiple vector DBs across portfolio
+    vector_dbs = {"ChromaDB", "Pinecone", "Sentence Transformers"}
+    vdb_to_projects: dict[str, list[str]] = defaultdict(list)
+    for proj in projects:
+        for tool in proj.tech_stack.ai_tools:
+            if tool in vector_dbs:
+                vdb_to_projects[tool].append(proj.name)
+    if len(vdb_to_projects) >= 2:
+        detail_parts = [f"{db} ({', '.join(ps[:3])})" for db, ps in vdb_to_projects.items()]
+        all_projects = list({p for ps in vdb_to_projects.values() for p in ps})
+        connections.append(Connection(
+            type="ai_divergence",
+            detail=f"Multiple vector DBs: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
+        ))
+
+    # ML projects without experiment tracking
+    ml_frameworks = {"PyTorch", "TensorFlow", "Transformers", "scikit-learn"}
+    experiment_tracking = {"MLflow", "W&B", "DVC"}
+    ml_no_tracking = [
+        p.name for p in projects
+        if any(t in ml_frameworks for t in p.tech_stack.ai_tools)
+        and not any(t in experiment_tracking for t in p.tech_stack.ai_tools)
+    ]
+    if ml_no_tracking:
+        connections.append(Connection(
+            type="ai_gap",
+            detail=f"{len(ml_no_tracking)} ML projects lack experiment tracking — add MLflow/W&B",
+            projects=ml_no_tracking,
             severity="warning",
         ))
 

@@ -37,8 +37,9 @@
 | N-24 | [Code Quality Tooling Detection](#n-24-code-quality-tooling-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 | N-25 | [Quality Intelligence](#n-25-quality-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-26 | [Enhanced Doctor Recommendations](#n-26-enhanced-doctor-recommendations) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
+| N-27 | [AI/ML Intelligence](#n-27-aiml-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 23/26 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 24/27 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -60,7 +61,8 @@
 - Cross-project infrastructure intelligence (shared infra, divergence, gaps)
 - Cross-project security intelligence (shared tools, adoption gaps, divergence)
 - Cross-project quality intelligence (shared tools, adoption gaps, linter divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25
+- Cross-project AI/ML intelligence (shared tools, LLM provider divergence, experiment tracking gaps)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -207,6 +209,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Enhanced `atlas doctor` recommendations engine to leverage all detection data from N-17/N-19/N-24/N-25. Per-project: security (no tooling, missing dep scanning, missing secret scanning), quality (no tooling, missing linting, missing type checking), infrastructure (no CI/CD). Cross-project: maps security_gap/security_divergence, quality_gap/quality_divergence, infra_gap/infra_divergence connections to prioritized recommendations. 23 new recommendation tests.
 **Shipped**: 2026-03-13. Total test count: 583 → 606. Surfaces all detection+intelligence data through actionable `atlas doctor` output.
+
+### N-27: AI/ML Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project AI/ML pattern detection via `_find_ai_patterns()` in connections.py. Analyzes AI/ML tooling from N-21 across the portfolio to detect: shared AI/ML tools (Anthropic SDK/LangChain across 2+ projects), LLM provider divergence (Anthropic vs OpenAI across portfolio), vector DB divergence (ChromaDB vs Pinecone), and experiment tracking gaps (ML projects using PyTorch/TensorFlow/sklearn without MLflow/W&B/DVC). New connection types (`shared_ai`, `ai_divergence`, `ai_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. 15 AI pattern tests.
+**Shipped**: 2026-03-13. Total test count: 606 → 621. Completes N-21 detection→intelligence pipeline. Completes all 4 detection→intelligence pipelines: infra (N-17→N-18), security (N-19→N-23), quality (N-24→N-25), AI/ML (N-21→N-27).
 
 ### N-18: Infrastructure Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
