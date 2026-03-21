@@ -71,8 +71,9 @@
 | N-58 | [Authentication & Auth Detection](#n-58-authentication--auth-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-59 | [Authentication Intelligence](#n-59-authentication-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-60 | [Connection Category Filtering](#n-60-connection-category-filtering) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-61 | [Messaging & Notification Detection](#n-61-messaging--notification-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 57/60 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 58/61 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -96,7 +97,8 @@
 - API specification detection: OpenAPI/Swagger, GraphQL, gRPC/Protobuf, AsyncAPI, JSON Schema, tRPC, WSDL/SOAP
 - Monitoring & observability: Sentry, Datadog, New Relic, OpenTelemetry, Prometheus, Bugsnag, Rollbar, Honeycomb, Loguru, structlog, Winston, Pino, LogRocket, Logtail, tracing (Rust), Elastic APM
 - Authentication & authorization: NextAuth.js, Auth.js, Passport.js, Clerk, Auth0, Firebase Auth, Supabase Auth, Lucia, Keycloak, Flask-Login, django-allauth, FastAPI-Users, Authlib, PyJWT, golang-jwt, Casbin
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58
+- Messaging & notifications: SendGrid, Twilio, Slack SDK, Nodemailer, Resend, Pusher, Socket.IO, BullMQ, Celery, Novu, Postmark, Firebase Cloud Messaging, Gomail, Lettre
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -340,6 +342,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--type`/`-t` filter option to `atlas connections` command. Filters cross-project intelligence by category: deps, health, infra, security, quality, ai, testing, database, packages, license, docs, ci, runtime, build, api, monitoring, auth (17 categories). Each category maps to its related connection types. Shows "Filtered: X/Y connections" header when active. Invalid categories show error with valid options list. `CONNECTION_CATEGORIES` dict defined in cli.py for clean mapping. 5 new CLI integration tests.
 **Shipped**: 2026-03-21. Total test count: 1133 → 1138. Makes `atlas connections` output navigable for large portfolios.
+
+### N-61: Messaging & Notification Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_messaging_tools()` in detector.py. Detects email, SMS, push notification, real-time messaging, and task queue tools across ecosystems: Python (SendGrid, Twilio, Slack SDK/Bolt, Postmark, Mailgun, Resend, Socket.IO, Pusher, Firebase Cloud Messaging, Web Push, Celery), JavaScript/TypeScript (SendGrid, Nodemailer, Resend, Twilio, Slack Web API/Bolt, Pusher, Socket.IO, Firebase Admin, BullMQ, Bull, Novu, Postmark, Web Push), Go (Gomail, Slack, Twilio), Rust (Lettre, Slack). Added `messaging_tools` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py), markdown/JSON/CSV export. `_project_has_tech()` searches messaging_tools. 23 detection tests.
+**Shipped**: 2026-03-21. Total test count: 1138 → 1161. 17th detection category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

@@ -1537,3 +1537,80 @@ def detect_auth_tools(project_path: Path) -> list[str]:
         _check_add(tools, content, "axum-login", "axum-login")
 
     return sorted(tools)
+
+
+def detect_messaging_tools(project_path: Path) -> list[str]:
+    """Detect messaging, email, SMS, push notification, and real-time tools."""
+    tools: list[str] = []
+
+    def _add(name: str) -> None:
+        if name not in tools:
+            tools.append(name)
+
+    # Python dependencies
+    for cfg in ("pyproject.toml", "requirements.txt", "requirements-dev.txt"):
+        path = project_path / cfg
+        if path.exists():
+            content = path.read_text(errors="ignore").lower()
+            _check_add(tools, content, "sendgrid", "SendGrid")
+            _check_add(tools, content, "postmarker", "Postmark")
+            _check_add(tools, content, "mailgun", "Mailgun")
+            _check_add(tools, content, "resend", "Resend")
+            _check_add(tools, content, "twilio", "Twilio")
+            _check_add(tools, content, "slack-sdk", "Slack")
+            _check_add(tools, content, "slack-bolt", "Slack")
+            _check_add(tools, content, "slack_sdk", "Slack")
+            _check_add(tools, content, "slack_bolt", "Slack")
+            _check_add(tools, content, "python-socketio", "Socket.IO")
+            _check_add(tools, content, "pusher", "Pusher")
+            _check_add(tools, content, "firebase-admin", "Firebase Cloud Messaging")
+            _check_add(tools, content, "web-push", "Web Push")
+            _check_add(tools, content, "celery", "Celery")
+
+    # JavaScript/TypeScript dependencies
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text(errors="ignore"))
+            all_deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
+            js_messaging = {
+                "@sendgrid/mail": "SendGrid",
+                "nodemailer": "Nodemailer",
+                "@resend/node": "Resend",
+                "resend": "Resend",
+                "twilio": "Twilio",
+                "@slack/web-api": "Slack",
+                "@slack/bolt": "Slack",
+                "pusher": "Pusher",
+                "pusher-js": "Pusher",
+                "socket.io": "Socket.IO",
+                "socket.io-client": "Socket.IO",
+                "firebase-admin": "Firebase Cloud Messaging",
+                "web-push": "Web Push",
+                "bullmq": "BullMQ",
+                "bull": "Bull",
+                "@novu/node": "Novu",
+                "postmark": "Postmark",
+            }
+            for dep, name in js_messaging.items():
+                if dep in all_deps:
+                    _add(name)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    # Go dependencies
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        content = go_mod.read_text(errors="ignore").lower()
+        _check_add(tools, content, "slack-go/slack", "Slack")
+        _check_add(tools, content, "gomail", "Gomail")
+        _check_add(tools, content, "twilio-go", "Twilio")
+
+    # Rust dependencies
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        content = cargo_toml.read_text(errors="ignore").lower()
+        _check_add(tools, content, "lettre", "Lettre")
+        _check_add(tools, content, "slack-morphism", "Slack")
+
+    return sorted(tools)

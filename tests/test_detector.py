@@ -22,6 +22,7 @@ from atlas.detector import (
     detect_api_specs,
     detect_monitoring_tools,
     detect_auth_tools,
+    detect_messaging_tools,
     walk_files,
 )
 
@@ -2049,3 +2050,140 @@ class TestDetectAuthTools:
         }))
         result = detect_auth_tools(tmp_path)
         assert "jsonwebtoken" in result
+
+
+# ---------------------------------------------------------------------------
+# detect_messaging_tools
+# ---------------------------------------------------------------------------
+class TestDetectMessagingTools:
+    def test_empty_project(self, tmp_path):
+        result = detect_messaging_tools(tmp_path)
+        assert result == []
+
+    def test_sendgrid_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sendgrid==6.0\n")
+        result = detect_messaging_tools(tmp_path)
+        assert "SendGrid" in result
+
+    def test_twilio_python(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["twilio"]\n')
+        result = detect_messaging_tools(tmp_path)
+        assert "Twilio" in result
+
+    def test_slack_sdk_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("slack-sdk\n")
+        result = detect_messaging_tools(tmp_path)
+        assert "Slack" in result
+
+    def test_slack_bolt_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("slack-bolt\n")
+        result = detect_messaging_tools(tmp_path)
+        assert "Slack" in result
+
+    def test_socketio_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("python-socketio\n")
+        result = detect_messaging_tools(tmp_path)
+        assert "Socket.IO" in result
+
+    def test_celery_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("celery[redis]\n")
+        result = detect_messaging_tools(tmp_path)
+        assert "Celery" in result
+
+    def test_resend_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("resend\n")
+        result = detect_messaging_tools(tmp_path)
+        assert "Resend" in result
+
+    def test_nodemailer_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"nodemailer": "^6.0"}
+        }))
+        result = detect_messaging_tools(tmp_path)
+        assert "Nodemailer" in result
+
+    def test_sendgrid_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@sendgrid/mail": "^7.0"}
+        }))
+        result = detect_messaging_tools(tmp_path)
+        assert "SendGrid" in result
+
+    def test_slack_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@slack/web-api": "^6.0"}
+        }))
+        result = detect_messaging_tools(tmp_path)
+        assert "Slack" in result
+
+    def test_socketio_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"socket.io": "^4.0"}
+        }))
+        result = detect_messaging_tools(tmp_path)
+        assert "Socket.IO" in result
+
+    def test_bullmq_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"bullmq": "^4.0"}
+        }))
+        result = detect_messaging_tools(tmp_path)
+        assert "BullMQ" in result
+
+    def test_pusher_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"pusher": "^5.0"}
+        }))
+        result = detect_messaging_tools(tmp_path)
+        assert "Pusher" in result
+
+    def test_novu_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@novu/node": "^0.20"}
+        }))
+        result = detect_messaging_tools(tmp_path)
+        assert "Novu" in result
+
+    def test_gomail_go(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example.com/app\nrequire gopkg.in/gomail.v2 v2.0.0\n")
+        result = detect_messaging_tools(tmp_path)
+        assert "Gomail" in result
+
+    def test_slack_go(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example.com/app\nrequire github.com/slack-go/slack v0.12.0\n")
+        result = detect_messaging_tools(tmp_path)
+        assert "Slack" in result
+
+    def test_lettre_rust(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nlettre = "0.11"\n')
+        result = detect_messaging_tools(tmp_path)
+        assert "Lettre" in result
+
+    def test_multiple_tools(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sendgrid\ntwilio\nslack-sdk\n")
+        result = detect_messaging_tools(tmp_path)
+        assert "SendGrid" in result
+        assert "Twilio" in result
+        assert "Slack" in result
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("slack-sdk\nslack-bolt\nslack_sdk\n")
+        result = detect_messaging_tools(tmp_path)
+        assert result.count("Slack") == 1
+
+    def test_result_sorted(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("twilio\nsendgrid\nslack-sdk\n")
+        result = detect_messaging_tools(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        result = detect_messaging_tools(tmp_path)
+        assert result == []
+
+    def test_devdependencies_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"nodemailer": "^6.0"}
+        }))
+        result = detect_messaging_tools(tmp_path)
+        assert "Nodemailer" in result

@@ -393,6 +393,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         auth_parts = [f"{at} ({count})" for at, count in top_auth]
         lines.append(f"  [bold]Auth:[/bold]         {has_auth}/{n} projects \u00b7 {', '.join(auth_parts)}")
 
+    # Messaging tools
+    has_msg = sum(1 for p in projects if p.tech_stack.messaging_tools)
+    if has_msg:
+        msg_counter: Counter[str] = Counter()
+        for p in projects:
+            for mt in p.tech_stack.messaging_tools:
+                msg_counter[mt] += 1
+        top_msg = msg_counter.most_common(6)
+        msg_parts = [f"{mt} ({count})" for mt, count in top_msg]
+        lines.append(f"  [bold]Messaging:[/bold]    {has_msg}/{n} projects \u00b7 {', '.join(msg_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -580,6 +591,10 @@ def show_project_card(project: Project):
     if project.tech_stack.auth_tools:
         auth = ", ".join(project.tech_stack.auth_tools[:8])
         lines.append(f"  [bold]Auth:[/bold]       {auth}")
+
+    if project.tech_stack.messaging_tools:
+        msg = ", ".join(project.tech_stack.messaging_tools[:8])
+        lines.append(f"  [bold]Messaging:[/bold] {msg}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")
