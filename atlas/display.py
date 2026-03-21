@@ -639,6 +639,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         cfg_parts = [f"{cfg} ({count})" for cfg, count in top_cfg]
         lines.append(f"  [bold]Config:[/bold]      {has_cfg}/{n} projects \u00b7 {', '.join(cfg_parts)}")
 
+    # Caching tools
+    has_cache = sum(1 for p in projects if p.tech_stack.caching_tools)
+    if has_cache:
+        cache_counter: Counter[str] = Counter()
+        for p in projects:
+            for ct in p.tech_stack.caching_tools:
+                cache_counter[ct] += 1
+        top_cache = cache_counter.most_common(6)
+        cache_parts = [f"{ct} ({count})" for ct, count in top_cache]
+        lines.append(f"  [bold]Caching:[/bold]     {has_cache}/{n} projects \u00b7 {', '.join(cache_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1039,6 +1050,10 @@ def show_project_card(project: Project):
     if project.tech_stack.config_tools:
         cfg = ", ".join(project.tech_stack.config_tools[:8])
         lines.append(f"  [bold]Config:[/bold]     {cfg}")
+
+    if project.tech_stack.caching_tools:
+        cch = ", ".join(project.tech_stack.caching_tools[:8])
+        lines.append(f"  [bold]Caching:[/bold]    {cch}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

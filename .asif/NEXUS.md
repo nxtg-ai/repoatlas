@@ -124,8 +124,9 @@
 | N-111 | [Configuration Management Detection](#n-111-configuration-management-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-112 | [Configuration Management Intelligence](#n-112-configuration-management-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-113 | [Compare JSON Export](#n-113-compare-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-114 | [Caching Library Detection](#n-114-caching-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 110/113 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 111/114 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -167,7 +168,8 @@
 - Documentation generation detection: Sphinx, MkDocs, pdoc, pydoctor (Python), Docusaurus, Storybook, VitePress, TypeDoc, JSDoc, Nextra, GitBook, Docsify, Mintlify, Starlight, documentation.js (JS/TS), mdBook (Rust), Javadoc, Dokka (Java), Doxygen, Swag (Go) — via deps, config files, and directory markers
 - CLI framework detection: Click, Typer, Fire, Rich, Textual, Cement, cliff, docopt, plac, Cleo, prompt_toolkit, Questionary, InquirerPy, Trogon (Python), Commander.js, Yargs, meow, oclif, Vorpal, Caporal, Inquirer.js, prompts, Chalk, Ora, Ink, citty, Clipanion, Gluegun (JS/TS), Cobra, urfave/cli, pflag, Kong, Bubbletea, Lip Gloss, Huh, go-flags (Go), clap, StructOpt, argh, dialoguer, indicatif, console, Ratatui (Rust), picocli, JCommander, Airline, Spring Shell (Java)
 - Configuration management detection: python-dotenv, Dynaconf, Hydra, OmegaConf, Pydantic Settings, python-decouple, environs, Everett, Confuse, ConfigObj (Python), .env/.env.example file detection, dotenv, Convict, node-config, envalid, env-cmd, cross-env, nconf, cosmiconfig, rc, t3-env (JS/TS), Viper, envconfig, godotenv, koanf, env, cleanenv (Go), config-rs, dotenvy, Figment, envy (Rust), Spring Config, Typesafe Config, Commons Configuration, dotenv-java (Java)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111
+- Caching library detection: redis-py, cachetools, DiskCache, django-redis, Flask-Caching, aiocache, cashews, dogpile.cache, pymemcache, pylibmc, CacheControl (Python), ioredis, redis (Node), node-cache, lru-cache, Keyv, cache-manager, Memcached (Node), catbox (JS/TS), go-redis, Ristretto, BigCache, groupcache, FreeCache, GCache, gomemcache (Go), moka, cached, redis-rs, mini-moka (Rust), Caffeine, Ehcache, Spring Cache, Jedis, Lettuce, Redisson, Guava Cache, Hazelcast (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -637,6 +639,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-114: Caching Library Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_caching_tools()` in detector.py. Detects caching libraries across ecosystems: Python (redis-py, cachetools, DiskCache, django-redis, Flask-Caching, aiocache, cashews, dogpile.cache, pymemcache, pylibmc, CacheControl), JS/TS (ioredis, redis Node, node-cache, lru-cache, Keyv, cache-manager, Memcached Node, catbox), Go (go-redis, Ristretto, BigCache, groupcache, FreeCache, GCache, gomemcache), Rust (moka, cached, redis-rs, mini-moka), Java (Caffeine, Ehcache, Spring Cache, Jedis, Lettuce, Redisson, Guava Cache, Hazelcast). Added `caching_tools` field to TechStack model. Shows in project card, portfolio summary, all exports. 21 detection tests.
+**Shipped**: 2026-03-21. Total test count: 1843 → 1864. 35th detection category.
 
 ### N-113: Compare JSON Export
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1

@@ -44,6 +44,7 @@ from atlas.detector import (
     detect_doc_generators,
     detect_cli_frameworks,
     detect_config_tools,
+    detect_caching_tools,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -90,6 +91,7 @@ def scan_project(project_path: Path) -> Project:
     doc_generators = detect_doc_generators(path)
     cli_frameworks = detect_cli_frameworks(path)
     config_tools = detect_config_tools(path)
+    caching_tools = detect_caching_tools(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -131,6 +133,7 @@ def scan_project(project_path: Path) -> Project:
         doc_generators=doc_generators,
         cli_frameworks=cli_frameworks,
         config_tools=config_tools,
+        caching_tools=caching_tools,
     )
 
     project = Project(

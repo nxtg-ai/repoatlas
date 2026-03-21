@@ -40,6 +40,7 @@ from atlas.detector import (
     detect_doc_generators,
     detect_cli_frameworks,
     detect_config_tools,
+    detect_caching_tools,
     walk_files,
 )
 
@@ -4572,3 +4573,116 @@ class TestDetectConfigTools:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         assert detect_config_tools(tmp_path) == []
+
+
+class TestDetectCachingTools:
+    def test_empty_project(self, tmp_path):
+        assert detect_caching_tools(tmp_path) == []
+
+    def test_python_redis(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("redis\n")
+        result = detect_caching_tools(tmp_path)
+        assert "redis-py" in result
+
+    def test_python_cachetools(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("cachetools\n")
+        result = detect_caching_tools(tmp_path)
+        assert "cachetools" in result
+
+    def test_python_diskcache(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("diskcache\n")
+        result = detect_caching_tools(tmp_path)
+        assert "DiskCache" in result
+
+    def test_python_django_redis(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("django-redis\n")
+        result = detect_caching_tools(tmp_path)
+        assert "django-redis" in result
+
+    def test_python_flask_caching(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = [\n    "flask-caching",\n]\n')
+        result = detect_caching_tools(tmp_path)
+        assert "Flask-Caching" in result
+
+    def test_js_ioredis(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"ioredis": "^5.0.0"}
+        }))
+        result = detect_caching_tools(tmp_path)
+        assert "ioredis" in result
+
+    def test_js_node_cache(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"node-cache": "^5.0.0"}
+        }))
+        result = detect_caching_tools(tmp_path)
+        assert "node-cache" in result
+
+    def test_js_lru_cache(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"lru-cache": "^10.0.0"}
+        }))
+        result = detect_caching_tools(tmp_path)
+        assert "lru-cache" in result
+
+    def test_js_keyv(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"keyv": "^4.0.0"}
+        }))
+        result = detect_caching_tools(tmp_path)
+        assert "Keyv" in result
+
+    def test_go_goredis(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/redis/go-redis/v9 v9.0.0\n")
+        result = detect_caching_tools(tmp_path)
+        assert "go-redis" in result
+
+    def test_go_ristretto(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/dgraph-io/ristretto v0.1.0\n")
+        result = detect_caching_tools(tmp_path)
+        assert "Ristretto" in result
+
+    def test_go_bigcache(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/allegro/bigcache/v3 v3.1.0\n")
+        result = detect_caching_tools(tmp_path)
+        assert "BigCache" in result
+
+    def test_rust_moka(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nmoka = "0.12"\n')
+        result = detect_caching_tools(tmp_path)
+        assert "moka" in result
+
+    def test_java_caffeine(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'\n")
+        result = detect_caching_tools(tmp_path)
+        assert "Caffeine" in result
+
+    def test_java_ehcache(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<project><dependency>org.ehcache</dependency></project>\n")
+        result = detect_caching_tools(tmp_path)
+        assert "Ehcache" in result
+
+    def test_java_jedis(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'redis.clients:jedis:5.0.0'\n")
+        result = detect_caching_tools(tmp_path)
+        assert "Jedis" in result
+
+    def test_multiple_tools(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("redis\ncachetools\ndiskcache\n")
+        result = detect_caching_tools(tmp_path)
+        assert len(result) == 3
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("redis\n")
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = [\n    "redis",\n]\n')
+        result = detect_caching_tools(tmp_path)
+        assert result.count("redis-py") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("redis\ncachetools\ndiskcache\n")
+        result = detect_caching_tools(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        assert detect_caching_tools(tmp_path) == []

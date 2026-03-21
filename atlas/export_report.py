@@ -404,6 +404,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         cfg_names = ", ".join(t for t, _ in top_cfg)
         lines.append(f"**Config Tools**: {has_cfg}/{n} projects \u00b7 {cfg_names}")
 
+    has_caching = sum(1 for p in projects if p.tech_stack.caching_tools)
+    if has_caching:
+        caching_counter: Counter[str] = Counter()
+        for p in projects:
+            for ct in p.tech_stack.caching_tools:
+                caching_counter[ct] += 1
+        top_caching = caching_counter.most_common(6)
+        caching_names = ", ".join(t for t, _ in top_caching)
+        lines.append(f"**Caching Tools**: {has_caching}/{n} projects \u00b7 {caching_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -519,6 +529,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.config_tools:
             lines.append(f"- **Config Tools**: {', '.join(p.tech_stack.config_tools[:8])}")
+
+        if p.tech_stack.caching_tools:
+            lines.append(f"- **Caching**: {', '.join(p.tech_stack.caching_tools[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -965,6 +978,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             cfg_counter2[cfg] += 1
     has_cfg = sum(1 for p in projects if p.tech_stack.config_tools)
 
+    # Caching tools
+    caching_counter2: Counter[str] = Counter()
+    for p in projects:
+        for ct in p.tech_stack.caching_tools:
+            caching_counter2[ct] += 1
+    has_caching = sum(1 for p in projects if p.tech_stack.caching_tools)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1011,6 +1031,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "doc_generators": {"coverage": f"{has_dg}/{n}", "tools": dict(dg_counter2.most_common(10))},
         "cli_frameworks": {"coverage": f"{has_clf}/{n}", "tools": dict(clf_counter2.most_common(10))},
         "config_tools": {"coverage": f"{has_cfg}/{n}", "tools": dict(cfg_counter2.most_common(10))},
+        "caching_tools": {"coverage": f"{has_caching}/{n}", "tools": dict(caching_counter2.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1031,7 +1052,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1086,6 +1107,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.doc_generators),
             "; ".join(ts.cli_frameworks),
             "; ".join(ts.config_tools),
+            "; ".join(ts.caching_tools),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

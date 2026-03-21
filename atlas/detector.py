@@ -3602,6 +3602,125 @@ def detect_config_tools(project_path: Path) -> list[str]:
     return sorted(tools)
 
 
+def detect_caching_tools(project_path: Path) -> list[str]:
+    """Detect caching libraries and tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # Python caching tools
+    py_mapping = {
+        "redis": "redis-py",
+        "cachetools": "cachetools",
+        "diskcache": "DiskCache",
+        "django-redis": "django-redis",
+        "flask-caching": "Flask-Caching",
+        "aiocache": "aiocache",
+        "cashews": "cashews",
+        "dogpile.cache": "dogpile.cache",
+        "pymemcache": "pymemcache",
+        "pylibmc": "pylibmc",
+        "cachecontrol": "CacheControl",
+    }
+    for dep, name in py_mapping.items():
+        if dep in py_deps:
+            _add(name)
+
+    # JS/TS caching tools — package.json
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            content = pkg_json.read_text().lower()
+            if "\"ioredis\"" in content:
+                _add("ioredis")
+            if "\"redis\"" in content and "\"redis\":" in content:
+                _add("redis (Node)")
+            if "\"node-cache\"" in content:
+                _add("node-cache")
+            if "\"lru-cache\"" in content:
+                _add("lru-cache")
+            if "\"keyv\"" in content:
+                _add("Keyv")
+            if "\"cache-manager\"" in content:
+                _add("cache-manager")
+            if "\"memcached\"" in content or "\"memjs\"" in content:
+                _add("Memcached (Node)")
+            if "\"catbox\"" in content:
+                _add("catbox")
+        except Exception:
+            pass
+
+    # Go caching tools — go.mod
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            if "go-redis" in content:
+                _add("go-redis")
+            if "ristretto" in content:
+                _add("Ristretto")
+            if "bigcache" in content:
+                _add("BigCache")
+            if "groupcache" in content:
+                _add("groupcache")
+            if "freecache" in content:
+                _add("FreeCache")
+            if "gcache" in content:
+                _add("GCache")
+            if "bradfitz/gomemcache" in content:
+                _add("gomemcache")
+        except Exception:
+            pass
+
+    # Rust caching tools — Cargo.toml
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content = cargo.read_text().lower()
+            if "moka" in content:
+                _add("moka")
+            if "cached" in content and "cached =" in content:
+                _add("cached")
+            if "redis" in content and "redis =" in content:
+                _add("redis-rs")
+            if "mini-moka" in content:
+                _add("mini-moka")
+        except Exception:
+            pass
+
+    # Java caching tools — pom.xml / build.gradle
+    for jpath in [project_path / "pom.xml", project_path / "build.gradle", project_path / "build.gradle.kts"]:
+        if jpath.exists():
+            try:
+                content = jpath.read_text().lower()
+                if "caffeine" in content:
+                    _add("Caffeine")
+                if "ehcache" in content:
+                    _add("Ehcache")
+                if "spring-boot" in content and "cache" in content:
+                    _add("Spring Cache")
+                if "jedis" in content:
+                    _add("Jedis")
+                if "lettuce" in content and "lettuce-core" in content:
+                    _add("Lettuce")
+                if "redisson" in content:
+                    _add("Redisson")
+                if "guava" in content:
+                    _add("Guava Cache")
+                if "hazelcast" in content:
+                    _add("Hazelcast")
+            except Exception:
+                pass
+
+    return sorted(tools)
+
+
 def _collect_python_deps(project_path: Path) -> set[str]:
     """Collect Python dependency names from pyproject.toml and requirements.txt."""
     py_deps: set[str] = set()
