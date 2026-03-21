@@ -35,6 +35,7 @@ from atlas.detector import (
     detect_cloud_providers,
     detect_task_queues,
     detect_search_engines,
+    detect_feature_flags,
     walk_files,
 )
 
@@ -3976,3 +3977,124 @@ class TestDetectSearchEngines:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         assert detect_search_engines(tmp_path) == []
+
+
+# ---------------------------------------------------------------------------
+# detect_feature_flags
+# ---------------------------------------------------------------------------
+class TestDetectFeatureFlags:
+    def test_empty_project(self, tmp_path):
+        assert detect_feature_flags(tmp_path) == []
+
+    def test_python_launchdarkly(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("launchdarkly-server-sdk\n")
+        result = detect_feature_flags(tmp_path)
+        assert "LaunchDarkly" in result
+
+    def test_python_unleash(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("unleashclient\n")
+        result = detect_feature_flags(tmp_path)
+        assert "Unleash" in result
+
+    def test_python_flagsmith(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("flagsmith\n")
+        result = detect_feature_flags(tmp_path)
+        assert "Flagsmith" in result
+
+    def test_python_growthbook(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("growthbook\n")
+        result = detect_feature_flags(tmp_path)
+        assert "GrowthBook" in result
+
+    def test_python_posthog(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("posthog\n")
+        result = detect_feature_flags(tmp_path)
+        assert "PostHog" in result
+
+    def test_python_openfeature(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("openfeature-sdk\n")
+        result = detect_feature_flags(tmp_path)
+        assert "OpenFeature" in result
+
+    def test_python_waffle(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("django-waffle\n")
+        result = detect_feature_flags(tmp_path)
+        assert "Waffle" in result
+
+    def test_js_launchdarkly(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"launchdarkly-js-client-sdk": "^3.0.0"}
+        }))
+        result = detect_feature_flags(tmp_path)
+        assert "LaunchDarkly" in result
+
+    def test_js_growthbook(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@growthbook/growthbook-react": "^0.20.0"}
+        }))
+        result = detect_feature_flags(tmp_path)
+        assert "GrowthBook" in result
+
+    def test_js_posthog(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"posthog-js": "^1.0.0"}
+        }))
+        result = detect_feature_flags(tmp_path)
+        assert "PostHog" in result
+
+    def test_js_vercel_flags(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@vercel/flags": "^1.0.0"}
+        }))
+        result = detect_feature_flags(tmp_path)
+        assert "Vercel Flags" in result
+
+    def test_js_configcat(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@configcat/sdk": "^8.0.0"}
+        }))
+        result = detect_feature_flags(tmp_path)
+        assert "ConfigCat" in result
+
+    def test_go_launchdarkly(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/launchdarkly/go-server-sdk v6.0.0\n")
+        result = detect_feature_flags(tmp_path)
+        assert "LaunchDarkly" in result
+
+    def test_rust_unleash(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nunleash-api-client = "0.10"\n')
+        result = detect_feature_flags(tmp_path)
+        assert "Unleash" in result
+
+    def test_java_togglz(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency>togglz-core</dependency>\n")
+        result = detect_feature_flags(tmp_path)
+        assert "Togglz" in result
+
+    def test_java_ff4j(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.ff4j:ff4j-core:1.9.0'\n")
+        result = detect_feature_flags(tmp_path)
+        assert "FF4J" in result
+
+    def test_multiple_flags(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("launchdarkly-server-sdk\nposthog\n")
+        result = detect_feature_flags(tmp_path)
+        assert "LaunchDarkly" in result
+        assert "PostHog" in result
+
+    def test_dedup(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("flagsmith\n")
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"flagsmith": "^3.0.0"}
+        }))
+        result = detect_feature_flags(tmp_path)
+        assert result.count("Flagsmith") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("posthog\nflagsmith\nlaunchdarkly-server-sdk\n")
+        result = detect_feature_flags(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        assert detect_feature_flags(tmp_path) == []

@@ -37,6 +37,7 @@ class TechStack:
     cloud_providers: list[str] = field(default_factory=list)
     task_queues: list[str] = field(default_factory=list)
     search_engines: list[str] = field(default_factory=list)
+    feature_flags: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -155,6 +156,7 @@ class Project:
                 "cloud_providers": self.tech_stack.cloud_providers,
                 "task_queues": self.tech_stack.task_queues,
                 "search_engines": self.tech_stack.search_engines,
+                "feature_flags": self.tech_stack.feature_flags,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -218,6 +220,7 @@ class Project:
                 cloud_providers=ts.get("cloud_providers", []),
                 task_queues=ts.get("task_queues", []),
                 search_engines=ts.get("search_engines", []),
+                feature_flags=ts.get("feature_flags", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

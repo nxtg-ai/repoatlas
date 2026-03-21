@@ -109,8 +109,9 @@
 | N-96 | [Search Engine Detection](#n-96-search-engine-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-97 | [Search Engine Intelligence](#n-97-search-engine-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-98 | [Doctor JSON Export](#n-98-doctor-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-99 | [Feature Flag Detection](#n-99-feature-flag-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 95/98 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 96/99 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -147,7 +148,8 @@
 - Cloud provider & SDK detection: AWS (boto3, aws-sdk, aws-cdk), GCP (google-cloud-*, firebase), Azure (azure-*), Cloudflare (wrangler), Fly.io, Railway, Render, DigitalOcean — across Python, JS/TS, Go, Rust, Java
 - Task queue & background job detection: Celery, RQ, Dramatiq, Huey, arq, TaskIQ, Temporal, Prefect, Airflow, Luigi, Dagster, BullMQ, Bull, Bee-Queue, Agenda, node-cron, Graphile Worker, pg-boss, Quirrel, Asynq, robfig/cron, gocraft/work, tokio-cron-scheduler, Apalis, Quartz, Spring Batch — across Python, JS/TS, Go, Rust, Java
 - Search engine detection: Elasticsearch, OpenSearch, Meilisearch, Typesense, Algolia, Solr, Whoosh, Haystack, Tantivy, Lunr, FlexSearch, Fuse.js, MiniSearch, Bleve, Lucene — across Python, JS/TS, Go, Rust, Java
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96
+- Feature flag detection: LaunchDarkly, Unleash, Flagsmith, GrowthBook, Split, PostHog, Statsig, OpenFeature, Waffle, ConfigCat, Vercel Flags, HappyKit, Togglz, FF4J, Flipper — across Python, JS/TS, Go, Rust, Java
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -607,6 +609,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-99: Feature Flag Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_feature_flags()` in detector.py. Detects feature flag and experimentation tools across ecosystems: Python (LaunchDarkly, Unleash, Flagsmith, GrowthBook, Split, PostHog, Statsig, OpenFeature, Waffle, Flask-FeatureFlags), JS/TS (LaunchDarkly, Unleash, Flagsmith, GrowthBook, Split, PostHog, Statsig, OpenFeature, HappyKit, Vercel Flags, ConfigCat), Go (LaunchDarkly, Unleash, GrowthBook, OpenFeature, PostHog), Rust (LaunchDarkly, Unleash, OpenFeature), Java (LaunchDarkly, Unleash, Flagsmith, GrowthBook, Split, OpenFeature, Togglz, FF4J). Added `feature_flags` field to TechStack model. Shows in project card, portfolio summary, all exports. 21 detection tests.
+**Shipped**: 2026-03-21. Total test count: 1678 → 1699. 30th detection category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

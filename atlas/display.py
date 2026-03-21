@@ -570,6 +570,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         se_parts = [f"{se} ({count})" for se, count in top_se]
         lines.append(f"  [bold]Search:[/bold]      {has_se}/{n} projects \u00b7 {', '.join(se_parts)}")
 
+    # Feature flags
+    has_ff = sum(1 for p in projects if p.tech_stack.feature_flags)
+    if has_ff:
+        ff_counter: Counter[str] = Counter()
+        for p in projects:
+            for ff in p.tech_stack.feature_flags:
+                ff_counter[ff] += 1
+        top_ff = ff_counter.most_common(6)
+        ff_parts = [f"{ff} ({count})" for ff, count in top_ff]
+        lines.append(f"  [bold]Flags:[/bold]       {has_ff}/{n} projects \u00b7 {', '.join(ff_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -931,6 +942,10 @@ def show_project_card(project: Project):
     if project.tech_stack.search_engines:
         se = ", ".join(project.tech_stack.search_engines[:8])
         lines.append(f"  [bold]Search:[/bold]     {se}")
+
+    if project.tech_stack.feature_flags:
+        ff = ", ".join(project.tech_stack.feature_flags[:8])
+        lines.append(f"  [bold]Flags:[/bold]      {ff}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

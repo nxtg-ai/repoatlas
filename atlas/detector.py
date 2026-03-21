@@ -2995,6 +2995,133 @@ def detect_search_engines(project_path: Path) -> list[str]:
     return sorted(tools)
 
 
+def detect_feature_flags(project_path: Path) -> list[str]:
+    """Detect feature flag and experimentation tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # Python
+    py_map = {
+        "launchdarkly-server-sdk": "LaunchDarkly",
+        "ldclient-py": "LaunchDarkly",
+        "unleashclient": "Unleash",
+        "flagsmith": "Flagsmith",
+        "growthbook": "GrowthBook",
+        "split-python": "Split",
+        "flipper-client": "Flipper",
+        "posthog": "PostHog",
+        "statsig": "Statsig",
+        "openfeature-sdk": "OpenFeature",
+        "django-waffle": "Waffle",
+        "flask-featureflags": "Flask-FeatureFlags",
+    }
+    for dep, name in py_map.items():
+        if dep in py_deps:
+            _add(name)
+
+    # package.json — JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text())
+            all_deps = set()
+            for section in ("dependencies", "devDependencies"):
+                all_deps.update(data.get(section, {}).keys())
+
+            js_map = {
+                "launchdarkly-js-client-sdk": "LaunchDarkly",
+                "launchdarkly-node-server-sdk": "LaunchDarkly",
+                "@launchdarkly/node-server-sdk": "LaunchDarkly",
+                "unleash-client": "Unleash",
+                "unleash-proxy-client": "Unleash",
+                "flagsmith": "Flagsmith",
+                "@growthbook/growthbook": "GrowthBook",
+                "@growthbook/growthbook-react": "GrowthBook",
+                "@splitio/splitio": "Split",
+                "@split-software/splitio": "Split",
+                "posthog-js": "PostHog",
+                "posthog-node": "PostHog",
+                "statsig-js": "Statsig",
+                "statsig-node": "Statsig",
+                "@openfeature/js-sdk": "OpenFeature",
+                "@openfeature/react-sdk": "OpenFeature",
+                "@happykit/flags": "HappyKit",
+                "@vercel/flags": "Vercel Flags",
+                "@configcat/sdk": "ConfigCat",
+            }
+            for dep, name in js_map.items():
+                if dep in all_deps:
+                    _add(name)
+        except Exception:
+            pass
+
+    # go.mod — Go
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            go_map = {
+                "launchdarkly/go-server-sdk": "LaunchDarkly",
+                "unleash/unleash-client-go": "Unleash",
+                "growthbook/growthbook-golang": "GrowthBook",
+                "open-feature/go-sdk": "OpenFeature",
+                "posthog/posthog-go": "PostHog",
+            }
+            for dep, name in go_map.items():
+                if dep.lower() in content:
+                    _add(name)
+        except Exception:
+            pass
+
+    # Cargo.toml — Rust
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            content = cargo_toml.read_text().lower()
+            if "launchdarkly" in content:
+                _add("LaunchDarkly")
+            if "unleash-api-client" in content:
+                _add("Unleash")
+            if "openfeature" in content:
+                _add("OpenFeature")
+        except Exception:
+            pass
+
+    # pom.xml / build.gradle — Java
+    for jfile in ("pom.xml", "build.gradle"):
+        jpath = project_path / jfile
+        if jpath.exists():
+            try:
+                content = jpath.read_text().lower()
+                if "launchdarkly" in content:
+                    _add("LaunchDarkly")
+                if "unleash" in content and "getunleash" in content:
+                    _add("Unleash")
+                if "flagsmith" in content:
+                    _add("Flagsmith")
+                if "growthbook" in content:
+                    _add("GrowthBook")
+                if "split" in content and "splitio" in content:
+                    _add("Split")
+                if "openfeature" in content:
+                    _add("OpenFeature")
+                if "togglz" in content:
+                    _add("Togglz")
+                if "ff4j" in content:
+                    _add("FF4J")
+            except Exception:
+                pass
+
+    return sorted(tools)
+
+
 def _collect_python_deps(project_path: Path) -> set[str]:
     """Collect Python dependency names from pyproject.toml and requirements.txt."""
     py_deps: set[str] = set()
