@@ -444,6 +444,7 @@ def connections(
 @app.command()
 def doctor(
     format: Optional[str] = typer.Option(None, help="Output format: json or csv for structured output"),
+    category: Optional[str] = typer.Option(None, "--category", "-c", help="Filter by category (e.g. testing, security, infra, deps, docs)"),
 ):
     """Diagnose portfolio health and suggest fixes."""
     portfolio = _load_portfolio()
@@ -453,6 +454,10 @@ def doctor(
         return
 
     recs = generate_recommendations(portfolio)
+
+    if category:
+        cat_lower = category.lower()
+        recs = [r for r in recs if r.category.lower() == cat_lower]
 
     if format and format.lower() == "json":
         import json as json_mod

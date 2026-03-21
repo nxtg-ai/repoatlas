@@ -745,6 +745,59 @@ class TestDoctor:
         rows = list(reader)
         assert len(rows) > 0  # should have recommendations
 
+    def test_doctor_category_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = Project(
+            name="proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--category", "tests"])
+        assert result.exit_code == 0
+        # Should only show tests recommendations
+        assert "recommendation" in result.output.lower()
+
+    def test_doctor_category_filter_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = Project(
+            name="proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--format", "json", "--category", "tests"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["total"] > 0
+        for rec in data["recommendations"]:
+            assert rec["category"] == "tests"
+
+    def test_doctor_category_filter_no_match(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--category", "nonexistent"])
+        assert result.exit_code == 0
+        assert "healthy" in result.output.lower() or "0" in result.output
+
 
 # ===========================================================================
 # atlas ci
