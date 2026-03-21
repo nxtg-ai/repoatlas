@@ -15,6 +15,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_health_gaps(projects))
     connections.extend(_find_shared_databases(projects))
     connections.extend(_find_infra_patterns(projects))
+    connections.extend(_find_security_patterns(projects))
     return connections
 
 
@@ -251,6 +252,87 @@ def _find_infra_patterns(projects: list[Project]) -> list[Connection]:
             detail=f"{len(has_docker)} projects use Docker without orchestration — consider Compose/K8s",
             projects=has_docker,
             severity="info",
+        ))
+
+    return connections[:10]
+
+
+def _find_security_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project security patterns."""
+    connections: list[Connection] = []
+    sec_to_projects: dict[str, list[str]] = defaultdict(list)
+
+    for proj in projects:
+        for tool in proj.tech_stack.security_tools:
+            sec_to_projects[tool].append(proj.name)
+
+    # Shared security tools (2+ projects)
+    for tool, projs in sorted(sec_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_security",
+                detail=f"{tool} used across {len(projs)} projects — standardize config",
+                projects=projs,
+                severity="info",
+            ))
+
+    # No security tooling at all
+    no_security = [p.name for p in projects if not p.tech_stack.security_tools and p.source_file_count > 5]
+    if no_security:
+        connections.append(Connection(
+            type="security_gap",
+            detail=f"{len(no_security)} projects have no security tooling",
+            projects=no_security,
+            severity="critical",
+        ))
+
+    # Missing dependency scanning
+    dep_scanners = {"Dependabot", "Renovate", "Snyk", "pip-audit", "Safety"}
+    no_dep_scan = [
+        p.name for p in projects
+        if p.tech_stack.security_tools
+        and not any(t in dep_scanners for t in p.tech_stack.security_tools)
+        and p.source_file_count > 5
+    ]
+    if no_dep_scan:
+        connections.append(Connection(
+            type="security_gap",
+            detail=f"{len(no_dep_scan)} projects lack dependency scanning — add Dependabot/Renovate",
+            projects=no_dep_scan,
+            severity="warning",
+        ))
+
+    # Missing secret scanning
+    secret_scanners = {"Gitleaks", "detect-secrets", "SOPS"}
+    no_secret_scan = [
+        p.name for p in projects
+        if p.tech_stack.security_tools
+        and not any(t in secret_scanners for t in p.tech_stack.security_tools)
+        and p.source_file_count > 5
+    ]
+    if no_secret_scan:
+        connections.append(Connection(
+            type="security_gap",
+            detail=f"{len(no_secret_scan)} projects lack secret scanning — add Gitleaks/detect-secrets",
+            projects=no_secret_scan,
+            severity="warning",
+        ))
+
+    # Dep scanner divergence — multiple dep scanners across portfolio
+    dep_scan_tools = {"Dependabot", "Renovate", "Snyk"}
+    dep_scan_to_projects: dict[str, list[str]] = defaultdict(list)
+    for proj in projects:
+        for tool in proj.tech_stack.security_tools:
+            if tool in dep_scan_tools:
+                dep_scan_to_projects[tool].append(proj.name)
+    if len(dep_scan_to_projects) >= 2:
+        detail_parts = [f"{tool} ({', '.join(ps[:3])})" for tool, ps in dep_scan_to_projects.items()]
+        all_projects = list({p for ps in dep_scan_to_projects.values() for p in ps})
+        connections.append(Connection(
+            type="security_divergence",
+            detail=f"Multiple dep scanners: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
         ))
 
     return connections[:10]

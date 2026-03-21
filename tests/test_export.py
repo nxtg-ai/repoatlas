@@ -187,9 +187,10 @@ class TestConnectionsSection:
         assert "## Cross-Project Intelligence" in report or "## Projects" in report
 
     def test_no_connections_no_section(self):
-        # Healthy project with CI — avoids health_gap and infra_gap connections
+        # Healthy project with CI + security — avoids all gap connections
         p = _proj("solo", test_files=10, source_files=10,
-                  infrastructure=["GitHub Actions"])
+                  infrastructure=["GitHub Actions"],
+                  security_tools=["Dependabot", "Gitleaks"])
         p.health.tests = 1.0
         report = build_markdown_report(_portfolio(p))
         assert "Cross-Project Intelligence" not in report

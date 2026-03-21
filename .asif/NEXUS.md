@@ -33,8 +33,9 @@
 | N-20 | [Portfolio Summary Panel](#n-20-portfolio-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 | N-21 | [AI/ML Tooling Detection](#n-21-aiml-tooling-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 | N-22 | [Rich Markdown Export](#n-22-rich-markdown-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
+| N-23 | [Security Intelligence](#n-23-security-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 19/22 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 20/23 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -53,7 +54,8 @@
 - Cross-project pattern detection (shared deps, version mismatches, health gaps)
 - Side-by-side project comparison with actionable insights
 - Cross-project infrastructure intelligence (shared infra, divergence, gaps)
-- **Shipped**: N-02, N-03, N-15, N-18
+- Cross-project security intelligence (shared tools, adoption gaps, divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -179,6 +181,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Refactored markdown export into dedicated `export_report.py` module with `build_markdown_report()`. Generates comprehensive portfolio reports: header with aggregate stats, project table sorted by health, portfolio summary (languages, frameworks, infra coverage, security posture, AI/ML adoption), per-project details (health breakdown across 4 dimensions, all tech stack fields, git info), and cross-project intelligence grouped by type with severity icons. Replaces inline markdown generation in cli.py. 23 export tests.
 **Shipped**: 2026-03-13. Total test count: 483 → 506. Surfaces all detection data (N-17, N-19, N-21) in exported reports.
+
+### N-23: Security Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project security pattern detection via `_find_security_patterns()` in connections.py. Analyzes security tooling from N-19 across the portfolio to detect: shared security tools (Dependabot/Gitleaks across 2+ projects), security adoption gaps (no tooling, missing dep scanning, missing secret scanning), and security tool divergence (multiple dep scanners across portfolio). New connection types (`shared_security`, `security_divergence`, `security_gap`) displayed in `atlas connections` and markdown export. 16 security pattern tests.
+**Shipped**: 2026-03-13. Total test count: 506 → 522. Builds on N-19 detection data. Parallels N-17→N-18 (detection→intelligence) pattern.
 
 ### N-18: Infrastructure Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

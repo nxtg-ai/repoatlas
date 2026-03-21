@@ -4,6 +4,7 @@ from __future__ import annotations
 from atlas.connections import (
     _find_health_gaps,
     _find_infra_patterns,
+    _find_security_patterns,
     _find_shared_databases,
     _find_shared_deps,
     _find_shared_frameworks,
@@ -14,8 +15,9 @@ from atlas.models import GitInfo, HealthScore, Project, TechStack
 
 
 def _proj(name: str, frameworks=None, key_deps=None, databases=None,
-          infrastructure=None, test_files=0, source_files=10, git_commits=20,
-          uncommitted=0, structure_score=0.5) -> Project:
+          infrastructure=None, security_tools=None, test_files=0,
+          source_files=10, git_commits=20, uncommitted=0,
+          structure_score=0.5) -> Project:
     return Project(
         name=name,
         path=f"/tmp/{name}",
@@ -24,6 +26,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             key_deps=key_deps or {},
             databases=databases or [],
             infrastructure=infrastructure or [],
+            security_tools=security_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -465,3 +468,138 @@ class TestFindInfraPatterns:
         conns = find_connections(projects)
         infra_types = {c.type for c in conns if c.type.startswith("infra") or c.type == "shared_infra"}
         assert len(infra_types) >= 1
+
+
+# ---------------------------------------------------------------------------
+# _find_security_patterns
+# ---------------------------------------------------------------------------
+class TestFindSecurityPatterns:
+    def test_shared_security_tool(self):
+        projects = [
+            _proj("a", security_tools=["Dependabot", "Gitleaks"]),
+            _proj("b", security_tools=["Dependabot", "Snyk"]),
+        ]
+        conns = _find_security_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_security"]
+        assert any("Dependabot" in c.detail for c in shared)
+        assert shared[0].severity == "info"
+
+    def test_shared_security_needs_two_projects(self):
+        projects = [_proj("a", security_tools=["Dependabot"])]
+        conns = _find_security_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_security"]
+        assert shared == []
+
+    def test_no_security_tooling_gap(self):
+        projects = [
+            _proj("secured", security_tools=["Dependabot"], source_files=20),
+            _proj("bare", security_tools=[], source_files=20),
+        ]
+        conns = _find_security_patterns(projects)
+        gaps = [c for c in conns if c.type == "security_gap" and "no security tooling" in c.detail]
+        assert len(gaps) == 1
+        assert "bare" in gaps[0].projects
+        assert gaps[0].severity == "critical"
+
+    def test_no_security_gap_small_project(self):
+        projects = [_proj("tiny", security_tools=[], source_files=3)]
+        conns = _find_security_patterns(projects)
+        gaps = [c for c in conns if c.type == "security_gap" and "no security tooling" in c.detail]
+        assert gaps == []
+
+    def test_missing_dep_scanning(self):
+        projects = [
+            _proj("a", security_tools=["Gitleaks"], source_files=20),
+        ]
+        conns = _find_security_patterns(projects)
+        gaps = [c for c in conns if c.type == "security_gap" and "dependency scanning" in c.detail]
+        assert len(gaps) == 1
+        assert gaps[0].severity == "warning"
+
+    def test_no_dep_scanning_gap_when_present(self):
+        projects = [
+            _proj("a", security_tools=["Dependabot", "Gitleaks"], source_files=20),
+        ]
+        conns = _find_security_patterns(projects)
+        gaps = [c for c in conns if c.type == "security_gap" and "dependency scanning" in c.detail]
+        assert gaps == []
+
+    def test_missing_secret_scanning(self):
+        projects = [
+            _proj("a", security_tools=["Dependabot"], source_files=20),
+        ]
+        conns = _find_security_patterns(projects)
+        gaps = [c for c in conns if c.type == "security_gap" and "secret scanning" in c.detail]
+        assert len(gaps) == 1
+        assert gaps[0].severity == "warning"
+
+    def test_no_secret_scanning_gap_when_present(self):
+        projects = [
+            _proj("a", security_tools=["Dependabot", "Gitleaks"], source_files=20),
+        ]
+        conns = _find_security_patterns(projects)
+        gaps = [c for c in conns if c.type == "security_gap" and "secret scanning" in c.detail]
+        assert gaps == []
+
+    def test_dep_scanner_divergence(self):
+        projects = [
+            _proj("a", security_tools=["Dependabot"]),
+            _proj("b", security_tools=["Renovate"]),
+        ]
+        conns = _find_security_patterns(projects)
+        diverge = [c for c in conns if c.type == "security_divergence"]
+        assert len(diverge) == 1
+        assert "standardize" in diverge[0].detail.lower()
+        assert diverge[0].severity == "warning"
+
+    def test_no_divergence_single_scanner(self):
+        projects = [
+            _proj("a", security_tools=["Dependabot"]),
+            _proj("b", security_tools=["Dependabot"]),
+        ]
+        conns = _find_security_patterns(projects)
+        diverge = [c for c in conns if c.type == "security_divergence"]
+        assert diverge == []
+
+    def test_empty_projects(self):
+        assert _find_security_patterns([]) == []
+
+    def test_all_secure_no_gaps(self):
+        projects = [
+            _proj("a", security_tools=["Dependabot", "Gitleaks"], source_files=20),
+            _proj("b", security_tools=["Dependabot", "detect-secrets"], source_files=20),
+        ]
+        conns = _find_security_patterns(projects)
+        gaps = [c for c in conns if c.type == "security_gap"]
+        assert gaps == []
+
+    def test_limit_10(self):
+        tools = [f"tool{i}" for i in range(20)]
+        projects = [_proj("a", security_tools=tools), _proj("b", security_tools=tools)]
+        conns = _find_security_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_pip_audit_counts_as_dep_scanner(self):
+        projects = [
+            _proj("a", security_tools=["pip-audit"], source_files=20),
+        ]
+        conns = _find_security_patterns(projects)
+        gaps = [c for c in conns if c.type == "security_gap" and "dependency scanning" in c.detail]
+        assert gaps == []
+
+    def test_sops_counts_as_secret_scanner(self):
+        projects = [
+            _proj("a", security_tools=["Dependabot", "SOPS"], source_files=20),
+        ]
+        conns = _find_security_patterns(projects)
+        gaps = [c for c in conns if c.type == "security_gap" and "secret scanning" in c.detail]
+        assert gaps == []
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", security_tools=["Dependabot", "Gitleaks"]),
+            _proj("b", security_tools=["Dependabot", "Renovate"]),
+        ]
+        conns = find_connections(projects)
+        sec_types = {c.type for c in conns if "security" in c.type}
+        assert "shared_security" in sec_types

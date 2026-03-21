@@ -36,6 +36,9 @@ CONNECTION_ICONS = {
     "shared_infra": "[cyan]\u2b21[/cyan]",
     "infra_divergence": "[yellow]\u26a1[/yellow]",
     "infra_gap": "[red]\u25cb[/red]",
+    "shared_security": "[green]\u2611[/green]",
+    "security_divergence": "[yellow]\u2610[/yellow]",
+    "security_gap": "[red]\u2612[/red]",
 }
 
 
@@ -228,6 +231,9 @@ def show_connections(connections: list[Connection]):
         "shared_infra": "Shared Infrastructure",
         "infra_divergence": "Infrastructure Divergence",
         "infra_gap": "Infrastructure Gaps",
+        "shared_security": "Shared Security Tools",
+        "security_divergence": "Security Divergence",
+        "security_gap": "Security Gaps",
     }
 
     lines = []

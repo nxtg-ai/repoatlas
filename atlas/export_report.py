@@ -163,6 +163,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_infra": "Shared Infrastructure",
         "infra_divergence": "Infrastructure Divergence",
         "infra_gap": "Infrastructure Gaps",
+        "shared_security": "Shared Security Tools",
+        "security_divergence": "Security Divergence",
+        "security_gap": "Security Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
