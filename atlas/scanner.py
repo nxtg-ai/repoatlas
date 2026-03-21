@@ -18,6 +18,7 @@ from atlas.detector import (
     detect_security_tools,
     detect_testing_frameworks,
     detect_package_managers,
+    detect_license,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -38,6 +39,7 @@ def scan_project(project_path: Path) -> Project:
     quality_tools = detect_quality_tools(path)
     testing_frameworks = detect_testing_frameworks(path)
     package_managers = detect_package_managers(path)
+    project_license = detect_license(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -65,6 +67,7 @@ def scan_project(project_path: Path) -> Project:
         source_file_count=source_files,
         total_file_count=total_files,
         loc=loc,
+        license=project_license,
     )
 
     project.health = compute_health(project)

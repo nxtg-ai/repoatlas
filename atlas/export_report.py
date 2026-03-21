@@ -169,6 +169,9 @@ def _project_details(projects: list[Project]) -> list[str]:
         if p.tech_stack.package_managers:
             lines.append(f"- **Pkg Managers**: {', '.join(p.tech_stack.package_managers[:8])}")
 
+        if p.license:
+            lines.append(f"- **License**: {p.license}")
+
         if p.git_info.branch:
             lines.append(f"- **Git**: {p.git_info.branch} · {p.git_info.total_commits:,} commits")
             if p.git_info.uncommitted_changes > 0:

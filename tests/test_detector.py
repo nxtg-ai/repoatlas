@@ -13,6 +13,7 @@ from atlas.detector import (
     detect_frameworks,
     detect_key_deps,
     detect_languages,
+    detect_license,
     detect_package_managers,
     walk_files,
 )
@@ -901,3 +902,203 @@ class TestDetectPackageManagers:
         (proj / "pyproject.toml").write_text("[tool.poetry]\nname = 'app'\n")
         mgrs = detect_package_managers(proj)
         assert mgrs.count("Poetry") == 1
+
+
+# ---------------------------------------------------------------------------
+# detect_license
+# ---------------------------------------------------------------------------
+class TestDetectLicense:
+    def test_empty_project(self, tmp_path):
+        proj = tmp_path / "empty"
+        proj.mkdir()
+        assert detect_license(proj) == ""
+
+    # --- pyproject.toml ---
+    def test_pyproject_license_string(self, tmp_path):
+        proj = tmp_path / "py"
+        proj.mkdir()
+        (proj / "pyproject.toml").write_text('[project]\nlicense = "MIT"\n')
+        assert detect_license(proj) == "MIT"
+
+    def test_pyproject_license_apache(self, tmp_path):
+        proj = tmp_path / "py"
+        proj.mkdir()
+        (proj / "pyproject.toml").write_text('[project]\nlicense = "Apache-2.0"\n')
+        assert detect_license(proj) == "Apache-2.0"
+
+    def test_pyproject_license_file_ref_skipped(self, tmp_path):
+        proj = tmp_path / "py"
+        proj.mkdir()
+        (proj / "pyproject.toml").write_text('[project]\nlicense = {file = "LICENSE"}\n')
+        # Should not return the dict reference — fall through to LICENSE file
+        result = detect_license(proj)
+        assert result != '{file = "LICENSE"}'
+
+    # --- package.json ---
+    def test_package_json_license(self, tmp_path):
+        proj = tmp_path / "js"
+        proj.mkdir()
+        (proj / "package.json").write_text(json.dumps({"license": "MIT"}))
+        assert detect_license(proj) == "MIT"
+
+    def test_package_json_isc(self, tmp_path):
+        proj = tmp_path / "js"
+        proj.mkdir()
+        (proj / "package.json").write_text(json.dumps({"license": "ISC"}))
+        assert detect_license(proj) == "ISC"
+
+    def test_package_json_no_license_field(self, tmp_path):
+        proj = tmp_path / "js"
+        proj.mkdir()
+        (proj / "package.json").write_text(json.dumps({"name": "app"}))
+        assert detect_license(proj) == ""
+
+    # --- Cargo.toml ---
+    def test_cargo_toml_license(self, tmp_path):
+        proj = tmp_path / "rs"
+        proj.mkdir()
+        (proj / "Cargo.toml").write_text('[package]\nname = "app"\nlicense = "MIT"\n')
+        assert detect_license(proj) == "MIT"
+
+    def test_cargo_toml_apache(self, tmp_path):
+        proj = tmp_path / "rs"
+        proj.mkdir()
+        (proj / "Cargo.toml").write_text('[package]\nname = "app"\nlicense = "Apache-2.0"\n')
+        assert detect_license(proj) == "Apache-2.0"
+
+    # --- LICENSE file content ---
+    def test_license_file_mit(self, tmp_path):
+        proj = tmp_path / "mit"
+        proj.mkdir()
+        (proj / "LICENSE").write_text(
+            "MIT License\n\nPermission is hereby granted, free of charge, "
+            "to any person obtaining a copy..."
+        )
+        assert detect_license(proj) == "MIT"
+
+    def test_license_file_apache(self, tmp_path):
+        proj = tmp_path / "apache"
+        proj.mkdir()
+        (proj / "LICENSE").write_text(
+            "Apache License\nVersion 2.0, January 2004\n"
+            "TERMS AND CONDITIONS FOR USE..."
+        )
+        assert detect_license(proj) == "Apache-2.0"
+
+    def test_license_file_gpl3(self, tmp_path):
+        proj = tmp_path / "gpl"
+        proj.mkdir()
+        (proj / "LICENSE").write_text(
+            "GNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007\n"
+            "Everyone is permitted to copy..."
+        )
+        assert detect_license(proj) == "GPL-3.0"
+
+    def test_license_file_gpl2(self, tmp_path):
+        proj = tmp_path / "gpl2"
+        proj.mkdir()
+        (proj / "COPYING").write_text(
+            "GNU GENERAL PUBLIC LICENSE\nVersion 2, June 1991\n"
+            "Everyone is permitted to copy..."
+        )
+        assert detect_license(proj) == "GPL-2.0"
+
+    def test_license_file_bsd3(self, tmp_path):
+        proj = tmp_path / "bsd3"
+        proj.mkdir()
+        (proj / "LICENSE").write_text(
+            "Redistribution and use in source and binary forms, with or without "
+            "modification, are permitted provided that the following conditions are met:\n"
+            "1. Redistributions of source code...\n"
+            "2. Redistributions in binary form...\n"
+            "3. Neither the name..."
+        )
+        assert detect_license(proj) == "BSD-3-Clause"
+
+    def test_license_file_bsd2(self, tmp_path):
+        proj = tmp_path / "bsd2"
+        proj.mkdir()
+        (proj / "LICENSE").write_text(
+            "Redistribution and use in source and binary forms, with or without "
+            "modification, are permitted provided that the following conditions are met:\n"
+            "1. Redistributions of source code...\n"
+            "2. Redistributions in binary form..."
+        )
+        assert detect_license(proj) == "BSD-2-Clause"
+
+    def test_license_file_unlicense(self, tmp_path):
+        proj = tmp_path / "unl"
+        proj.mkdir()
+        (proj / "LICENSE").write_text(
+            "This is free and unencumbered software released into the public domain."
+        )
+        assert detect_license(proj) == "Unlicense"
+
+    def test_license_file_mpl(self, tmp_path):
+        proj = tmp_path / "mpl"
+        proj.mkdir()
+        (proj / "LICENSE").write_text("Mozilla Public License 2.0\nSome text...")
+        assert detect_license(proj) == "MPL-2.0"
+
+    def test_license_file_agpl(self, tmp_path):
+        proj = tmp_path / "agpl"
+        proj.mkdir()
+        (proj / "LICENSE").write_text(
+            "GNU AFFERO GENERAL PUBLIC LICENSE\nVersion 3, 19 November 2007..."
+        )
+        assert detect_license(proj) == "AGPL-3.0"
+
+    def test_license_file_isc(self, tmp_path):
+        proj = tmp_path / "isc"
+        proj.mkdir()
+        (proj / "LICENSE").write_text(
+            "Permission to use, copy, modify, and/or distribute this software..."
+        )
+        assert detect_license(proj) == "ISC"
+
+    # --- Alternate file names ---
+    def test_licence_british_spelling(self, tmp_path):
+        proj = tmp_path / "brit"
+        proj.mkdir()
+        (proj / "LICENCE").write_text(
+            "Permission is hereby granted, free of charge..."
+        )
+        assert detect_license(proj) == "MIT"
+
+    def test_license_md(self, tmp_path):
+        proj = tmp_path / "md"
+        proj.mkdir()
+        (proj / "LICENSE.md").write_text(
+            "# MIT License\n\nPermission is hereby granted, free of charge..."
+        )
+        assert detect_license(proj) == "MIT"
+
+    # --- Priority: config > file ---
+    def test_pyproject_takes_priority_over_file(self, tmp_path):
+        proj = tmp_path / "pri"
+        proj.mkdir()
+        (proj / "pyproject.toml").write_text('[project]\nlicense = "Apache-2.0"\n')
+        (proj / "LICENSE").write_text(
+            "Permission is hereby granted, free of charge..."
+        )
+        # pyproject.toml wins
+        assert detect_license(proj) == "Apache-2.0"
+
+    # --- SPDX normalization ---
+    def test_normalize_gpl_variants(self, tmp_path):
+        proj = tmp_path / "gpl"
+        proj.mkdir()
+        (proj / "package.json").write_text(json.dumps({"license": "GPL-3.0-only"}))
+        assert detect_license(proj) == "GPL-3.0"
+
+    def test_normalize_case_insensitive(self, tmp_path):
+        proj = tmp_path / "case"
+        proj.mkdir()
+        (proj / "package.json").write_text(json.dumps({"license": "mit"}))
+        assert detect_license(proj) == "MIT"
+
+    def test_unknown_license_file_returns_empty(self, tmp_path):
+        proj = tmp_path / "custom"
+        proj.mkdir()
+        (proj / "LICENSE").write_text("Proprietary license. All rights reserved.")
+        assert detect_license(proj) == ""

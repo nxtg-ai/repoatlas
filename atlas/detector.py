@@ -792,3 +792,117 @@ def detect_package_managers(project_path: Path) -> list[str]:
         _add("Composer")
 
     return managers
+
+
+# --- License Detection ---
+
+_LICENSE_FILE_NAMES = (
+    "LICENSE", "LICENSE.md", "LICENSE.txt", "LICENSE.rst",
+    "LICENCE", "LICENCE.md", "LICENCE.txt",
+    "COPYING", "COPYING.md", "COPYING.txt",
+)
+
+# Patterns matched against LICENSE file content (order matters — more specific first)
+_LICENSE_CONTENT_PATTERNS: list[tuple[str, list[str]]] = [
+    ("AGPL-3.0", ["GNU AFFERO GENERAL PUBLIC LICENSE", "Version 3"]),
+    ("LGPL-3.0", ["GNU LESSER GENERAL PUBLIC LICENSE", "Version 3"]),
+    ("LGPL-2.1", ["GNU LESSER GENERAL PUBLIC LICENSE", "Version 2.1"]),
+    ("GPL-3.0", ["GNU GENERAL PUBLIC LICENSE", "Version 3"]),
+    ("GPL-2.0", ["GNU GENERAL PUBLIC LICENSE", "Version 2"]),
+    ("MPL-2.0", ["Mozilla Public License", "2.0"]),
+    ("Apache-2.0", ["Apache License", "Version 2.0"]),
+    ("Unlicense", ["This is free and unencumbered software"]),
+    ("CC0-1.0", ["CC0 1.0 Universal"]),
+    ("ISC", ["Permission to use, copy, modify, and/or distribute"]),
+    ("MIT", ["Permission is hereby granted, free of charge"]),
+    ("BSD-3-Clause", ["Redistribution and use", "3."]),
+    ("BSD-2-Clause", ["Redistribution and use"]),
+]
+
+# SPDX expression normalization
+_SPDX_NORMALIZE: dict[str, str] = {
+    "mit": "MIT",
+    "apache-2.0": "Apache-2.0",
+    "apache 2.0": "Apache-2.0",
+    "gpl-3.0": "GPL-3.0",
+    "gpl-3.0-only": "GPL-3.0",
+    "gpl-3.0-or-later": "GPL-3.0",
+    "gpl-2.0": "GPL-2.0",
+    "gpl-2.0-only": "GPL-2.0",
+    "gpl-2.0-or-later": "GPL-2.0",
+    "lgpl-3.0": "LGPL-3.0",
+    "lgpl-3.0-only": "LGPL-3.0",
+    "lgpl-2.1": "LGPL-2.1",
+    "lgpl-2.1-only": "LGPL-2.1",
+    "agpl-3.0": "AGPL-3.0",
+    "agpl-3.0-only": "AGPL-3.0",
+    "bsd-2-clause": "BSD-2-Clause",
+    "bsd-3-clause": "BSD-3-Clause",
+    "isc": "ISC",
+    "mpl-2.0": "MPL-2.0",
+    "unlicense": "Unlicense",
+    "cc0-1.0": "CC0-1.0",
+}
+
+
+def _normalize_spdx(raw: str) -> str:
+    """Normalize a license string to a standard SPDX identifier."""
+    stripped = raw.strip().strip('"').strip("'")
+    return _SPDX_NORMALIZE.get(stripped.lower(), stripped)
+
+
+def detect_license(project_path: Path) -> str:
+    """Detect the project license from config files and LICENSE file content."""
+    # 1. Check pyproject.toml
+    pyproject = project_path / "pyproject.toml"
+    if pyproject.exists():
+        try:
+            text = pyproject.read_text(errors="ignore")
+            for line in text.splitlines():
+                stripped = line.strip()
+                if stripped.startswith("license") and "=" in stripped:
+                    val = stripped.split("=", 1)[1].strip().strip('"').strip("'")
+                    # Skip file references like {file = "LICENSE"}
+                    if not val.startswith("{"):
+                        return _normalize_spdx(val)
+        except OSError:
+            pass
+
+    # 2. Check package.json
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text(errors="ignore"))
+            if isinstance(data.get("license"), str) and data["license"]:
+                return _normalize_spdx(data["license"])
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    # 3. Check Cargo.toml
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            text = cargo_toml.read_text(errors="ignore")
+            for line in text.splitlines():
+                stripped = line.strip()
+                if stripped.startswith("license") and "=" in stripped:
+                    val = stripped.split("=", 1)[1].strip().strip('"').strip("'")
+                    if val and not val.startswith("{"):
+                        return _normalize_spdx(val)
+        except OSError:
+            pass
+
+    # 4. Check LICENSE file content
+    for name in _LICENSE_FILE_NAMES:
+        license_file = project_path / name
+        if license_file.exists():
+            try:
+                content = license_file.read_text(errors="ignore")[:4000]
+                upper = content.upper()
+                for spdx_id, patterns in _LICENSE_CONTENT_PATTERNS:
+                    if all(p.upper() in upper for p in patterns):
+                        return spdx_id
+            except OSError:
+                pass
+
+    return ""

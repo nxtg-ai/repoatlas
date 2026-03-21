@@ -385,6 +385,9 @@ def show_project_card(project: Project):
         pm = ", ".join(project.tech_stack.package_managers[:6])
         lines.append(f"  [bold]Pkg Mgrs:[/bold]   {pm}")
 
+    if project.license:
+        lines.append(f"  [bold]License:[/bold]    {project.license}")
+
     if project.git_info.branch:
         lines.append(f"  [bold]Branch:[/bold]    {project.git_info.branch}")
         lines.append(f"  [bold]Commits:[/bold]   {project.git_info.total_commits:,}")

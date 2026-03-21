@@ -98,6 +98,7 @@ class Project:
     source_file_count: int = 0
     total_file_count: int = 0
     loc: int = 0
+    license: str = ""
 
     def to_dict(self) -> dict:
         return {
@@ -135,6 +136,7 @@ class Project:
             "source_file_count": self.source_file_count,
             "total_file_count": self.total_file_count,
             "loc": self.loc,
+            "license": self.license,
         }
 
     @classmethod
@@ -177,6 +179,7 @@ class Project:
             source_file_count=data.get("source_file_count", 0),
             total_file_count=data.get("total_file_count", 0),
             loc=data.get("loc", 0),
+            license=data.get("license", ""),
         )
         return p
 

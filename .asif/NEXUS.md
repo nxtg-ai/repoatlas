@@ -47,8 +47,9 @@
 | N-34 | [Package Manager Detection](#n-34-package-manager-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-35 | [Package Manager Intelligence](#n-35-package-manager-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-36 | [Package Manager Summary Panel](#n-36-package-manager-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-37 | [License Detection](#n-37-license-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 33/36 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 34/37 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -64,7 +65,8 @@
 - Testing frameworks: pytest, Jest, Vitest, Mocha, Cypress, Playwright, go test, cargo test, tox, nox, Hypothesis, AVA, Testing Library
 - Database & data stores: PostgreSQL, MySQL, SQLite, MongoDB, Redis, Elasticsearch, Neo4j, Cassandra, InfluxDB, DynamoDB, Firestore, Supabase, PlanetScale, CockroachDB, ChromaDB, Pinecone, Qdrant, Weaviate, Kafka, RabbitMQ, Memcached
 - Package managers & build tools: pip, Poetry, PDM, uv, Pipenv, setuptools, Hatch, Flit, npm, Yarn, pnpm, Bun, Cargo, Go Modules, Bundler, Maven, Gradle, NuGet, Composer
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34
+- License detection: MIT, Apache-2.0, GPL-2.0/3.0, AGPL-3.0, LGPL, BSD-2/3, ISC, MPL-2.0, Unlicense, CC0 from LICENSE files and package configs
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -232,6 +234,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project package manager pattern detection via `_find_package_manager_patterns()` in connections.py. Detects: shared package managers (Poetry/npm across 2+ projects), JS package manager divergence (npm vs Yarn vs pnpm vs Bun), Python package manager divergence (pip vs Poetry vs PDM vs uv vs Pipenv), Java build tool divergence (Maven vs Gradle). New connection types (`shared_pkg_manager`, `pkg_manager_divergence`) displayed in `atlas connections`, markdown export, and `atlas doctor`. 13 package manager pattern tests.
 **Shipped**: 2026-03-21. Total test count: 736 → 749. Completes N-34 detection→intelligence pipeline. All 7 detection→intelligence pipelines complete.
+
+### N-37: License Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_license()` in detector.py. Detects project licenses from three sources: config files (pyproject.toml `[project] license`, package.json `license`, Cargo.toml `[package] license`), and LICENSE/LICENCE/COPYING file content analysis. Recognizes 13 license families: MIT, Apache-2.0, GPL-2.0/3.0, AGPL-3.0, LGPL-2.1/3.0, BSD-2-Clause/3-Clause, ISC, MPL-2.0, Unlicense, CC0-1.0. SPDX normalization handles variant identifiers (e.g., `GPL-3.0-only` → `GPL-3.0`). Config files take priority over LICENSE file content. Added `license` field to Project model (not TechStack — license is project-level). Shows in `atlas inspect` and markdown export. 25 license detection tests.
+**Shipped**: 2026-03-21. Total test count: 755 → 780. 9th detection category. Enables future license intelligence layer for compliance.
 
 ### N-36: Package Manager Summary Panel
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
