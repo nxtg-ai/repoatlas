@@ -140,8 +140,9 @@
 | N-127 | [WebSocket Intelligence](#n-127-websocket-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-128 | [Connections Summary Mode](#n-128-connections-summary-mode) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-129 | [GraphQL Library Detection](#n-129-graphql-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-130 | [Doctor Priority Filter](#n-130-doctor-priority-filter) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 126/129 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 127/130 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -277,7 +278,8 @@
 - Doctor category filter: `atlas doctor --category tests` filters recommendations by category (tests, docs, git, infra, quality, security, structure, deps). Works with all output formats (rich, json, csv)
 - Connections project filter: `atlas connections --project myapp` filters connections to only those involving a specific project. Works with all output formats and combines with --type and --severity filters
 - Connections summary mode: `atlas connections --summary` shows compact category-by-count table with severity breakdown. Supports `--format json` for structured output. Works with all filters (--type, --severity, --project)
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128
+- Doctor priority filter: `atlas doctor --priority critical` filters recommendations by priority level (critical, high, medium, low). Works with all output formats (rich, json, csv) and combines with --category filter
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -669,6 +671,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-130: Doctor Priority Filter
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--priority` / `-p` option to `atlas doctor` command. Filters recommendations by priority level (critical, high, medium, low). Validates input with error message for unknown priorities. Works with all output formats (rich, json, csv) and combines with existing --category filter. 3 tests.
+**Shipped**: 2026-03-21. Total test count: 2016 → 2019. 40th experience feature.
 
 ### N-129: GraphQL Library Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

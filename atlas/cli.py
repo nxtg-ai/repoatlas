@@ -506,6 +506,7 @@ def connections(
 def doctor(
     format: Optional[str] = typer.Option(None, help="Output format: json or csv for structured output"),
     category: Optional[str] = typer.Option(None, "--category", "-c", help="Filter by category (e.g. testing, security, infra, deps, docs)"),
+    priority: Optional[str] = typer.Option(None, "--priority", "-p", help="Filter by priority (critical, high, medium, low)"),
 ):
     """Diagnose portfolio health and suggest fixes."""
     portfolio = _load_portfolio()
@@ -519,6 +520,14 @@ def doctor(
     if category:
         cat_lower = category.lower()
         recs = [r for r in recs if r.category.lower() == cat_lower]
+
+    if priority:
+        valid_priorities = {"critical", "high", "medium", "low"}
+        pri_lower = priority.lower()
+        if pri_lower not in valid_priorities:
+            console.print(f"[red]Unknown priority '{priority}'. Valid: critical, high, medium, low[/red]")
+            raise typer.Exit(1)
+        recs = [r for r in recs if r.priority == pri_lower]
 
     if format and format.lower() == "json":
         import json as json_mod

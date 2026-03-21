@@ -874,6 +874,41 @@ class TestDoctor:
         assert result.exit_code == 0
         assert "healthy" in result.output.lower() or "0" in result.output
 
+    def test_doctor_priority_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--priority", "high"])
+        assert result.exit_code == 0
+
+    def test_doctor_priority_filter_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--priority", "high", "--format", "json"])
+        assert result.exit_code == 0
+        import json
+        data = json.loads(result.output)
+        for rec in data["recommendations"]:
+            assert rec["priority"] == "high"
+
+    def test_doctor_priority_invalid(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--priority", "invalid"])
+        assert result.exit_code == 1
+        assert "Unknown priority" in result.output
+
 
 # ===========================================================================
 # atlas ci
