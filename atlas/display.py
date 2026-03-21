@@ -742,6 +742,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         pay_parts = [f"{pay} ({count})" for pay, count in top_pay]
         lines.append(f"  [bold]Payments:[/bold]   {has_pay}/{n} projects · {', '.join(pay_parts)}")
 
+    # Date/time libs
+    has_dl = sum(1 for p in projects if p.tech_stack.date_libs)
+    if has_dl:
+        dl_counter: Counter[str] = Counter()
+        for p in projects:
+            for dl in p.tech_stack.date_libs:
+                dl_counter[dl] += 1
+        top_dl = dl_counter.most_common(6)
+        dl_parts = [f"{dl} ({count})" for dl, count in top_dl]
+        lines.append(f"  [bold]Date/Time:[/bold]  {has_dl}/{n} projects · {', '.join(dl_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1196,6 +1207,10 @@ def show_project_card(project: Project):
     if project.tech_stack.payment_tools:
         pay = ", ".join(project.tech_stack.payment_tools[:8])
         lines.append(f"  [bold]Payments:[/bold]   {pay}")
+
+    if project.tech_stack.date_libs:
+        dl = ", ".join(project.tech_stack.date_libs[:8])
+        lines.append(f"  [bold]Date/Time:[/bold]  {dl}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

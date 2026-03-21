@@ -48,6 +48,7 @@ from atlas.detector import (
     detect_graphql_libs,
     detect_event_streaming,
     detect_payment_tools,
+    detect_date_libs,
     walk_files,
 )
 
@@ -5451,3 +5452,118 @@ class TestDetectPaymentTools:
         (tmp_path / "package.json").write_text('{"dependencies": {"stripe": "^12.0"}}')
         result = detect_payment_tools(tmp_path)
         assert result.count("Stripe") == 1
+
+
+# ---------------------------------------------------------------------------
+# detect_date_libs
+# ---------------------------------------------------------------------------
+class TestDetectDateLibs:
+    def test_empty(self, tmp_path):
+        assert detect_date_libs(tmp_path) == []
+
+    def test_python_arrow(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("arrow>=1.0\n")
+        result = detect_date_libs(tmp_path)
+        assert "Arrow" in result
+
+    def test_python_pendulum(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pendulum>=3.0\n")
+        result = detect_date_libs(tmp_path)
+        assert "Pendulum" in result
+
+    def test_python_dateutil(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("python-dateutil>=2.0\n")
+        result = detect_date_libs(tmp_path)
+        assert "python-dateutil" in result
+
+    def test_python_pytz(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pytz>=2024.1\n")
+        result = detect_date_libs(tmp_path)
+        assert "pytz" in result
+
+    def test_python_dateparser(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("dateparser>=1.0\n")
+        result = detect_date_libs(tmp_path)
+        assert "dateparser" in result
+
+    def test_python_ciso8601(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("ciso8601>=2.0\n")
+        result = detect_date_libs(tmp_path)
+        assert "ciso8601" in result
+
+    def test_js_dayjs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"dayjs": "^1.11"}}')
+        result = detect_date_libs(tmp_path)
+        assert "Day.js" in result
+
+    def test_js_date_fns(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"date-fns": "^3.0"}}')
+        result = detect_date_libs(tmp_path)
+        assert "date-fns" in result
+
+    def test_js_luxon(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"luxon": "^3.0"}}')
+        result = detect_date_libs(tmp_path)
+        assert "Luxon" in result
+
+    def test_js_moment(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"moment": "^2.0"}}')
+        result = detect_date_libs(tmp_path)
+        assert "Moment.js" in result
+
+    def test_js_temporal(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@js-temporal/polyfill": "^0.4"}}')
+        result = detect_date_libs(tmp_path)
+        assert "Temporal" in result
+
+    def test_js_spacetime(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"spacetime": "^7.0"}}')
+        result = detect_date_libs(tmp_path)
+        assert "Spacetime" in result
+
+    def test_js_chrono_node(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"chrono-node": "^2.0"}}')
+        result = detect_date_libs(tmp_path)
+        assert "chrono-node" in result
+
+    def test_go_dateparse(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire github.com/araddon/dateparse v0.0.0\n")
+        result = detect_date_libs(tmp_path)
+        assert "dateparse" in result
+
+    def test_rust_chrono(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nchrono = "0.4"\n')
+        result = detect_date_libs(tmp_path)
+        assert "chrono" in result
+
+    def test_rust_time(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ntime = "0.3"\n')
+        result = detect_date_libs(tmp_path)
+        assert "time (Rust)" in result
+
+    def test_java_joda(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'joda-time:joda-time:2.12'\n")
+        result = detect_date_libs(tmp_path)
+        assert "Joda-Time" in result
+
+    def test_sorted(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("arrow>=1.0\npytz>=2024.1\n")
+        result = detect_date_libs(tmp_path)
+        assert result == sorted(result)
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("python-dateutil>=2.0\ndateutil>=2.0\n")
+        result = detect_date_libs(tmp_path)
+        assert result.count("python-dateutil") == 1
+
+    def test_moment_timezone_dedup(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"moment": "^2.0", "moment-timezone": "^0.5"}}')
+        result = detect_date_libs(tmp_path)
+        assert result.count("Moment.js") == 1
+
+    def test_multiple_libs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"dayjs": "^1.11", "date-fns": "^3.0", "luxon": "^3.0"}}')
+        result = detect_date_libs(tmp_path)
+        assert "Day.js" in result
+        assert "date-fns" in result
+        assert "Luxon" in result

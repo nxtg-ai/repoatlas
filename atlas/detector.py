@@ -4652,3 +4652,116 @@ def detect_payment_tools(project_path: Path) -> list[str]:
             _add(name)
 
     return sorted(tools)
+
+
+def detect_date_libs(project_path: Path) -> list[str]:
+    """Detect date and time libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # --- Python ---
+    py_deps = _collect_python_deps(project_path)
+    py_map = {
+        "arrow": "Arrow",
+        "pendulum": "Pendulum",
+        "python-dateutil": "python-dateutil",
+        "dateutil": "python-dateutil",
+        "delorean": "Delorean",
+        "maya": "Maya",
+        "pytz": "pytz",
+        "humanize": "humanize",
+        "dateparser": "dateparser",
+        "iso8601": "iso8601",
+        "ciso8601": "ciso8601",
+    }
+    for dep, name in py_map.items():
+        if dep in py_deps:
+            _add(name)
+
+    # --- JS/TS ---
+    pkg_json = project_path / "package.json"
+    all_js: set[str] = set()
+    if pkg_json.exists():
+        try:
+            import json as _json
+            data = _json.loads(pkg_json.read_text())
+            for section in ("dependencies", "devDependencies"):
+                all_js.update(data.get(section, {}).keys())
+        except Exception:
+            pass
+    js_map = {
+        "dayjs": "Day.js",
+        "date-fns": "date-fns",
+        "luxon": "Luxon",
+        "moment": "Moment.js",
+        "moment-timezone": "Moment.js",
+        "spacetime": "Spacetime",
+        "fecha": "Fecha",
+        "tempo": "Tempo",
+        "@js-temporal/polyfill": "Temporal",
+        "timeago.js": "timeago.js",
+        "ms": "ms",
+        "chrono-node": "chrono-node",
+    }
+    for dep, name in js_map.items():
+        if dep in all_js:
+            _add(name)
+
+    # --- Go ---
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text()
+            go_map = {
+                "github.com/jinzhu/now": "jinzhu/now",
+                "github.com/araddon/dateparse": "dateparse",
+                "github.com/relvacode/iso8601": "iso8601 (Go)",
+                "github.com/rickb777/date": "rickb777/date",
+            }
+            for mod, name in go_map.items():
+                if mod in content:
+                    _add(name)
+        except Exception:
+            pass
+
+    # --- Rust ---
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            content = cargo_toml.read_text()
+            rust_map = {
+                "chrono": "chrono",
+                "time": "time (Rust)",
+                "humantime": "humantime",
+            }
+            for crate, name in rust_map.items():
+                if crate in content:
+                    _add(name)
+        except Exception:
+            pass
+
+    # --- Java ---
+    java_deps = []
+    for build_file in ("build.gradle", "build.gradle.kts", "pom.xml"):
+        bf = project_path / build_file
+        if bf.exists():
+            try:
+                java_deps.append(bf.read_text())
+            except Exception:
+                pass
+    java_content = " ".join(java_deps)
+    java_map = {
+        "joda-time": "Joda-Time",
+        "threeten-extra": "ThreeTen-Extra",
+        "prettytime": "PrettyTime",
+    }
+    for dep, name in java_map.items():
+        if dep in java_content:
+            _add(name)
+
+    return sorted(tools)
