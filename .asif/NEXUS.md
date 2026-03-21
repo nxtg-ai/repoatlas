@@ -77,8 +77,9 @@
 | N-64 | [Deployment Target Detection](#n-64-deployment-target-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-65 | [Deployment Target Intelligence](#n-65-deployment-target-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-66 | [Export Format Auto-Detection](#n-66-export-format-auto-detection) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-67 | [Frontend State Management Detection](#n-67-frontend-state-management-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 63/66 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 64/67 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -104,7 +105,8 @@
 - Authentication & authorization: NextAuth.js, Auth.js, Passport.js, Clerk, Auth0, Firebase Auth, Supabase Auth, Lucia, Keycloak, Flask-Login, django-allauth, FastAPI-Users, Authlib, PyJWT, golang-jwt, Casbin
 - Messaging & notifications: SendGrid, Twilio, Slack SDK, Nodemailer, Resend, Pusher, Socket.IO, BullMQ, Celery, Novu, Postmark, Firebase Cloud Messaging, Gomail, Lettre
 - Deployment targets: Vercel, Netlify, Fly.io, Railway, Render, Heroku, Firebase Hosting, AWS Amplify, Serverless Framework, Google App Engine, DigitalOcean App Platform, Cloudflare Workers, GitHub Pages
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64
+- Frontend state management: Redux, Zustand, Recoil, Jotai, Valtio, MobX, XState, Pinia, Vuex, NgRx, Signals, Effector, Nanostores, Legend State
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -382,6 +384,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: `atlas export -o report.json` auto-detects format from file extension (.md → markdown, .json → json, .csv → csv). No `--format` flag needed when using `-o`. Unknown extensions default to markdown. Explicit `--format` overrides auto-detection. Output confirmation message now shows detected format. 7 tests.
 **Shipped**: 2026-03-21. Total test count: 1239 → 1246. 19th experience feature.
+
+### N-67: Frontend State Management Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: `detect_state_management()` in detector.py identifies frontend state management libraries from package.json dependencies. Detects 14 libraries/families: Redux (@reduxjs/toolkit, react-redux), Zustand, Recoil, Jotai, Valtio, MobX (mobx-react, mobx-react-lite), XState (@xstate/react), Pinia, Vuex, NgRx (@ngrx/store, @ngrx/effects), Signals (@preact/signals-react, @preact/signals), Effector (effector-react), Nanostores (@nanostores/react), Legend State (@legendapp/state). Returns sorted list. Integrated into models.py (TechStack field + to_dict/from_dict), scanner.py, display.py (project card + portfolio summary), export_report.py (CSV column + markdown + JSON), and cli.py (_project_has_tech). 22 tests.
+**Shipped**: 2026-03-21. Total test count: 1246 → 1268. 20th detection category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

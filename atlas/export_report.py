@@ -228,6 +228,17 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         dt_names = ", ".join(t for t, _ in top_dt)
         lines.append(f"**Deploy Targets**: {has_deploy}/{n} projects \u00b7 {dt_names}")
 
+    # State management
+    has_sm = sum(1 for p in projects if p.tech_stack.state_management)
+    if has_sm:
+        sm_counter: Counter[str] = Counter()
+        for p in projects:
+            for sm in p.tech_stack.state_management:
+                sm_counter[sm] += 1
+        top_sm = sm_counter.most_common(6)
+        sm_names = ", ".join(t for t, _ in top_sm)
+        lines.append(f"**State Mgmt**: {has_sm}/{n} projects \u00b7 {sm_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -296,6 +307,8 @@ def _project_details(projects: list[Project]) -> list[str]:
             lines.append(f"- **Messaging**: {', '.join(p.tech_stack.messaging_tools[:8])}")
         if p.tech_stack.deploy_targets:
             lines.append(f"- **Deploy Targets**: {', '.join(p.tech_stack.deploy_targets[:8])}")
+        if p.tech_stack.state_management:
+            lines.append(f"- **State Mgmt**: {', '.join(p.tech_stack.state_management[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -565,6 +578,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             dt_counter[dt] += 1
     has_deploy = sum(1 for p in projects if p.tech_stack.deploy_targets)
 
+    # State management
+    sm_counter: Counter[str] = Counter()
+    for p in projects:
+        for sm in p.tech_stack.state_management:
+            sm_counter[sm] += 1
+    has_sm = sum(1 for p in projects if p.tech_stack.state_management)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -595,6 +615,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "auth": {"coverage": f"{has_auth}/{n}", "tools": dict(auth_counter.most_common(10))},
         "messaging": {"coverage": f"{has_msg}/{n}", "tools": dict(msg_counter2.most_common(10))},
         "deploy_targets": {"coverage": f"{has_deploy}/{n}", "targets": dict(dt_counter.most_common(10))},
+        "state_management": {"coverage": f"{has_sm}/{n}", "tools": dict(sm_counter.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -612,7 +633,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Infrastructure", "Security Tools", "Quality Tools",
         "Testing Frameworks", "Package Managers", "AI/ML Tools",
         "Docs Artifacts", "CI Config", "Runtime Versions", "Build Tools", "API Specs",
-        "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets",
+        "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
@@ -652,6 +673,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.auth_tools),
             "; ".join(ts.messaging_tools),
             "; ".join(ts.deploy_targets),
+            "; ".join(ts.state_management),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

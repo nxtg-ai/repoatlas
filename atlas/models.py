@@ -26,6 +26,7 @@ class TechStack:
     auth_tools: list[str] = field(default_factory=list)
     messaging_tools: list[str] = field(default_factory=list)
     deploy_targets: list[str] = field(default_factory=list)
+    state_management: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -133,6 +134,7 @@ class Project:
                 "auth_tools": self.tech_stack.auth_tools,
                 "messaging_tools": self.tech_stack.messaging_tools,
                 "deploy_targets": self.tech_stack.deploy_targets,
+                "state_management": self.tech_stack.state_management,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -185,6 +187,7 @@ class Project:
                 auth_tools=ts.get("auth_tools", []),
                 messaging_tools=ts.get("messaging_tools", []),
                 deploy_targets=ts.get("deploy_targets", []),
+                state_management=ts.get("state_management", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

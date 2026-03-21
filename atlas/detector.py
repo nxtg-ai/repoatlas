@@ -1713,3 +1713,58 @@ def detect_deploy_targets(project_path: Path) -> list[str]:
             pass
 
     return sorted(targets)
+
+
+def detect_state_management(project_path: Path) -> list[str]:
+    """Detect frontend state management libraries."""
+    tools: list[str] = []
+
+    def _add(name: str) -> None:
+        if name not in tools:
+            tools.append(name)
+
+    # JavaScript/TypeScript dependencies
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text(errors="ignore"))
+            all_deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
+            js_state = {
+                # React ecosystem
+                "redux": "Redux",
+                "@reduxjs/toolkit": "Redux",
+                "react-redux": "Redux",
+                "zustand": "Zustand",
+                "recoil": "Recoil",
+                "jotai": "Jotai",
+                "valtio": "Valtio",
+                "mobx": "MobX",
+                "mobx-react": "MobX",
+                "mobx-react-lite": "MobX",
+                "xstate": "XState",
+                "@xstate/react": "XState",
+                # Vue ecosystem
+                "pinia": "Pinia",
+                "vuex": "Vuex",
+                # Angular ecosystem
+                "@ngrx/store": "NgRx",
+                "@ngrx/effects": "NgRx",
+                # Signals
+                "@preact/signals-react": "Signals",
+                "@preact/signals": "Signals",
+                "@angular/core": None,  # handled separately
+                # Other
+                "effector": "Effector",
+                "effector-react": "Effector",
+                "nanostores": "Nanostores",
+                "@nanostores/react": "Nanostores",
+                "legend-state": "Legend State",
+                "@legendapp/state": "Legend State",
+            }
+            for dep, name in js_state.items():
+                if dep in all_deps and name is not None:
+                    _add(name)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    return sorted(tools)

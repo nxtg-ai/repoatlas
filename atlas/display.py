@@ -421,6 +421,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         dt_parts = [f"{dt} ({count})" for dt, count in top_dt]
         lines.append(f"  [bold]Deploy:[/bold]       {has_deploy}/{n} projects \u00b7 {', '.join(dt_parts)}")
 
+    # State management
+    has_sm = sum(1 for p in projects if p.tech_stack.state_management)
+    if has_sm:
+        sm_counter: Counter[str] = Counter()
+        for p in projects:
+            for sm in p.tech_stack.state_management:
+                sm_counter[sm] += 1
+        top_sm = sm_counter.most_common(6)
+        sm_parts = [f"{sm} ({count})" for sm, count in top_sm]
+        lines.append(f"  [bold]State Mgmt:[/bold]   {has_sm}/{n} projects \u00b7 {', '.join(sm_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -694,6 +705,10 @@ def show_project_card(project: Project):
     if project.tech_stack.deploy_targets:
         dt = ", ".join(project.tech_stack.deploy_targets[:8])
         lines.append(f"  [bold]Deploy:[/bold]     {dt}")
+
+    if project.tech_stack.state_management:
+        sm = ", ".join(project.tech_stack.state_management[:8])
+        lines.append(f"  [bold]State Mgmt:[/bold] {sm}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

@@ -24,6 +24,7 @@ from atlas.detector import (
     detect_auth_tools,
     detect_messaging_tools,
     detect_deploy_targets,
+    detect_state_management,
     walk_files,
 )
 
@@ -2362,4 +2363,159 @@ class TestDetectDeployTargets:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         result = detect_deploy_targets(tmp_path)
+        assert result == []
+
+
+class TestDetectStateManagement:
+    def test_empty_project(self, tmp_path):
+        result = detect_state_management(tmp_path)
+        assert result == []
+
+    def test_redux(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"redux": "^5.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Redux" in result
+
+    def test_redux_toolkit(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@reduxjs/toolkit": "^2.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Redux" in result
+
+    def test_react_redux(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"react-redux": "^9.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Redux" in result
+
+    def test_zustand(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"zustand": "^4.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Zustand" in result
+
+    def test_recoil(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"recoil": "^0.7"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Recoil" in result
+
+    def test_jotai(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"jotai": "^2.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Jotai" in result
+
+    def test_valtio(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"valtio": "^1.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Valtio" in result
+
+    def test_mobx(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"mobx": "^6.0", "mobx-react": "^9.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "MobX" in result
+        assert result.count("MobX") == 1
+
+    def test_xstate(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"xstate": "^5.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "XState" in result
+
+    def test_pinia(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"pinia": "^2.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Pinia" in result
+
+    def test_vuex(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"vuex": "^4.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Vuex" in result
+
+    def test_ngrx(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@ngrx/store": "^17.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "NgRx" in result
+
+    def test_signals(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@preact/signals-react": "^2.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Signals" in result
+
+    def test_effector(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"effector": "^23.0", "effector-react": "^23.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Effector" in result
+        assert result.count("Effector") == 1
+
+    def test_nanostores(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"nanostores": "^0.9"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Nanostores" in result
+
+    def test_legend_state(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@legendapp/state": "^2.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Legend State" in result
+
+    def test_multiple_tools(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"zustand": "^4.0", "jotai": "^2.0", "xstate": "^5.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Zustand" in result
+        assert "Jotai" in result
+        assert "XState" in result
+
+    def test_result_sorted(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"zustand": "^4.0", "jotai": "^2.0", "redux": "^5.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert result == sorted(result)
+
+    def test_devdependencies(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"zustand": "^4.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert "Zustand" in result
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"redux": "^5.0", "@reduxjs/toolkit": "^2.0", "react-redux": "^9.0"}
+        }))
+        result = detect_state_management(tmp_path)
+        assert result.count("Redux") == 1
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        result = detect_state_management(tmp_path)
         assert result == []
