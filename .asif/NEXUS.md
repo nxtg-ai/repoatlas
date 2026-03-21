@@ -61,8 +61,9 @@
 | N-48 | [Runtime Version Intelligence](#n-48-runtime-version-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-49 | [CSV Export](#n-49-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-50 | [Build & Task Runner Detection](#n-50-build--task-runner-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-51 | [Build Tool Intelligence](#n-51-build-tool-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 47/50 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 48/51 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -100,7 +101,8 @@
 - Cross-project documentation intelligence (shared artifacts, docs coverage divergence, README/CHANGELOG/CONTRIBUTING gaps)
 - Cross-project CI/CD configuration intelligence (shared config, dep update strategy divergence, PR template/CODEOWNERS/pre-commit gaps)
 - Cross-project runtime version intelligence (shared versions, version divergence, pinning gaps)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48
+- Cross-project build tool intelligence (shared tools, Python/Java divergence, automation gaps)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -275,6 +277,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_runtime_versions()` in detector.py. Detects pinned runtime/language versions from config files: Python (.python-version, pyproject.toml requires-python), Node.js (.node-version, .nvmrc, package.json engines.node), Ruby (.ruby-version), Go (go.mod go directive), Rust (rust-toolchain.toml channel, rust-toolchain plain file), Java (.java-version), and multi-runtime via asdf (.tool-versions with language mapping). Priority rules: specific version files override asdf entries; .node-version overrides .nvmrc; rust-toolchain.toml overrides plain rust-toolchain. Returns `dict[str, str]` (language → version). Added `runtime_versions` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py and export_report.py), markdown export project details, and JSON export portfolio_summary. `_project_has_tech()` searches runtime version keys. 17 detection tests.
 **Shipped**: 2026-03-21. Total test count: 903 → 920. 12th detection category.
+
+### N-51: Build Tool Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project build tool pattern detection via `_find_build_tool_patterns()` in connections.py. Analyzes build_tools data from N-50 across the portfolio to detect: shared build tools (Make/tox across 2+ projects, info), Python task runner divergence (tox vs nox vs Invoke vs doit across portfolio, warning), Java build tool divergence (Gradle vs Maven across portfolio, warning), and build automation gaps (projects with 10+ source files but no build/task automation, warning). New connection types (`shared_build_tool`, `build_tool_divergence`, `build_tool_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps build_tool_gap to `infra` and build_tool_divergence to `infra` recommendation categories. 13 build tool pattern tests.
+**Shipped**: 2026-03-21. Total test count: 966 → 979. Completes N-50 detection→intelligence pipeline. All 13 detection→intelligence pipelines complete.
 
 ### N-50: Build & Task Runner Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

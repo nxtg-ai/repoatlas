@@ -293,6 +293,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_runtime": "Shared Runtime Versions",
         "runtime_divergence": "Runtime Version Divergence",
         "runtime_gap": "Runtime Version Gaps",
+        "shared_build_tool": "Shared Build Tools",
+        "build_tool_divergence": "Build Tool Divergence",
+        "build_tool_gap": "Build Tool Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

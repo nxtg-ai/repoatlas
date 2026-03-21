@@ -24,6 +24,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_docs_artifact_patterns(projects))
     connections.extend(_find_ci_config_patterns(projects))
     connections.extend(_find_runtime_version_patterns(projects))
+    connections.extend(_find_build_tool_patterns(projects))
     return connections
 
 
@@ -992,6 +993,77 @@ def _find_runtime_version_patterns(projects: list[Project]) -> list[Connection]:
                 type="runtime_gap",
                 detail=f"{len(no_runtime)} project(s) have no pinned runtime version",
                 projects=sorted(no_runtime),
+                severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_build_tool_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project build tool patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared build tools — same tool in 2+ projects
+    tool_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for tool in p.tech_stack.build_tools:
+            tool_to_projects[tool].append(p.name)
+
+    for tool, projs in sorted(tool_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_build_tool",
+                detail=f"{tool} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Build tool divergence — multiple task runners of same category
+    # Python task runners: tox vs nox vs Invoke vs doit
+    py_runners = {"tox", "nox", "Invoke", "doit"}
+    py_found: dict[str, set[str]] = {}
+    for p in projects:
+        for tool in p.tech_stack.build_tools:
+            if tool in py_runners:
+                py_found.setdefault(tool, set()).add(p.name)
+    if len(py_found) >= 2:
+        detail_parts = [f"{t} ({', '.join(sorted(ps))})" for t, ps in py_found.items()]
+        all_projs = sorted({p for ps in py_found.values() for p in ps})
+        connections.append(Connection(
+            type="build_tool_divergence",
+            detail=f"Multiple Python task runners: {', '.join(detail_parts)} — standardize",
+            projects=all_projs,
+            severity="warning",
+        ))
+
+    # Java build tool divergence: Gradle vs Maven
+    java_tools = {"Gradle", "Maven"}
+    java_found: dict[str, set[str]] = {}
+    for p in projects:
+        for tool in p.tech_stack.build_tools:
+            if tool in java_tools:
+                java_found.setdefault(tool, set()).add(p.name)
+    if len(java_found) >= 2:
+        detail_parts = [f"{t} ({', '.join(sorted(ps))})" for t, ps in java_found.items()]
+        all_projs = sorted({p for ps in java_found.values() for p in ps})
+        connections.append(Connection(
+            type="build_tool_divergence",
+            detail=f"Multiple Java build tools: {', '.join(detail_parts)} — standardize",
+            projects=all_projs,
+            severity="warning",
+        ))
+
+    # Build automation gap — projects with source files but no build tool
+    has_build = {p.name for p in projects if p.tech_stack.build_tools}
+    if has_build:
+        no_build = [p.name for p in projects
+                    if not p.tech_stack.build_tools
+                    and p.source_file_count > 10]
+        if no_build:
+            connections.append(Connection(
+                type="build_tool_gap",
+                detail=f"{len(no_build)} project(s) have no build/task automation",
+                projects=sorted(no_build),
                 severity="warning",
             ))
 

@@ -16,6 +16,7 @@ from atlas.connections import (
     _find_license_patterns,
     _find_package_manager_patterns,
     _find_runtime_version_patterns,
+    _find_build_tool_patterns,
     _find_version_mismatches,
     find_connections,
 )
@@ -26,7 +27,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           infrastructure=None, security_tools=None, quality_tools=None,
           ai_tools=None, testing_frameworks=None, package_managers=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
-          project_license="",
+          build_tools=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -45,6 +46,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             docs_artifacts=docs_artifacts or [],
             ci_config=ci_config or [],
             runtime_versions=runtime_versions or {},
+            build_tools=build_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -1891,3 +1893,148 @@ class TestFindRuntimeVersionPatterns:
         runtime_types = {c.type for c in conns if "runtime" in c.type}
         assert "shared_runtime" in runtime_types
         assert "runtime_divergence" in runtime_types
+
+
+class TestFindBuildToolPatterns:
+    """Tests for _find_build_tool_patterns()."""
+
+    # --- Shared build tools ---
+
+    def test_shared_build_tool_two_projects(self):
+        projects = [
+            _proj("a", build_tools=["Make", "tox"]),
+            _proj("b", build_tools=["Make", "npm scripts"]),
+        ]
+        conns = _find_build_tool_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_build_tool"]
+        assert len(shared) >= 1
+        make_shared = [c for c in shared if "Make" in c.detail]
+        assert len(make_shared) == 1
+        assert make_shared[0].severity == "info"
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", build_tools=["Make"]),
+            _proj("b", build_tools=["Gradle"]),
+        ]
+        conns = _find_build_tool_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_build_tool"]
+        assert len(shared) == 0
+
+    def test_shared_sorted_by_count(self):
+        projects = [
+            _proj("a", build_tools=["Make", "tox"]),
+            _proj("b", build_tools=["Make", "tox"]),
+            _proj("c", build_tools=["Make"]),
+        ]
+        conns = _find_build_tool_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_build_tool"]
+        assert "3 projects" in shared[0].detail
+
+    # --- Python task runner divergence ---
+
+    def test_python_runner_divergence(self):
+        projects = [
+            _proj("a", build_tools=["tox"]),
+            _proj("b", build_tools=["nox"]),
+        ]
+        conns = _find_build_tool_patterns(projects)
+        div = [c for c in conns if c.type == "build_tool_divergence"]
+        assert len(div) == 1
+        assert "Python task runners" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_no_python_divergence_same_runner(self):
+        projects = [
+            _proj("a", build_tools=["tox"]),
+            _proj("b", build_tools=["tox"]),
+        ]
+        conns = _find_build_tool_patterns(projects)
+        div = [c for c in conns if c.type == "build_tool_divergence"
+               and "Python" in c.detail]
+        assert len(div) == 0
+
+    def test_no_python_divergence_no_runners(self):
+        projects = [
+            _proj("a", build_tools=["Make"]),
+            _proj("b", build_tools=["Gradle"]),
+        ]
+        conns = _find_build_tool_patterns(projects)
+        div = [c for c in conns if c.type == "build_tool_divergence"
+               and "Python" in c.detail]
+        assert len(div) == 0
+
+    # --- Java build tool divergence ---
+
+    def test_java_build_divergence(self):
+        projects = [
+            _proj("a", build_tools=["Gradle"]),
+            _proj("b", build_tools=["Maven"]),
+        ]
+        conns = _find_build_tool_patterns(projects)
+        div = [c for c in conns if c.type == "build_tool_divergence"
+               and "Java" in c.detail]
+        assert len(div) == 1
+        assert div[0].severity == "warning"
+
+    def test_no_java_divergence_same_tool(self):
+        projects = [
+            _proj("a", build_tools=["Gradle"]),
+            _proj("b", build_tools=["Gradle"]),
+        ]
+        conns = _find_build_tool_patterns(projects)
+        div = [c for c in conns if c.type == "build_tool_divergence"
+               and "Java" in c.detail]
+        assert len(div) == 0
+
+    # --- Build automation gap ---
+
+    def test_build_gap(self):
+        projects = [
+            _proj("a", build_tools=["Make"]),
+            _proj("b", build_tools=[], source_files=15),
+        ]
+        conns = _find_build_tool_patterns(projects)
+        gaps = [c for c in conns if c.type == "build_tool_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "warning"
+
+    def test_no_gap_when_all_have_tools(self):
+        projects = [
+            _proj("a", build_tools=["Make"]),
+            _proj("b", build_tools=["tox"]),
+        ]
+        conns = _find_build_tool_patterns(projects)
+        gaps = [c for c in conns if c.type == "build_tool_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_when_none_have_tools(self):
+        projects = [
+            _proj("a", build_tools=[]),
+            _proj("b", build_tools=[]),
+        ]
+        conns = _find_build_tool_patterns(projects)
+        gaps = [c for c in conns if c.type == "build_tool_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", build_tools=["Make"]),
+            _proj("b", build_tools=[], source_files=5),
+        ]
+        conns = _find_build_tool_patterns(projects)
+        gaps = [c for c in conns if c.type == "build_tool_gap"]
+        assert len(gaps) == 0
+
+    # --- Integration ---
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", build_tools=["Make", "tox"]),
+            _proj("b", build_tools=["Make", "nox"]),
+        ]
+        conns = find_connections(projects)
+        build_types = {c.type for c in conns if "build_tool" in c.type}
+        assert "shared_build_tool" in build_types
+        assert "build_tool_divergence" in build_types

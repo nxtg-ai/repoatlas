@@ -64,6 +64,9 @@ CONNECTION_ICONS = {
     "shared_runtime": "[green]\u25b6[/green]",
     "runtime_divergence": "[yellow]\u21c5[/yellow]",
     "runtime_gap": "[red]\u25a1[/red]",
+    "shared_build_tool": "[green]\u2692[/green]",
+    "build_tool_divergence": "[yellow]\u21cb[/yellow]",
+    "build_tool_gap": "[red]\u25a0[/red]",
 }
 
 
@@ -396,6 +399,9 @@ def show_connections(connections: list[Connection]):
         "shared_runtime": "Shared Runtime Versions",
         "runtime_divergence": "Runtime Version Divergence",
         "runtime_gap": "Runtime Version Gaps",
+        "shared_build_tool": "Shared Build Tools",
+        "build_tool_divergence": "Build Tool Divergence",
+        "build_tool_gap": "Build Tool Gaps",
     }
 
     lines = []
