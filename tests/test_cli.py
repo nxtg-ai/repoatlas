@@ -2,14 +2,13 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 from typer.testing import CliRunner
 
-from atlas.cli import app, DEFAULT_PORTFOLIO_FILE
-from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
+from atlas.cli import app
+from atlas.models import GitInfo, HealthScore, Project, TechStack
 
 runner = CliRunner()
 

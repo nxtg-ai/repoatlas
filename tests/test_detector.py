@@ -2,13 +2,9 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
-import pytest
 
 from atlas.detector import (
-    SKIP_DIRS,
-    SOURCE_EXTENSIONS,
     _check_add,
     count_files,
     count_loc,

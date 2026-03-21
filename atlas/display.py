@@ -5,8 +5,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from rich.columns import Columns
-from rich.tree import Tree
 from rich import box
 
 from atlas.models import Connection, Portfolio, Project
@@ -142,7 +140,6 @@ def show_connections(connections: list[Connection]):
     lines = []
     for conn_type, conns in groups.items():
         label = type_labels.get(conn_type, conn_type)
-        icon = CONNECTION_ICONS.get(conn_type, " ")
         lines.append(f"  [bold]{label}[/bold]")
         for conn in conns:
             sev_icon = SEVERITY_ICONS.get(conn.severity, " ")
@@ -197,7 +194,7 @@ def show_project_card(project: Project):
     bar_docs = _mini_bar(h.documentation)
     bar_struct = _mini_bar(h.structure)
     lines.append("")
-    lines.append(f"  [bold]Health Breakdown:[/bold]")
+    lines.append("  [bold]Health Breakdown:[/bold]")
     lines.append(f"    Tests          {bar_tests}  {int(h.tests * 100)}%")
     lines.append(f"    Git Hygiene    {bar_git}  {int(h.git_hygiene * 100)}%")
     lines.append(f"    Documentation  {bar_docs}  {int(h.documentation * 100)}%")

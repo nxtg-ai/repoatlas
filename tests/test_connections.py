@@ -9,7 +9,7 @@ from atlas.connections import (
     _find_version_mismatches,
     find_connections,
 )
-from atlas.models import Connection, GitInfo, HealthScore, Project, TechStack
+from atlas.models import GitInfo, HealthScore, Project, TechStack
 
 
 def _proj(name: str, frameworks=None, key_deps=None, databases=None,

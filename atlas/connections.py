@@ -104,13 +104,6 @@ def _find_health_gaps(projects: list[Project]) -> list[Connection]:
             severity="critical",
         ))
 
-    no_ci = [
-        p.name for p in projects
-        if not (p.health.structure >= 0.3)
-        and p.source_file_count > 5
-    ]
-    # Note: structure score >= 0.3 means CI exists
-
     dirty = [p.name for p in projects if p.git_info.uncommitted_changes > 10]
     if dirty:
         connections.append(Connection(

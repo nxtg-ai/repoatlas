@@ -7,12 +7,11 @@ from pathlib import Path
 from typing import Optional
 
 import typer
-from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 
 from atlas.connections import find_connections
 from atlas.display import console, show_connections, show_project_card, show_scan_complete, show_status
-from atlas.license_manager import activate as activate_license, deactivate, get_status as get_license_status
+from atlas.license_manager import activate as activate_license, get_status as get_license_status
 from atlas.models import Portfolio
 from atlas.scanner import scan_project
 
@@ -264,7 +263,7 @@ def batch_add(
 
     _save_portfolio(portfolio)
     console.print(f"\n  [green]\u2713[/green] Added [bold]{len(candidates)}[/bold] projects to portfolio")
-    console.print(f"  Run [cyan]atlas status[/cyan] to see the dashboard\n")
+    console.print("  Run [cyan]atlas status[/cyan] to see the dashboard\n")
 
 
 @app.command()
@@ -293,15 +292,15 @@ def export(
     else:
         lines = [
             f"# {portfolio.name} — Portfolio Report",
-            f"",
+            "",
             f"**Scanned**: {portfolio.last_scan[:19] if portfolio.last_scan else 'Never'}",
             f"**Projects**: {len(portfolio.projects)} | "
             f"**Test Files**: {portfolio.total_tests:,} | "
             f"**LOC**: {portfolio.total_loc:,} | "
             f"**Health**: {portfolio.avg_grade} ({int(portfolio.avg_health * 100)}%)",
-            f"",
-            f"| Project | Health | Tests | LOC | Stack |",
-            f"|---------|--------|-------|-----|-------|",
+            "",
+            "| Project | Health | Tests | LOC | Stack |",
+            "|---------|--------|-------|-----|-------|",
         ]
         for p in sorted(portfolio.projects, key=lambda x: x.health.overall, reverse=True):
             lines.append(
@@ -311,7 +310,7 @@ def export(
 
         conns = find_connections(portfolio.projects)
         if conns:
-            lines.append(f"\n## Cross-Project Intelligence\n")
+            lines.append("\n## Cross-Project Intelligence\n")
             for conn in conns:
                 icon = {"info": "i", "warning": "!", "critical": "X"}.get(conn.severity, "-")
                 projs = ", ".join(conn.projects[:4])

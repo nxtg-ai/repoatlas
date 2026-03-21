@@ -73,7 +73,6 @@ def count_test_files(project_path: Path) -> int:
         if f.suffix.lower() not in SOURCE_EXTENSIONS:
             continue
         name = f.name
-        stem = f.stem
         if any(pat in name for pat in TEST_PATTERNS):
             count += 1
         elif any(p in ("tests", "test", "__tests__", "spec") for p in f.relative_to(project_path).parts):

@@ -1,8 +1,6 @@
 """Tests for the project scanner."""
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from unittest.mock import patch
 
 from atlas.models import GitInfo

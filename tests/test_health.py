@@ -1,12 +1,11 @@
 """Tests for health scoring."""
 from __future__ import annotations
 
-from pathlib import Path
 
 import pytest
 
 from atlas.health import _score_docs, _score_git, _score_structure, _score_tests, compute_health
-from atlas.models import GitInfo, HealthScore, Project, TechStack
+from atlas.models import GitInfo, HealthScore, Project
 
 
 def _make_project(**kwargs) -> Project:
