@@ -10,6 +10,7 @@ from atlas.detector import (
     count_test_files,
     detect_databases,
     detect_frameworks,
+    detect_infrastructure,
     detect_key_deps,
     detect_languages,
 )
@@ -26,6 +27,7 @@ def scan_project(project_path: Path) -> Project:
     frameworks = detect_frameworks(path)
     databases = detect_databases(path)
     key_deps = detect_key_deps(path)
+    infrastructure = detect_infrastructure(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -36,6 +38,7 @@ def scan_project(project_path: Path) -> Project:
         frameworks=frameworks,
         databases=databases,
         key_deps=key_deps,
+        infrastructure=infrastructure,
     )
 
     project = Project(

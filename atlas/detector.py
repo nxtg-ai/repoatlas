@@ -207,6 +207,84 @@ def detect_key_deps(project_path: Path) -> dict[str, str]:
     return deps
 
 
+def detect_infrastructure(project_path: Path) -> list[str]:
+    """Detect infrastructure, deployment, and cloud patterns."""
+    infra: list[str] = []
+
+    # Docker
+    if (project_path / "Dockerfile").exists():
+        infra.append("Docker")
+    if (project_path / "docker-compose.yml").exists() or (project_path / "docker-compose.yaml").exists():
+        if "Docker Compose" not in infra:
+            infra.append("Docker Compose")
+        if "Docker" not in infra:
+            infra.append("Docker")
+
+    # Kubernetes
+    k8s_dirs = ("k8s", "kubernetes", "kube", "manifests", "charts", "helm")
+    for d in k8s_dirs:
+        if (project_path / d).is_dir():
+            _check_add(infra, "kubernetes", "kubernetes", "Kubernetes")
+            break
+    if (project_path / "Chart.yaml").exists() or (project_path / "helmfile.yaml").exists():
+        _check_add(infra, "helm", "helm", "Helm")
+        _check_add(infra, "kubernetes", "kubernetes", "Kubernetes")
+
+    # Terraform / IaC
+    if any(project_path.glob("*.tf")) or (project_path / "terraform").is_dir():
+        infra.append("Terraform")
+    if (project_path / "Pulumi.yaml").exists():
+        infra.append("Pulumi")
+    if (project_path / "cdk.json").exists():
+        infra.append("AWS CDK")
+
+    # CI/CD
+    gh_workflows = project_path / ".github" / "workflows"
+    if gh_workflows.is_dir():
+        _check_add(infra, "github", "github", "GitHub Actions")
+    if (project_path / ".gitlab-ci.yml").exists():
+        infra.append("GitLab CI")
+    if (project_path / "Jenkinsfile").exists():
+        infra.append("Jenkins")
+    if (project_path / ".circleci").is_dir():
+        infra.append("CircleCI")
+
+    # Serverless / Edge
+    if (project_path / "serverless.yml").exists() or (project_path / "serverless.yaml").exists():
+        infra.append("Serverless Framework")
+    if (project_path / "vercel.json").exists():
+        infra.append("Vercel")
+    if (project_path / "netlify.toml").exists():
+        infra.append("Netlify")
+    if (project_path / "wrangler.toml").exists():
+        infra.append("Cloudflare Workers")
+    if (project_path / "fly.toml").exists():
+        infra.append("Fly.io")
+    if (project_path / "render.yaml").exists():
+        infra.append("Render")
+
+    # Cloud providers (from config files or SDK deps)
+    _detect_cloud_from_deps(project_path, infra)
+
+    return infra
+
+
+def _detect_cloud_from_deps(project_path: Path, infra: list[str]) -> None:
+    """Detect cloud providers from dependency files."""
+    search_files = ("pyproject.toml", "requirements.txt", "package.json")
+    for cfg in search_files:
+        path = project_path / cfg
+        if not path.exists():
+            continue
+        content = path.read_text(errors="ignore").lower()
+        if ("boto3" in content or "aws-sdk" in content or "@aws-sdk" in content) and "AWS" not in infra:
+            infra.append("AWS")
+        if ("google-cloud" in content or "@google-cloud" in content) and "GCP" not in infra:
+            infra.append("GCP")
+        if ("azure" in content) and "Azure" not in infra:
+            infra.append("Azure")
+
+
 def _check_add(lst: list[str], content: str, keyword: str, name: str):
     if keyword in content and name not in lst:
         lst.append(name)

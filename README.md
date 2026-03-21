@@ -89,7 +89,10 @@ Everything is free. Everything is open source. No catches.
 | **Frameworks** | FastAPI, Django, Flask, React, Next.js, Vue, Express, Tailwind, Vite |
 | **Test Frameworks** | pytest, Vitest, Jest, Playwright |
 | **Databases** | PostgreSQL, SQLite, Redis, MongoDB, pgvector |
-| **CI/CD** | GitHub Actions workflows |
+| **CI/CD** | GitHub Actions, GitLab CI, Jenkins, CircleCI |
+| **Infrastructure** | Docker, Kubernetes, Helm, Terraform, Pulumi, AWS CDK |
+| **Cloud** | AWS, GCP, Azure |
+| **Serverless** | Vercel, Netlify, Cloudflare Workers, Fly.io, Render |
 | **AI Tools** | Anthropic SDK, OpenAI |
 | **Documentation** | README, CLAUDE.md, CHANGELOG, docs/ |
 

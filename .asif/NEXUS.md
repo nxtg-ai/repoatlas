@@ -27,8 +27,9 @@
 | N-14 | [CI Mode](#n-14-ci-mode) | DISTRIBUTION | SHIPPED | P1 | 2026-03-13 |
 | N-15 | [Project Comparison](#n-15-project-comparison) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-16 | [Configuration File](#n-16-configuration-file) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
+| N-17 | [Infrastructure Detection](#n-17-infrastructure-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 13/16 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 14/17 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -37,7 +38,8 @@
 ### DETECTION — "Know what you have"
 - Automatic tech stack detection across Python/TS/Rust/Go/Java
 - File-level analysis, dependency parsing, framework identification
-- **Shipped**: N-01
+- Infrastructure & deployment: Docker, K8s, Terraform, cloud providers, serverless
+- **Shipped**: N-01, N-17
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -142,6 +144,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: New `atlas config` command with persistent TOML configuration (`~/.atlas/config.toml`). View all settings, get/set individual keys. Supports `ci.min_health`, `ci.min_project_health`, `export.format`. CI command reads defaults from config when flags aren't explicitly set. Uses stdlib `tomllib` (Python 3.11+) — no new dependencies. 15 config unit tests + 5 CLI config tests.
 **Shipped**: 2026-03-13. Total test count: 347 → 367. README commands table updated.
+
+### N-17: Infrastructure Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_infrastructure()` in detector.py. Detects Docker/Compose, Kubernetes/Helm, Terraform/Pulumi/CDK, CI/CD (GitHub Actions/GitLab CI/Jenkins/CircleCI), serverless (Vercel/Netlify/Cloudflare Workers/Fly.io/Render), and cloud providers (AWS/GCP/Azure from SDK deps). Added `infrastructure` field to TechStack model. Shows in `atlas inspect`. 28 infrastructure tests.
+**Shipped**: 2026-03-13. Total test count: 367 → 395. README "What It Detects" table expanded.
 
 ### N-11: CLI Integration Tests
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

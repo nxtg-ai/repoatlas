@@ -179,6 +179,10 @@ def show_project_card(project: Project):
         dbs = ", ".join(project.tech_stack.databases)
         lines.append(f"  [bold]Databases:[/bold]  {dbs}")
 
+    if project.tech_stack.infrastructure:
+        infra = ", ".join(project.tech_stack.infrastructure[:6])
+        lines.append(f"  [bold]Infra:[/bold]      {infra}")
+
     if project.git_info.branch:
         lines.append(f"  [bold]Branch:[/bold]    {project.git_info.branch}")
         lines.append(f"  [bold]Commits:[/bold]   {project.git_info.total_commits:,}")
