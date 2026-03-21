@@ -151,6 +151,7 @@ Atlas finds patterns across your repos that no single-repo tool can see:
 | `atlas ci` | Health gate for CI pipelines (JSON output, exit codes) |
 | `atlas batch-add <dir>` | Add all repos in a directory |
 | `atlas export` | Markdown/JSON report |
+| `atlas config` | View or update configuration |
 | `atlas support` | How to support this project |
 | `atlas reset` | Delete all data |
 

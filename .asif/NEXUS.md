@@ -26,8 +26,9 @@
 | N-13 | [Scan History & Trends](#n-13-scan-history--trends) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 | N-14 | [CI Mode](#n-14-ci-mode) | DISTRIBUTION | SHIPPED | P1 | 2026-03-13 |
 | N-15 | [Project Comparison](#n-15-project-comparison) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
+| N-16 | [Configuration File](#n-16-configuration-file) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 12/15 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 13/16 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -48,7 +49,8 @@
 - Rich terminal dashboard with tables, progress bars, color
 - Fast scanning (31s for 8 projects, 1.2M LOC)
 - Scan history & health trends over time
-- **Shipped**: N-04, N-13
+- Persistent TOML configuration
+- **Shipped**: N-04, N-13, N-16
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -135,6 +137,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: New `atlas compare <a> <b>` command for side-by-side project comparison. Shows health breakdown deltas (tests/git/docs/structure with mini bars), metrics comparison (LOC, tests, commits), tech stack overlap (shared/unique frameworks and deps), version mismatch detection, and actionable insights (which dimensions the weaker project should improve). 5 CLI tests.
 **Shipped**: 2026-03-13. Total test count: 342 → 347. README commands table updated.
+
+### N-16: Configuration File
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: New `atlas config` command with persistent TOML configuration (`~/.atlas/config.toml`). View all settings, get/set individual keys. Supports `ci.min_health`, `ci.min_project_health`, `export.format`. CI command reads defaults from config when flags aren't explicitly set. Uses stdlib `tomllib` (Python 3.11+) — no new dependencies. 15 config unit tests + 5 CLI config tests.
+**Shipped**: 2026-03-13. Total test count: 347 → 367. README commands table updated.
 
 ### N-11: CLI Integration Tests
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

@@ -9,6 +9,7 @@ from typing import Optional
 import typer
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 
+from atlas.config import get_value, load_config, set_value, valid_keys
 from atlas.connections import find_connections
 from atlas.display import console, show_comparison, show_connections, show_project_card, show_scan_complete, show_status
 from atlas.history import build_scan_entry, compute_trends, load_history, save_scan
@@ -230,6 +231,13 @@ def ci(
 ):
     """Run health checks for CI pipelines. Exits non-zero on violations."""
     import json as json_mod
+
+    # Apply config defaults when CLI flags aren't explicitly set
+    cfg = load_config()
+    if min_health == 0:
+        min_health = int(cfg.get("ci", {}).get("min_health", 0))
+    if min_project_health == 0:
+        min_project_health = int(cfg.get("ci", {}).get("min_project_health", 0))
 
     portfolio = _load_portfolio()
 
@@ -586,6 +594,47 @@ def support():
     console.print("    [green]\u2713[/green] Early access to new features")
     console.print("    [green]\u2713[/green] The good feeling of funding open source")
     console.print()
+
+
+@app.command()
+def config(
+    key: Optional[str] = typer.Argument(None, help="Config key to get (e.g. ci.min_health)"),
+    set_val: Optional[str] = typer.Option(None, "--set", help="Value to set"),
+):
+    """View or update configuration."""
+    if key is None:
+        # Show all config
+        cfg = load_config()
+        console.print()
+        console.print("  [bold]Atlas Configuration[/bold]")
+        console.print()
+        for section, values in sorted(cfg.items()):
+            console.print(f"  [cyan][{section}][/cyan]")
+            for k, v in sorted(values.items()):
+                console.print(f"    {k} = [bold]{v}[/bold]")
+        console.print()
+        console.print("  [dim]Config file: ~/.atlas/config.toml[/dim]")
+        console.print(f"  [dim]Valid keys: {', '.join(valid_keys())}[/dim]")
+        console.print()
+        return
+
+    if set_val is not None:
+        # Set a value
+        if set_value(key, set_val):
+            console.print(f"  [green]\u2713[/green] Set [bold]{key}[/bold] = {set_val}")
+        else:
+            console.print("  [red]Invalid key or value.[/red]")
+            console.print(f"  [dim]Valid keys: {', '.join(valid_keys())}[/dim]")
+            raise typer.Exit(1)
+    else:
+        # Get a value
+        val = get_value(key)
+        if val is not None:
+            console.print(f"  {key} = [bold]{val}[/bold]")
+        else:
+            console.print(f"  [red]Unknown key: {key}[/red]")
+            console.print(f"  [dim]Valid keys: {', '.join(valid_keys())}[/dim]")
+            raise typer.Exit(1)
 
 
 @app.command()

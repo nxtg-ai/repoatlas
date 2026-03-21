@@ -561,6 +561,46 @@ class TestExport:
 
 
 # ===========================================================================
+# atlas config
+# ===========================================================================
+
+
+class TestConfig:
+    def test_config_show_all(self, portfolio_dir, tmp_path):
+        with patch("atlas.cli.load_config", return_value={
+            "ci": {"min_health": 0, "min_project_health": 0},
+            "export": {"format": "markdown"},
+        }), patch("atlas.cli.valid_keys", return_value=["ci.min_health"]):
+            result = runner.invoke(app, ["config"])
+        assert result.exit_code == 0
+        assert "min_health" in result.output
+
+    def test_config_get_key(self, portfolio_dir):
+        with patch("atlas.cli.get_value", return_value=0):
+            result = runner.invoke(app, ["config", "ci.min_health"])
+        assert result.exit_code == 0
+        assert "ci.min_health" in result.output
+
+    def test_config_get_unknown(self, portfolio_dir):
+        with patch("atlas.cli.get_value", return_value=None):
+            result = runner.invoke(app, ["config", "bogus.key"])
+        assert result.exit_code == 1
+        assert "Unknown" in result.output
+
+    def test_config_set_value(self, portfolio_dir):
+        with patch("atlas.cli.set_value", return_value=True):
+            result = runner.invoke(app, ["config", "ci.min_health", "--set", "70"])
+        assert result.exit_code == 0
+        assert "70" in result.output
+
+    def test_config_set_invalid(self, portfolio_dir):
+        with patch("atlas.cli.set_value", return_value=False):
+            result = runner.invoke(app, ["config", "bogus.key", "--set", "val"])
+        assert result.exit_code == 1
+        assert "Invalid" in result.output
+
+
+# ===========================================================================
 # atlas license
 # ===========================================================================
 
