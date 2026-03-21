@@ -16,7 +16,7 @@
 | N-03 | [Cross-Project Patterns](#n-03-cross-project-patterns) | INTELLIGENCE | SHIPPED | P0 | 2026-03-04 |
 | N-04 | [Terminal Dashboard](#n-04-terminal-dashboard) | EXPERIENCE | SHIPPED | P0 | 2026-03-04 |
 | N-05 | [GitHub CI](#n-05-github-ci) | DISTRIBUTION | SHIPPED | P1 | 2026-03-04 |
-| N-06 | [PyPI Publishing](#n-06-pypi-publishing) | DISTRIBUTION | DECIDED | P0 | 2026-03-04 |
+| N-06 | [PyPI Publishing](#n-06-pypi-publishing) | DISTRIBUTION | DECIDED | P0 | 2026-03-13 |
 | N-07 | [README + GIF Demo](#n-07-readme-gif-demo) | DISTRIBUTION | IDEA | P1 | — |
 | N-08 | [Show HN Launch](#n-08-show-hn-launch) | DISTRIBUTION | IDEA | P1 | — |
 | N-09 | [Pro Tier / Monetization](#n-09-pro-tier-monetization) | DISTRIBUTION | IDEA | P2 | — |
@@ -79,9 +79,9 @@
 
 ### N-06: PyPI Publishing
 **Pillar**: DISTRIBUTION | **Status**: DECIDED | **Priority**: P0
-**What**: Publish to PyPI as `repoatlas`. Needs PyPI API token or Trusted Publisher setup.
-**Blocker**: PyPI credentials. See `PUBLISH.md`.
-**Next step**: Asif sets up PyPI token, then publish.
+**What**: Publish to PyPI as `nxtg-atlas`. Package builds + validates. Blocked on PyPI credentials only.
+**Blocker**: PyPI credentials. Package is build-ready — `twine upload dist/*` when token arrives.
+**Next step**: Asif sets up PyPI token, then `twine upload dist/*`.
 
 ### N-07: README + GIF Demo
 **Pillar**: DISTRIBUTION | **Status**: IDEA | **Priority**: P1
@@ -136,11 +136,11 @@ For any directive that touches 3+ files or requires architectural decisions:
 | ID | Title | Status | Date |
 |----|-------|--------|------|
 | NXTG-20260311-01 | Test Coverage Push (30 → 221, 7.4x) | DONE | 2026-03-11 |
-| NXTG-20260312-01 | PyPI Distribution Readiness | PENDING | 2026-03-12 |
+| NXTG-20260312-01 | PyPI Distribution Readiness | DONE | 2026-03-12 |
 
 ### DIRECTIVE-NXTG-20260312-01 — PyPI Distribution Readiness
 **From**: NXTG-AI CoS (Wolf) | **Priority**: P1
-**Injected**: 2026-03-12 10:15 | **Estimate**: S | **Status**: PENDING
+**Injected**: 2026-03-12 10:15 | **Estimate**: S | **Status**: DONE
 
 **Context**: Atlas is Launch Week candidate (mid-April). N-06 (PyPI publish) is blocked on Asif's credentials, but all packaging prep can be done NOW so publish is one command when credentials arrive. 221 tests, CI GREEN — quality is high. Get distribution-ready.
 
@@ -157,6 +157,17 @@ For any directive that touches 3+ files or requires architectural decisions:
 - Do NOT publish to PyPI — credentials aren't set up yet. Just verify the package BUILDS and VALIDATES.
 - Do NOT add new features. This is packaging + README polish only.
 - If `build` or `twine` are not installed, add them to dev dependencies.
+
+**Completion Report** (2026-03-13):
+1. [x] `pyproject.toml` verified: name=`nxtg-atlas`, version=0.2.0, description, license=MIT (PEP 639 expression), classifiers for 3.11/3.12/3.13, URLs for GitHub/docs/issues. Note: directive said Apache-2.0 but project is MIT everywhere (LICENSE file, README, pyproject.toml) — kept MIT.
+2. [x] `[project.scripts]` has `atlas = "atlas.cli:app"` + `nxtg-atlas = "atlas.cli:app"`. `pip install nxtg-atlas && atlas scan .` will work.
+3. [x] `python -m build` — sdist + wheel built clean: `nxtg_atlas-0.2.0.tar.gz` + `nxtg_atlas-0.2.0-py3-none-any.whl`
+4. [x] `twine check dist/*` — PASSED for both artifacts.
+5. [x] README updated: PyPI badge, Python version badge, MIT badge, tests badge added.
+6. [x] Full test suite: **221 passed in 0.64s**. Baseline holds.
+7. [x] License classifier note: PEP 639 (setuptools ≥68) supersedes `License ::` classifiers when `license` expression is set. `license = "MIT"` is sufficient — adding the classifier causes a build error.
+
+**Ready to publish**: One command when Asif sets up PyPI credentials: `twine upload dist/*`
 
 ---
 

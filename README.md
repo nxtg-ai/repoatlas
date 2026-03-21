@@ -1,5 +1,10 @@
 # nxtg-atlas
 
+[![PyPI](https://img.shields.io/pypi/v/nxtg-atlas)](https://pypi.org/project/nxtg-atlas/)
+[![Python](https://img.shields.io/pypi/pyversions/nxtg-atlas)](https://pypi.org/project/nxtg-atlas/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-221%20passed-brightgreen)](https://github.com/nxtg-ai/repoatlas/actions)
+
 **Portfolio intelligence for AI engineering teams.**
 
 Scan your repos. Score health. Find cross-project patterns nobody else sees.
