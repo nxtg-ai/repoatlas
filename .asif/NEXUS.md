@@ -89,8 +89,9 @@
 | N-76 | [ORM & Database Client Detection](#n-76-orm--database-client-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-77 | [ORM Intelligence](#n-77-orm-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-78 | [Connection Severity Filtering](#n-78-connection-severity-filtering) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-79 | [i18n & Localization Detection](#n-79-i18n--localization-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 75/78 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 76/79 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -120,7 +121,8 @@
 - CSS & styling frameworks: Tailwind CSS, Styled Components, Emotion, Sass, Less, PostCSS, CSS Modules, Vanilla Extract, Linaria, Panda CSS, UnoCSS, Windi CSS, Bootstrap, Bulma, Chakra UI, Mantine, Material UI, Vuetify, Ant Design, Radix UI, shadcn/ui, Stitches, Twin Macro, Stylelint
 - Bundlers & module tools: Webpack, Vite, esbuild, Rollup, Parcel, SWC, Turborepo, Rspack, tsup, unbuild, microbundle, Snowpack, WMR, Turbopack, Bun
 - ORM & database clients: SQLAlchemy, Django ORM, Peewee, Tortoise ORM, SQLModel, Prisma, TypeORM, Sequelize, Drizzle, Knex, Mongoose, Kysely, MikroORM, GORM, sqlx, ent, Diesel, SeaORM, Hibernate, MyBatis, jOOQ, Spring Data JPA
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76
+- i18n & localization: i18next, react-i18next, next-i18next, next-intl, react-intl, FormatJS, vue-i18n, Angular i18n, Lingui, typesafe-i18n, Babel, Flask-Babel, go-i18n, Go x/text, Fluent, rust-i18n, locale directories
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -466,6 +468,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: New `--severity` / `-s` option on `atlas connections` command. Filters connections by severity level: info, warning, or critical. Shows filtered count summary. Invalid severity values show error with valid options. Combinable with `--type` for double filtering. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1422 → 1425. 23rd experience feature.
+
+### N-79: i18n & Localization Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects internationalization and localization tools across all supported languages. Directory detection: locales/, locale/, translations/, i18n/, lang/, messages/. Config files: lingui.config.*, .linguirc, babel.cfg, i18next-parser.config.*. JavaScript/TypeScript: i18next, react-i18next, next-i18next, next-intl, react-intl, FormatJS, vue-i18n, Angular i18n, Lingui, typesafe-i18n, rosetta, Polyglot, Globalize. Python: Babel, Flask-Babel, django-modeltranslation, django-rosetta, python-i18n. Go: go-i18n, golang.org/x/text. Rust: Fluent, rust-i18n. New TechStack field: i18n_tools. 26 tests.
+**Shipped**: 2026-03-21. Total test count: 1425 → 1451. 23rd detection feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

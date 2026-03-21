@@ -474,6 +474,16 @@ def _show_portfolio_summary(portfolio: Portfolio):
         orm_parts = [f"{orm} ({count})" for orm, count in top_orm]
         lines.append(f"  [bold]ORM/DB Clients:[/bold] {has_orm}/{n} projects \u00b7 {', '.join(orm_parts)}")
 
+    has_i18n = sum(1 for p in projects if p.tech_stack.i18n_tools)
+    if has_i18n:
+        i18n_counter: Counter[str] = Counter()
+        for p in projects:
+            for i18n in p.tech_stack.i18n_tools:
+                i18n_counter[i18n] += 1
+        top_i18n = i18n_counter.most_common(6)
+        i18n_parts = [f"{i18n} ({count})" for i18n, count in top_i18n]
+        lines.append(f"  [bold]i18n:[/bold]        {has_i18n}/{n} projects \u00b7 {', '.join(i18n_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -779,6 +789,10 @@ def show_project_card(project: Project):
     if project.tech_stack.orm_tools:
         orm = ", ".join(project.tech_stack.orm_tools[:8])
         lines.append(f"  [bold]ORM/DB:[/bold]     {orm}")
+
+    if project.tech_stack.i18n_tools:
+        i18n = ", ".join(project.tech_stack.i18n_tools[:8])
+        lines.append(f"  [bold]i18n:[/bold]       {i18n}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

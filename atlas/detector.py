@@ -2141,3 +2141,120 @@ def detect_orm_tools(project_path: Path) -> list[str]:
             pass
 
     return sorted(tools)
+
+
+def detect_i18n_tools(project_path: Path) -> list[str]:
+    """Detect internationalization and localization tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Directory-based detection
+    i18n_dirs = ("locales", "locale", "translations", "i18n", "lang", "messages")
+    for d in i18n_dirs:
+        if (project_path / d).is_dir():
+            _add("Locale Files")
+            break
+
+    # Config file detection
+    config_files = {
+        "lingui.config.js": "Lingui",
+        "lingui.config.ts": "Lingui",
+        ".linguirc": "Lingui",
+        "babel.cfg": "Babel (i18n)",
+        "i18next-parser.config.js": "i18next",
+        "i18next-parser.config.ts": "i18next",
+    }
+    for filename, name in config_files.items():
+        if (project_path / filename).exists():
+            _add(name)
+
+    # Python deps
+    py_i18n_deps = {
+        "babel": "Babel (i18n)",
+        "flask-babel": "Flask-Babel",
+        "django-modeltranslation": "django-modeltranslation",
+        "django-rosetta": "django-rosetta",
+        "python-i18n": "python-i18n",
+    }
+    pyproject = project_path / "pyproject.toml"
+    if pyproject.exists():
+        try:
+            content = pyproject.read_text().lower()
+            for dep, name in py_i18n_deps.items():
+                if dep in content:
+                    _add(name)
+        except OSError:
+            pass
+
+    for req_file in ("requirements.txt", "requirements-dev.txt"):
+        req_path = project_path / req_file
+        if req_path.exists():
+            try:
+                content = req_path.read_text().lower()
+                for dep, name in py_i18n_deps.items():
+                    if dep in content:
+                        _add(name)
+            except OSError:
+                pass
+
+    # package.json dependency detection
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text())
+            all_deps: set[str] = set()
+            for key in ("dependencies", "devDependencies"):
+                all_deps.update(data.get(key, {}).keys())
+
+            js_i18n_deps = {
+                "i18next": "i18next",
+                "react-i18next": "react-i18next",
+                "next-i18next": "next-i18next",
+                "next-intl": "next-intl",
+                "react-intl": "react-intl",
+                "@formatjs/intl": "FormatJS",
+                "vue-i18n": "vue-i18n",
+                "@angular/localize": "Angular i18n",
+                "@lingui/core": "Lingui",
+                "@lingui/react": "Lingui",
+                "typesafe-i18n": "typesafe-i18n",
+                "rosetta": "rosetta",
+                "polyglot": "Polyglot",
+                "globalize": "Globalize",
+            }
+            for dep, name in js_i18n_deps.items():
+                if dep in all_deps:
+                    _add(name)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    # Go modules
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text()
+            if "golang.org/x/text" in content:
+                _add("Go x/text")
+            if "github.com/nicksnyder/go-i18n" in content:
+                _add("go-i18n")
+        except OSError:
+            pass
+
+    # Rust (Cargo.toml)
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content = cargo.read_text().lower()
+            if "fluent" in content:
+                _add("Fluent")
+            if "rust-i18n" in content:
+                _add("rust-i18n")
+        except OSError:
+            pass
+
+    return sorted(tools)

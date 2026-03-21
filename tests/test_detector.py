@@ -28,6 +28,7 @@ from atlas.detector import (
     detect_css_frameworks,
     detect_bundlers,
     detect_orm_tools,
+    detect_i18n_tools,
     walk_files,
 )
 
@@ -3071,3 +3072,163 @@ class TestDetectOrmTools:
         (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["sqlmodel>=0.0.14"]')
         result = detect_orm_tools(tmp_path)
         assert "SQLModel" in result
+
+
+class TestDetectI18nTools:
+    def test_empty_project(self, tmp_path):
+        result = detect_i18n_tools(tmp_path)
+        assert result == []
+
+    def test_locales_directory(self, tmp_path):
+        (tmp_path / "locales").mkdir()
+        result = detect_i18n_tools(tmp_path)
+        assert "Locale Files" in result
+
+    def test_locale_directory(self, tmp_path):
+        (tmp_path / "locale").mkdir()
+        result = detect_i18n_tools(tmp_path)
+        assert "Locale Files" in result
+
+    def test_translations_directory(self, tmp_path):
+        (tmp_path / "translations").mkdir()
+        result = detect_i18n_tools(tmp_path)
+        assert "Locale Files" in result
+
+    def test_i18n_directory(self, tmp_path):
+        (tmp_path / "i18n").mkdir()
+        result = detect_i18n_tools(tmp_path)
+        assert "Locale Files" in result
+
+    def test_lingui_config(self, tmp_path):
+        (tmp_path / "lingui.config.js").write_text("module.exports = {}")
+        result = detect_i18n_tools(tmp_path)
+        assert "Lingui" in result
+
+    def test_babel_cfg(self, tmp_path):
+        (tmp_path / "babel.cfg").write_text("[python: **.py]")
+        result = detect_i18n_tools(tmp_path)
+        assert "Babel (i18n)" in result
+
+    def test_i18next_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"i18next": "^23.0.0"}
+        }))
+        result = detect_i18n_tools(tmp_path)
+        assert "i18next" in result
+
+    def test_react_i18next(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"react-i18next": "^13.0.0"}
+        }))
+        result = detect_i18n_tools(tmp_path)
+        assert "react-i18next" in result
+
+    def test_next_intl(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"next-intl": "^3.0.0"}
+        }))
+        result = detect_i18n_tools(tmp_path)
+        assert "next-intl" in result
+
+    def test_react_intl(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"react-intl": "^6.0.0"}
+        }))
+        result = detect_i18n_tools(tmp_path)
+        assert "react-intl" in result
+
+    def test_vue_i18n(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"vue-i18n": "^9.0.0"}
+        }))
+        result = detect_i18n_tools(tmp_path)
+        assert "vue-i18n" in result
+
+    def test_angular_localize(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@angular/localize": "^17.0.0"}
+        }))
+        result = detect_i18n_tools(tmp_path)
+        assert "Angular i18n" in result
+
+    def test_formatjs(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@formatjs/intl": "^2.0.0"}
+        }))
+        result = detect_i18n_tools(tmp_path)
+        assert "FormatJS" in result
+
+    def test_lingui_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@lingui/core": "^4.0.0"}
+        }))
+        result = detect_i18n_tools(tmp_path)
+        assert "Lingui" in result
+
+    def test_typesafe_i18n(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"typesafe-i18n": "^5.0.0"}
+        }))
+        result = detect_i18n_tools(tmp_path)
+        assert "typesafe-i18n" in result
+
+    def test_flask_babel_from_requirements(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("flask-babel>=3.0\n")
+        result = detect_i18n_tools(tmp_path)
+        assert "Flask-Babel" in result
+
+    def test_babel_from_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["babel>=2.12"]')
+        result = detect_i18n_tools(tmp_path)
+        assert "Babel (i18n)" in result
+
+    def test_go_i18n_from_go_mod(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example.com\nrequire github.com/nicksnyder/go-i18n/v2 v2.3.0\n")
+        result = detect_i18n_tools(tmp_path)
+        assert "go-i18n" in result
+
+    def test_go_x_text(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example.com\nrequire golang.org/x/text v0.14.0\n")
+        result = detect_i18n_tools(tmp_path)
+        assert "Go x/text" in result
+
+    def test_fluent_from_cargo(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nfluent = "0.16"\n')
+        result = detect_i18n_tools(tmp_path)
+        assert "Fluent" in result
+
+    def test_rust_i18n_from_cargo(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nrust-i18n = "3"\n')
+        result = detect_i18n_tools(tmp_path)
+        assert "rust-i18n" in result
+
+    def test_multiple_tools(self, tmp_path):
+        (tmp_path / "locales").mkdir()
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"i18next": "^23.0.0", "react-i18next": "^13.0.0"}
+        }))
+        result = detect_i18n_tools(tmp_path)
+        assert "Locale Files" in result
+        assert "i18next" in result
+        assert "react-i18next" in result
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "lingui.config.js").write_text("{}")
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@lingui/core": "^4.0.0"}
+        }))
+        result = detect_i18n_tools(tmp_path)
+        assert result.count("Lingui") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "locales").mkdir()
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"i18next": "^23.0.0", "react-intl": "^6.0.0"}
+        }))
+        result = detect_i18n_tools(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        result = detect_i18n_tools(tmp_path)
+        assert result == []
