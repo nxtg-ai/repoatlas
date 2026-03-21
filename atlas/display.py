@@ -274,6 +274,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         ai_parts = [f"{tool} ({count})" for tool, count in top_ai]
         lines.append(f"  [bold]AI/ML:[/bold]        {has_ai}/{n} projects · {', '.join(ai_parts)}")
 
+    # License distribution
+    lic_counter: Counter[str] = Counter()
+    for p in projects:
+        if p.license:
+            lic_counter[p.license] += 1
+    has_license = sum(1 for p in projects if p.license)
+    if has_license:
+        top_lic = lic_counter.most_common(6)
+        lic_parts = [f"{lic} ({count})" for lic, count in top_lic]
+        lines.append(f"  [bold]Licenses:[/bold]     {has_license}/{n} projects · {', '.join(lic_parts)}")
+
     content = "\n".join(lines)
     console.print(Panel(
         content,

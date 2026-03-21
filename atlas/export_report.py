@@ -129,6 +129,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         top_ai = ai_counter.most_common(5)
         lines.append(f"**AI/ML**: {has_ai}/{n} projects · {', '.join(t for t, _ in top_ai)}")
 
+    # Licenses
+    lic_counter: Counter[str] = Counter()
+    for p in projects:
+        if p.license:
+            lic_counter[p.license] += 1
+    has_license = sum(1 for p in projects if p.license)
+    if has_license:
+        top_lic = lic_counter.most_common(6)
+        lines.append(f"**Licenses**: {has_license}/{n} projects · {', '.join(t for t, _ in top_lic)}")
+
     lines.append("")
     return lines
 

@@ -12,7 +12,7 @@ from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
 def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
           security_tools=None, testing_frameworks=None, databases=None,
-          package_managers=None,
+          package_managers=None, project_license="",
           test_files=0, source_files=10, loc=100) -> Project:
     return Project(
         name=name,
@@ -32,6 +32,7 @@ def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
         test_file_count=test_files,
         source_file_count=source_files,
         loc=loc,
+        license=project_license,
     )
 
 
@@ -276,6 +277,39 @@ class TestPortfolioSummaryPackageManagers:
         output = _capture_summary(projects)
         assert "Poetry (2)" in output
         assert "npm (2)" in output
+
+
+class TestPortfolioSummaryLicenses:
+    def test_license_coverage(self):
+        projects = [
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="MIT"),
+            _proj("c", project_license=""),
+        ]
+        output = _capture_summary(projects)
+        assert "Licenses" in output
+        assert "2/3 projects" in output
+        assert "MIT (2)" in output
+
+    def test_license_hidden_when_none(self):
+        projects = [
+            _proj("a", project_license=""),
+            _proj("b", project_license=""),
+        ]
+        output = _capture_summary(projects)
+        lines = output.split("\n")
+        lic_lines = [ln for ln in lines if "Licenses:" in ln and "projects" in ln]
+        assert len(lic_lines) == 0
+
+    def test_license_multiple_ranked(self):
+        projects = [
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="MIT"),
+            _proj("c", project_license="Apache-2.0"),
+        ]
+        output = _capture_summary(projects)
+        assert "MIT (2)" in output
+        assert "Apache-2.0 (1)" in output
 
 
 class TestShowStatusSummaryPanel:

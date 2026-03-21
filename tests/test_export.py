@@ -206,6 +206,33 @@ class TestPortfolioSummary:
         assert "Poetry" in report
         assert "npm" in report
 
+    def test_licenses_shown_when_present(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="MIT"),
+        ))
+        assert "**Licenses**" in report
+        assert "2/2 projects" in report
+        assert "MIT" in report
+
+    def test_licenses_hidden_when_absent(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", project_license=""),
+            _proj("b", project_license=""),
+        ))
+        lines = report.split("\n")
+        lic_lines = [ln for ln in lines if ln.startswith("**Licenses**:") and "projects" in ln]
+        assert len(lic_lines) == 0
+
+    def test_licenses_ranked(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="MIT"),
+            _proj("c", project_license="Apache-2.0"),
+        ))
+        assert "MIT" in report
+        assert "Apache-2.0" in report
+
     def test_no_summary_for_single_project(self):
         report = build_markdown_report(_portfolio(_proj("solo")))
         assert "## Portfolio Summary" not in report
