@@ -33,6 +33,7 @@ from atlas.detector import (
     detect_logging_tools,
     detect_container_orchestration,
     detect_cloud_providers,
+    detect_task_queues,
     walk_files,
 )
 
@@ -3768,3 +3769,94 @@ class TestDetectCloudProviders:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         assert detect_cloud_providers(tmp_path) == []
+
+
+# ---------------------------------------------------------------------------
+# detect_task_queues
+# ---------------------------------------------------------------------------
+class TestDetectTaskQueues:
+    def test_empty_project(self, tmp_path):
+        assert detect_task_queues(tmp_path) == []
+
+    def test_celery_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("celery>=5.0\n")
+        assert "Celery" in detect_task_queues(tmp_path)
+
+    def test_rq_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("rq>=1.0\n")
+        assert "RQ" in detect_task_queues(tmp_path)
+
+    def test_dramatiq_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("dramatiq>=1.0\n")
+        assert "Dramatiq" in detect_task_queues(tmp_path)
+
+    def test_huey_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("huey>=2.0\n")
+        assert "Huey" in detect_task_queues(tmp_path)
+
+    def test_temporal_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("temporalio>=1.0\n")
+        assert "Temporal" in detect_task_queues(tmp_path)
+
+    def test_prefect_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("prefect>=2.0\n")
+        assert "Prefect" in detect_task_queues(tmp_path)
+
+    def test_airflow_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("apache-airflow>=2.0\n")
+        assert "Airflow" in detect_task_queues(tmp_path)
+
+    def test_bullmq_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"bullmq": "^4.0.0"}
+        }))
+        assert "BullMQ" in detect_task_queues(tmp_path)
+
+    def test_bull_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"bull": "^4.0.0"}
+        }))
+        assert "Bull" in detect_task_queues(tmp_path)
+
+    def test_agenda_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"agenda": "^5.0.0"}
+        }))
+        assert "Agenda" in detect_task_queues(tmp_path)
+
+    def test_temporal_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@temporalio/client": "^1.0.0"}
+        }))
+        assert "Temporal" in detect_task_queues(tmp_path)
+
+    def test_asynq_go(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire github.com/hibiken/asynq v0.24.0\n")
+        assert "Asynq" in detect_task_queues(tmp_path)
+
+    def test_temporal_go(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire go.temporal.io/sdk v1.22.0\n")
+        assert "Temporal" in detect_task_queues(tmp_path)
+
+    def test_quartz_java(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><groupId>org.quartz-scheduler</groupId><artifactId>quartz</artifactId></dependency>")
+        assert "Quartz" in detect_task_queues(tmp_path)
+
+    def test_spring_batch_gradle(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.springframework.batch:spring-batch-core:5.0'")
+        assert "Spring Batch" in detect_task_queues(tmp_path)
+
+    def test_multiple_queues(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("celery\ndramatiq\n")
+        result = detect_task_queues(tmp_path)
+        assert "Celery" in result
+        assert "Dramatiq" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("celery\nrq\ndramatiq\n")
+        result = detect_task_queues(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        assert detect_task_queues(tmp_path) == []

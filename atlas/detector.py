@@ -2764,3 +2764,129 @@ def detect_cloud_providers(project_path: Path) -> list[str]:
         _add("Render")
 
     return sorted(tools)
+
+
+def detect_task_queues(project_path: Path) -> list[str]:
+    """Detect task queue and background job frameworks."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str):
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Python deps
+    py_deps = _collect_python_deps(project_path)
+    py_map = {
+        "celery": "Celery", "rq": "RQ", "dramatiq": "Dramatiq",
+        "huey": "Huey", "arq": "arq", "taskiq": "TaskIQ",
+        "temporalio": "Temporal", "prefect": "Prefect",
+        "airflow": "Airflow", "apache-airflow": "Airflow",
+        "luigi": "Luigi", "dagster": "Dagster",
+    }
+    for dep, name in py_map.items():
+        if dep in py_deps:
+            _add(name)
+
+    # JS/TS deps
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = __import__("json").loads(pkg_json.read_text())
+            all_deps: set[str] = set()
+            for key in ("dependencies", "devDependencies"):
+                all_deps.update(data.get(key, {}).keys())
+
+            js_map = {
+                "bullmq": "BullMQ", "bull": "Bull", "bee-queue": "Bee-Queue",
+                "agenda": "Agenda", "node-cron": "node-cron",
+                "cron": "node-cron", "@temporalio/client": "Temporal",
+                "@temporalio/worker": "Temporal", "graphile-worker": "Graphile Worker",
+                "pg-boss": "pg-boss", "quirrel": "Quirrel",
+            }
+            for dep, name in js_map.items():
+                if dep in all_deps:
+                    _add(name)
+        except (ValueError, KeyError):
+            pass
+
+    # Go deps
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            if "github.com/hibiken/asynq" in content:
+                _add("Asynq")
+            if "go.temporal.io" in content:
+                _add("Temporal")
+            if "github.com/robfig/cron" in content:
+                _add("robfig/cron")
+            if "github.com/gocraft/work" in content:
+                _add("gocraft/work")
+        except Exception:
+            pass
+
+    # Rust deps
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content = cargo.read_text().lower()
+            if "tokio-cron-scheduler" in content:
+                _add("tokio-cron-scheduler")
+            if "apalis" in content:
+                _add("Apalis")
+        except Exception:
+            pass
+
+    # Java deps
+    pom = project_path / "pom.xml"
+    if pom.exists():
+        try:
+            content = pom.read_text().lower()
+            if "quartz" in content:
+                _add("Quartz")
+            if "spring-batch" in content:
+                _add("Spring Batch")
+        except Exception:
+            pass
+
+    build_gradle = project_path / "build.gradle"
+    if build_gradle.exists():
+        try:
+            content = build_gradle.read_text().lower()
+            if "quartz" in content:
+                _add("Quartz")
+            if "spring-batch" in content:
+                _add("Spring Batch")
+        except Exception:
+            pass
+
+    return sorted(tools)
+
+
+def _collect_python_deps(project_path: Path) -> set[str]:
+    """Collect Python dependency names from pyproject.toml and requirements.txt."""
+    py_deps: set[str] = set()
+    pyproject = project_path / "pyproject.toml"
+    if pyproject.exists():
+        try:
+            for line in pyproject.read_text().splitlines():
+                cleaned = line.strip().strip('",\' ').lower()
+                if cleaned:
+                    dep = cleaned.split("[")[0].split(">=")[0].split("==")[0].split("<")[0].split(">")[0].split("~=")[0].strip()
+                    if dep and not dep.startswith(("[", "#", "{")) and "=" not in dep:
+                        py_deps.add(dep)
+        except Exception:
+            pass
+    reqs_txt = project_path / "requirements.txt"
+    if reqs_txt.exists():
+        try:
+            for line in reqs_txt.read_text().splitlines():
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    dep = line.split(">=")[0].split("==")[0].split("<")[0].split(">")[0].split("[")[0].strip()
+                    py_deps.add(dep.lower())
+        except Exception:
+            pass
+    return py_deps

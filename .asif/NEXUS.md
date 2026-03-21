@@ -103,8 +103,9 @@
 | N-90 | [Cloud Provider & SDK Detection](#n-90-cloud-provider--sdk-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-91 | [Cloud Provider Intelligence](#n-91-cloud-provider-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-92 | [Top Projects & Version Commands](#n-92-top-projects--version-commands) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-93 | [Task Queue & Background Job Detection](#n-93-task-queue--background-job-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 89/92 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 90/93 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -139,7 +140,8 @@
 - Logging frameworks: Loguru, structlog, python-json-logger, coloredlogs, Logbook, Winston, Pino, Bunyan, log4js, Morgan, Consola, tslog, Zap, Logrus, zerolog, slog, tracing (Rust), env_logger, log4rs, Logback, Log4j, SLF4J
 - Container orchestration: Docker Compose, Kubernetes, Helm, Kustomize, Skaffold, Tilt, Terraform, Pulumi, Ansible, Nomad, Docker Swarm, Vagrant, Packer
 - Cloud provider & SDK detection: AWS (boto3, aws-sdk, aws-cdk), GCP (google-cloud-*, firebase), Azure (azure-*), Cloudflare (wrangler), Fly.io, Railway, Render, DigitalOcean — across Python, JS/TS, Go, Rust, Java
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90
+- Task queue & background job detection: Celery, RQ, Dramatiq, Huey, arq, TaskIQ, Temporal, Prefect, Airflow, Luigi, Dagster, BullMQ, Bull, Bee-Queue, Agenda, node-cron, Graphile Worker, pg-boss, Quirrel, Asynq, robfig/cron, gocraft/work, tokio-cron-scheduler, Apalis, Quartz, Spring Batch — across Python, JS/TS, Go, Rust, Java
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -565,6 +567,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Two new CLI commands. `atlas top --by health|loc|tests|commits -n 5` shows top N projects ranked by metric with grade colors and tech summaries. `atlas version` shows installed package version. 5 tests.
 **Shipped**: 2026-03-21. Total test count: 1606 → 1611. 27th experience feature.
+
+### N-93: Task Queue & Background Job Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_task_queues()` in detector.py with refactored `_collect_python_deps()` helper. Detects task queues and background job frameworks across ecosystems: Python (Celery, RQ, Dramatiq, Huey, arq, TaskIQ, Temporal, Prefect, Airflow, Luigi, Dagster), JS/TS (BullMQ, Bull, Bee-Queue, Agenda, node-cron, Temporal, Graphile Worker, pg-boss, Quirrel), Go (Asynq, Temporal, robfig/cron, gocraft/work), Rust (tokio-cron-scheduler, Apalis), Java (Quartz, Spring Batch). Added `task_queues` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py), markdown export project details and summary, JSON export portfolio_summary, and CSV export. `_project_has_tech()` searches task_queues. 19 detection tests.
+**Shipped**: 2026-03-21. Total test count: 1611 → 1630. 28th detection category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

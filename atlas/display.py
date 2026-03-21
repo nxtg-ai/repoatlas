@@ -542,6 +542,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         cloud_parts = [f"{cp} ({count})" for cp, count in top_cloud]
         lines.append(f"  [bold]Cloud:[/bold]      {has_cloud}/{n} projects \u00b7 {', '.join(cloud_parts)}")
 
+    # Task queues
+    has_tq = sum(1 for p in projects if p.tech_stack.task_queues)
+    if has_tq:
+        tq_counter: Counter[str] = Counter()
+        for p in projects:
+            for tq in p.tech_stack.task_queues:
+                tq_counter[tq] += 1
+        top_tq = tq_counter.most_common(6)
+        tq_parts = [f"{tq} ({count})" for tq, count in top_tq]
+        lines.append(f"  [bold]Task Queues:[/bold] {has_tq}/{n} projects \u00b7 {', '.join(tq_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -887,6 +898,10 @@ def show_project_card(project: Project):
     if project.tech_stack.cloud_providers:
         cp = ", ".join(project.tech_stack.cloud_providers[:8])
         lines.append(f"  [bold]Cloud:[/bold]      {cp}")
+
+    if project.tech_stack.task_queues:
+        tq = ", ".join(project.tech_stack.task_queues[:8])
+        lines.append(f"  [bold]Queues:[/bold]     {tq}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")
