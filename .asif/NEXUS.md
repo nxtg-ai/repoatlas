@@ -155,8 +155,9 @@
 | N-142 | [Date & Time Intelligence](#n-142-date--time-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-143 | [Status Sort Command](#n-143-status-sort-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-144 | [Image Processing Intelligence](#n-144-image-processing-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-145 | [Cryptography Library Detection](#n-145-cryptography-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 141/144 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 142/145 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -208,7 +209,8 @@
 - Payment & billing detection: Stripe, PayPal, Braintree, Square, Adyen, Paddle, Razorpay, Mollie, Coinbase Commerce, GoCardless, Paystack, Flutterwave, Lemon Squeezy (Python), Stripe, PayPal, Braintree, Square, Adyen, Paddle, Razorpay, Mollie, Recurly, Chargebee, Lemon Squeezy (JS/TS), Stripe, PayPal, Braintree, Adyen, Razorpay (Go), async-stripe (Rust), Stripe, PayPal, Braintree, Adyen, Square, Razorpay (Java)
 - Date & time library detection: Arrow, Pendulum, python-dateutil, pytz, humanize, dateparser, iso8601, ciso8601 (Python), Day.js, date-fns, Luxon, Moment.js, Spacetime, Temporal, timeago.js, chrono-node (JS/TS), jinzhu/now, dateparse (Go), chrono, time (Rust), Joda-Time, ThreeTen-Extra, PrettyTime (Java)
 - Image processing library detection: Pillow, OpenCV, scikit-image, imageio, Wand, CairoSVG, pyvips, rawpy (Python), Sharp, Jimp, node-canvas, napi-canvas, GraphicsMagick, image-size, pngjs, pixelmatch, BlurHash, Plaiceholder, IMG.LY, Cropper.js (JS/TS), imaging, gg, nfnt/resize, bild, GoCV, x/image (Go), image, imageproc, resvg, OpenCV (Rust), Thumbnailator, imgscalr, TwelveMonkeys, Scrimage (Java)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141
+- Cryptography library detection: cryptography, PyCryptodome, PyNaCl, bcrypt, Passlib, Argon2, pyOpenSSL (Python), CryptoJS, bcrypt.js, jose, node-forge, TweetNaCl, libsodium, OpenPGP.js, noble-curves/hashes (JS/TS), x/crypto, age, CIRCL (Go), ring, rustls, Orion, sha2, aes-gcm (Rust), Bouncy Castle, Tink, Jasypt (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -700,6 +702,11 @@
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
 
+### N-145: Cryptography Library Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects cryptography and encryption libraries across Python (cryptography, PyCryptodome, PyNaCl, bcrypt, Passlib, Argon2, pyOpenSSL, certifi, Paramiko, jwcrypto, truststore), JS/TS (CryptoJS, bcrypt.js, Argon2, jose, jsonwebtoken, node-forge, TweetNaCl, libsodium, OpenPGP.js, noble-curves, noble-hashes, scrypt-js), Go (x/crypto, age, CIRCL), Rust (ring, rustls, rcgen, Orion, sodiumoxide, Argon2, bcrypt, sha2, aes-gcm), Java (Bouncy Castle, Jasypt, Tink, Conscrypt, Spring Security Crypto). TechStack field, portfolio summary, project card, CSV/MD/JSON export, CLI search. 19 tests.
+**Shipped**: 2026-03-21. Total test count: 2162 → 2181. 45th detection category.
+
 ### N-144: Image Processing Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project image processing intelligence. Detects shared image libs (shared_image_lib, info) and paradigm divergence — high-level (Pillow, Sharp, Jimp, imaging, Thumbnailator) vs low-level (OpenCV, GoCV, scikit-image, imageproc, pyvips, rawpy) (image_lib_divergence, warning). Added connection types, display icons/labels, CLI category "imaging", export labels, recommendation mapping. 7 tests.
@@ -1084,6 +1091,7 @@ For any directive that touches 3+ files or requires architectural decisions:
 |----|-------|--------|------|
 | NXTG-20260311-01 | Test Coverage Push (30 → 221, 7.4x) | DONE | 2026-03-11 |
 | NXTG-20260312-01 | PyPI Distribution Readiness | DONE | 2026-03-12 |
+| NXTG-20260321-01 | PyPI Publish Prep (Emma Track 2) | PENDING | 2026-03-21 |
 
 ### DIRECTIVE-NXTG-20260312-01 — PyPI Distribution Readiness
 **From**: NXTG-AI CoS (Wolf) | **Priority**: P1
@@ -1115,6 +1123,25 @@ For any directive that touches 3+ files or requires architectural decisions:
 7. [x] License classifier note: PEP 639 (setuptools ≥68) supersedes `License ::` classifiers when `license` expression is set. `license = "MIT"` is sufficient — adding the classifier causes a build error.
 
 **Ready to publish**: One command when Asif sets up PyPI credentials: `twine upload dist/*`
+
+### DIRECTIVE-NXTG-20260321-01 — P1: PyPI Publish Prep (Emma Track 2)
+**From**: NXTG-AI CoS (Wolf) via Emma | **Priority**: P1
+**Injected**: 2026-03-21 10:30 | **Estimate**: S | **Status**: PENDING
+
+**Context**: Emma's Revenue Sprint Track 2 — Atlas needs PyPI prep so Asif can trigger publish.
+
+**Action Items**:
+1. [ ] Create GitHub Action workflow for PyPI trusted publisher (auto-publish on release)
+2. [ ] Verify `pip install atlas-intel` works cleanly (or whatever the package name is)
+3. [ ] Write PyPI long_description from README
+4. [ ] Verify CLI entry point works: `atlas status`, `atlas detect`, `atlas health`
+5. [ ] Tests must pass before push
+
+**Constraints**:
+- Run bash .git/hooks/pre-push before pushing
+- Package name should be `atlas-intel` or `nxtg-atlas` — check what's available on PyPI
+
+**Response** (filled by team):
 
 ---
 

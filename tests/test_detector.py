@@ -50,6 +50,7 @@ from atlas.detector import (
     detect_payment_tools,
     detect_date_libs,
     detect_image_libs,
+    detect_crypto_libs,
     walk_files,
 )
 
@@ -5673,3 +5674,103 @@ class TestDetectImageLibs:
         assert "Sharp" in result
         assert "Jimp" in result
         assert "BlurHash" in result
+
+
+# ---------------------------------------------------------------------------
+# detect_crypto_libs
+# ---------------------------------------------------------------------------
+class TestDetectCryptoLibs:
+    def test_empty(self, tmp_path):
+        assert detect_crypto_libs(tmp_path) == []
+
+    def test_python_cryptography(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("cryptography>=41.0\n")
+        result = detect_crypto_libs(tmp_path)
+        assert "cryptography" in result
+
+    def test_python_pycryptodome(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pycryptodome>=3.0\n")
+        result = detect_crypto_libs(tmp_path)
+        assert "PyCryptodome" in result
+
+    def test_python_bcrypt(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("bcrypt>=4.0\n")
+        result = detect_crypto_libs(tmp_path)
+        assert "bcrypt" in result
+
+    def test_python_pynacl(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pynacl>=1.0\n")
+        result = detect_crypto_libs(tmp_path)
+        assert "PyNaCl" in result
+
+    def test_python_argon2(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("argon2-cffi>=21.0\n")
+        result = detect_crypto_libs(tmp_path)
+        assert "Argon2" in result
+
+    def test_python_passlib(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("passlib>=1.7\n")
+        result = detect_crypto_libs(tmp_path)
+        assert "Passlib" in result
+
+    def test_js_crypto_js(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"crypto-js": "^4.0"}}')
+        result = detect_crypto_libs(tmp_path)
+        assert "CryptoJS" in result
+
+    def test_js_bcryptjs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"bcryptjs": "^2.0"}}')
+        result = detect_crypto_libs(tmp_path)
+        assert "bcrypt.js" in result
+
+    def test_js_jose(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"jose": "^5.0"}}')
+        result = detect_crypto_libs(tmp_path)
+        assert "jose" in result
+
+    def test_js_node_forge(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"node-forge": "^1.0"}}')
+        result = detect_crypto_libs(tmp_path)
+        assert "node-forge" in result
+
+    def test_js_noble_hashes(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@noble/hashes": "^1.0"}}')
+        result = detect_crypto_libs(tmp_path)
+        assert "noble-hashes" in result
+
+    def test_go_xcrypto(self, tmp_path):
+        (tmp_path / "go.sum").write_text("golang.org/x/crypto v0.21.0 h1:abc123\n")
+        result = detect_crypto_libs(tmp_path)
+        assert "x/crypto" in result
+
+    def test_rust_ring(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nring = "0.17"')
+        result = detect_crypto_libs(tmp_path)
+        assert "ring" in result
+
+    def test_rust_rustls(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nrustls = "0.23"')
+        result = detect_crypto_libs(tmp_path)
+        assert "rustls" in result
+
+    def test_java_bouncy_castle(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.bouncycastle:bcprov-jdk18on:1.78'")
+        result = detect_crypto_libs(tmp_path)
+        assert "Bouncy Castle" in result
+
+    def test_java_tink(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><groupId>com.google.crypto.tink</groupId></dependency>")
+        result = detect_crypto_libs(tmp_path)
+        assert "Tink" in result
+
+    def test_multiple_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("cryptography>=41.0\nbcrypt>=4.0\nargon2-cffi>=21.0\n")
+        result = detect_crypto_libs(tmp_path)
+        assert "cryptography" in result
+        assert "bcrypt" in result
+        assert "Argon2" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pynacl>=1.0\nbcrypt>=4.0\ncryptography>=41.0\n")
+        result = detect_crypto_libs(tmp_path)
+        assert result == sorted(result)

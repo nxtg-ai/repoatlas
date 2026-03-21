@@ -4882,3 +4882,133 @@ def detect_image_libs(project_path: Path) -> list[str]:
             _add(name)
 
     return sorted(tools)
+
+
+def detect_crypto_libs(project_path: Path) -> list[str]:
+    """Detect cryptography and encryption libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map = {
+        "cryptography": "cryptography",
+        "pycryptodome": "PyCryptodome",
+        "pycryptodomex": "PyCryptodome",
+        "pynacl": "PyNaCl",
+        "bcrypt": "bcrypt",
+        "passlib": "Passlib",
+        "argon2-cffi": "Argon2",
+        "hashlib": "hashlib",
+        "hmac": "hmac",
+        "jwcrypto": "jwcrypto",
+        "paramiko": "Paramiko",
+        "pyopenssl": "pyOpenSSL",
+        "certifi": "certifi",
+        "truststore": "truststore",
+    }
+    for dep, name in py_map.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    js_content = ""
+    if pkg_json.exists():
+        try:
+            js_content = pkg_json.read_text().lower()
+        except OSError:
+            pass
+
+    js_map = {
+        "crypto-js": "CryptoJS",
+        "bcryptjs": "bcrypt.js",
+        "bcrypt": "bcrypt",
+        "argon2": "Argon2",
+        "jose": "jose",
+        "jsonwebtoken": "jsonwebtoken",
+        "node-forge": "node-forge",
+        "tweetnacl": "TweetNaCl",
+        "libsodium-wrappers": "libsodium",
+        "openpgp": "OpenPGP.js",
+        "noble-curves": "noble-curves",
+        "@noble/hashes": "noble-hashes",
+        "scrypt-js": "scrypt-js",
+        "webcrypto": "WebCrypto",
+    }
+    for dep, name in js_map.items():
+        if dep in js_content:
+            _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_content = ""
+    if go_sum.exists():
+        try:
+            go_content = go_sum.read_text().lower()
+        except OSError:
+            pass
+
+    go_map = {
+        "golang.org/x/crypto": "x/crypto",
+        "filippo.io/age": "age",
+        "github.com/cloudflare/circl": "CIRCL",
+        "golang.org/x/oauth2": "x/oauth2",
+    }
+    for dep, name in go_map.items():
+        if dep.lower() in go_content:
+            _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    rust_content = ""
+    if cargo_toml.exists():
+        try:
+            rust_content = cargo_toml.read_text().lower()
+        except OSError:
+            pass
+
+    rust_map = {
+        "ring": "ring",
+        "rustls": "rustls",
+        "rcgen": "rcgen",
+        "rust-crypto": "rust-crypto",
+        "orion": "Orion",
+        "sodiumoxide": "sodiumoxide",
+        "argon2": "Argon2",
+        "bcrypt": "bcrypt",
+        "sha2": "sha2",
+        "aes-gcm": "aes-gcm",
+    }
+    for dep, name in rust_map.items():
+        if dep in rust_content:
+            _add(name)
+
+    # Java
+    java_deps = []
+    for build_file in ("build.gradle", "build.gradle.kts", "pom.xml"):
+        bf = project_path / build_file
+        if bf.exists():
+            try:
+                java_deps.append(bf.read_text())
+            except Exception:
+                pass
+    java_content = " ".join(java_deps)
+
+    java_map = {
+        "bouncycastle": "Bouncy Castle",
+        "jasypt": "Jasypt",
+        "tink": "Tink",
+        "conscrypt": "Conscrypt",
+        "spring-security-crypto": "Spring Security Crypto",
+    }
+    for dep, name in java_map.items():
+        if dep in java_content:
+            _add(name)
+
+    return sorted(tools)

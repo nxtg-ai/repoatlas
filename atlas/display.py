@@ -770,6 +770,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         il_parts = [f"{il} ({count})" for il, count in top_il]
         lines.append(f"  [bold]Imaging:[/bold]    {has_il}/{n} projects · {', '.join(il_parts)}")
 
+    # Crypto libs
+    has_cl = sum(1 for p in projects if p.tech_stack.crypto_libs)
+    if has_cl:
+        cl_counter: Counter[str] = Counter()
+        for p in projects:
+            for cl in p.tech_stack.crypto_libs:
+                cl_counter[cl] += 1
+        top_cl = cl_counter.most_common(6)
+        cl_parts = [f"{cl} ({count})" for cl, count in top_cl]
+        lines.append(f"  [bold]Crypto:[/bold]     {has_cl}/{n} projects · {', '.join(cl_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1241,6 +1252,10 @@ def show_project_card(project: Project):
     if project.tech_stack.image_libs:
         il = ", ".join(project.tech_stack.image_libs[:8])
         lines.append(f"  [bold]Imaging:[/bold]    {il}")
+
+    if project.tech_stack.crypto_libs:
+        cl = ", ".join(project.tech_stack.crypto_libs[:8])
+        lines.append(f"  [bold]Crypto:[/bold]     {cl}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")
