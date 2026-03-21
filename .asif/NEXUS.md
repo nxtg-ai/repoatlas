@@ -94,8 +94,9 @@
 | N-81 | [Project Search Command](#n-81-project-search-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-82 | [Validation & Schema Library Detection](#n-82-validation--schema-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-83 | [Validation Intelligence](#n-83-validation-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-84 | [Batch Remove Stale Projects](#n-84-batch-remove-stale-projects) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 80/83 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 81/84 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -184,7 +185,8 @@
 - Export connection summary stats: markdown exports show "N connections: X warning, Y info" header, JSON exports include connection_summary with total/critical/warning/info counts
 - Connection severity filtering: `atlas connections --severity warning` filters connections by severity level (info, warning, critical)
 - Project search: `atlas search <term>` finds projects by name, language, framework, or technology. Shows matches with health grade and tech summary
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81
+- Batch remove: `atlas batch-remove` prunes stale projects whose directories no longer exist on disk. Lists removed projects with paths, auto-saves portfolio
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -501,6 +503,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project validation pattern detection via `_find_validation_patterns()` in connections.py. Analyzes validation_tools data from N-82 across the portfolio to detect: shared validation tools (Pydantic/Zod across 2+ projects, info), validation strategy divergence (schema-first vs model/decorator-based vs form validation, warning), and validation gaps (API/backend projects with 10+ source files using API frameworks but no validation library, critical). New connection types (`shared_validation`, `validation_divergence`, `validation_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps validation_gap and validation_divergence to `quality` recommendation category. 25th CONNECTION_CATEGORIES entry. 10 tests.
 **Shipped**: 2026-03-21. Total test count: 1495 → 1505. 26th intelligence feature. Completes N-82 detection→intelligence pipeline.
+
+### N-84: Batch Remove Stale Projects
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: New `atlas batch-remove` command that prunes stale projects whose directories no longer exist on disk. Lists each stale project with name and path, removes them from portfolio, and saves. Handles empty portfolios and portfolios where all projects still exist gracefully. 4 tests.
+**Shipped**: 2026-03-21. Total test count: 1505 → 1509. 25th experience feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

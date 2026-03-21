@@ -629,6 +629,36 @@ def remove(name: str = typer.Argument(help="Project name to remove")):
     console.print(f"  [green]\u2713[/green] Removed [bold]{name}[/bold] from portfolio")
 
 
+@app.command(name="batch-remove")
+def batch_remove():
+    """Remove projects whose directories no longer exist on disk."""
+    portfolio = _load_portfolio()
+
+    if not portfolio.projects:
+        console.print("[yellow]No projects in portfolio.[/yellow]")
+        return
+
+    stale = [p for p in portfolio.projects if not Path(p.path).is_dir()]
+
+    if not stale:
+        console.print()
+        console.print("  [green]\u2713[/green] All projects still exist on disk. Nothing to remove.")
+        console.print()
+        return
+
+    console.print()
+    console.print(f"  Found [bold]{len(stale)}[/bold] stale project{'s' if len(stale) != 1 else ''}:")
+    console.print()
+    for p in stale:
+        console.print(f"    [red]\u2717[/red] {p.name}  [dim]{p.path}[/dim]")
+    console.print()
+
+    portfolio.projects = [p for p in portfolio.projects if Path(p.path).is_dir()]
+    _save_portfolio(portfolio)
+    console.print(f"  [green]\u2713[/green] Removed {len(stale)} stale project{'s' if len(stale) != 1 else ''}")
+    console.print()
+
+
 @app.command()
 def inspect(name: str = typer.Argument(help="Project name to inspect")):
     """Show detailed info for a single project."""

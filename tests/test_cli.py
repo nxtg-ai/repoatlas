@@ -1340,3 +1340,48 @@ class TestGenerateBadges:
         badges = generate_badges(self._portfolio(proj))
         test_badge = [b for b in badges if "test" in b][0]
         assert "red" in test_badge
+
+
+# ---------------------------------------------------------------------------
+# batch-remove
+# ---------------------------------------------------------------------------
+class TestBatchRemove:
+    def test_no_portfolio(self, portfolio_dir):
+        result = runner.invoke(app, ["batch-remove"])
+        assert result.exit_code == 1
+
+    def test_empty_portfolio(self, portfolio_dir):
+        runner.invoke(app, ["init"])
+        result = runner.invoke(app, ["batch-remove"])
+        assert result.exit_code == 0
+        assert "No projects" in result.output
+
+    def test_all_exist(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        (d / ".git").mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["batch-remove"])
+        assert result.exit_code == 0
+        assert "All projects still exist" in result.output
+
+    def test_removes_stale(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        (d / ".git").mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        # Now remove the directory to make it stale
+        import shutil
+        shutil.rmtree(d)
+        result = runner.invoke(app, ["batch-remove"])
+        assert result.exit_code == 0
+        assert "Removed 1 stale project" in result.output
+        # Verify it's gone
+        result2 = runner.invoke(app, ["status"])
+        assert "proj" not in result2.output or "No projects" in result2.output
