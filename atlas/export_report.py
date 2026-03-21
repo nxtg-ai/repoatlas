@@ -308,6 +308,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_build_tool": "Shared Build Tools",
         "build_tool_divergence": "Build Tool Divergence",
         "build_tool_gap": "Build Tool Gaps",
+        "shared_api_spec": "Shared API Specs",
+        "api_spec_divergence": "API Spec Divergence",
+        "api_spec_gap": "API Spec Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

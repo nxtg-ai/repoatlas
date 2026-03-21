@@ -63,8 +63,9 @@
 | N-50 | [Build & Task Runner Detection](#n-50-build--task-runner-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-51 | [Build Tool Intelligence](#n-51-build-tool-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-52 | [API Specification Detection](#n-52-api-specification-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-53 | [API Specification Intelligence](#n-53-api-specification-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 49/52 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 50/53 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -104,7 +105,8 @@
 - Cross-project CI/CD configuration intelligence (shared config, dep update strategy divergence, PR template/CODEOWNERS/pre-commit gaps)
 - Cross-project runtime version intelligence (shared versions, version divergence, pinning gaps)
 - Cross-project build tool intelligence (shared tools, Python/Java divergence, automation gaps)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51
+- Cross-project API specification intelligence (shared specs, REST/GraphQL/RPC paradigm divergence, API spec gaps)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -284,6 +286,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_api_specs()` in detector.py. Detects API specification formats and protocols: OpenAPI/Swagger (JSON/YAML in root, docs/, api/, spec/ directories), GraphQL (schema.graphql, schema.gql, .graphqlrc configs, codegen configs, .graphql files in src/), gRPC/Protobuf (.proto files in root, proto/, protos/ directories), AsyncAPI (asyncapi.json/yaml/yml), JSON Schema (schema.json, schemas/ directory), tRPC (via @trpc/* package.json dependencies), WSDL/SOAP (.wsdl files). Returns sorted list. Added `api_specs` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py), markdown export details and summary, JSON export portfolio_summary, and CSV export. `_project_has_tech()` searches api_specs. 20 detection tests.
 **Shipped**: 2026-03-21. Total test count: 979 → 999. 14th detection category.
+
+### N-53: API Specification Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project API specification pattern detection via `_find_api_spec_patterns()` in connections.py. Analyzes api_specs data from N-52 across the portfolio to detect: shared API specs (OpenAPI/GraphQL across 2+ projects, info), API paradigm divergence (REST vs GraphQL vs RPC across portfolio, info), and API spec gaps (projects with web frameworks like FastAPI/Django/Flask/Express but no API spec, warning). New connection types (`shared_api_spec`, `api_spec_divergence`, `api_spec_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps api_spec_gap and api_spec_divergence to `infra` recommendation categories. 16 API spec pattern tests.
+**Shipped**: 2026-03-21. Total test count: 999 → 1015. Completes N-52 detection→intelligence pipeline. All 15 detection→intelligence pipelines complete.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

@@ -67,6 +67,9 @@ CONNECTION_ICONS = {
     "shared_build_tool": "[green]\u2692[/green]",
     "build_tool_divergence": "[yellow]\u21cb[/yellow]",
     "build_tool_gap": "[red]\u25a0[/red]",
+    "shared_api_spec": "[cyan]\u2194[/cyan]",
+    "api_spec_divergence": "[yellow]\u21ae[/yellow]",
+    "api_spec_gap": "[red]\u2298[/red]",
 }
 
 
@@ -413,6 +416,9 @@ def show_connections(connections: list[Connection]):
         "shared_build_tool": "Shared Build Tools",
         "build_tool_divergence": "Build Tool Divergence",
         "build_tool_gap": "Build Tool Gaps",
+        "shared_api_spec": "Shared API Specs",
+        "api_spec_divergence": "API Spec Divergence",
+        "api_spec_gap": "API Spec Gaps",
     }
 
     lines = []

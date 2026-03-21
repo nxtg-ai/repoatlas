@@ -218,6 +218,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "runtime_divergence": "deps",
         "build_tool_gap": "infra",
         "build_tool_divergence": "infra",
+        "api_spec_gap": "infra",
+        "api_spec_divergence": "infra",
     }
 
     for conn in connections:

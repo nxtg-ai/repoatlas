@@ -17,6 +17,7 @@ from atlas.connections import (
     _find_package_manager_patterns,
     _find_runtime_version_patterns,
     _find_build_tool_patterns,
+    _find_api_spec_patterns,
     _find_version_mismatches,
     find_connections,
 )
@@ -27,7 +28,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           infrastructure=None, security_tools=None, quality_tools=None,
           ai_tools=None, testing_frameworks=None, package_managers=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
-          build_tools=None, project_license="",
+          build_tools=None, api_specs=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -47,6 +48,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             ci_config=ci_config or [],
             runtime_versions=runtime_versions or {},
             build_tools=build_tools or [],
+            api_specs=api_specs or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -2038,3 +2040,160 @@ class TestFindBuildToolPatterns:
         build_types = {c.type for c in conns if "build_tool" in c.type}
         assert "shared_build_tool" in build_types
         assert "build_tool_divergence" in build_types
+
+
+# ---------------------------------------------------------------------------
+# _find_api_spec_patterns (N-53)
+# ---------------------------------------------------------------------------
+class TestFindApiSpecPatterns:
+    # --- Shared API specs ---
+
+    def test_shared_api_spec(self):
+        projects = [
+            _proj("a", api_specs=["OpenAPI"]),
+            _proj("b", api_specs=["OpenAPI"]),
+        ]
+        conns = _find_api_spec_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_api_spec"]
+        assert len(shared) == 1
+        assert "OpenAPI" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_shared_multiple_specs(self):
+        projects = [
+            _proj("a", api_specs=["OpenAPI", "GraphQL"]),
+            _proj("b", api_specs=["OpenAPI", "GraphQL"]),
+        ]
+        conns = _find_api_spec_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_api_spec"]
+        assert len(shared) == 2
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", api_specs=["OpenAPI"]),
+            _proj("b", api_specs=["GraphQL"]),
+        ]
+        conns = _find_api_spec_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_api_spec"]
+        assert len(shared) == 0
+
+    def test_shared_needs_two_projects(self):
+        projects = [_proj("a", api_specs=["OpenAPI"])]
+        conns = _find_api_spec_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_api_spec"]
+        assert len(shared) == 0
+
+    # --- API paradigm divergence ---
+
+    def test_rest_vs_graphql_divergence(self):
+        projects = [
+            _proj("a", api_specs=["OpenAPI"]),
+            _proj("b", api_specs=["GraphQL"]),
+        ]
+        conns = _find_api_spec_patterns(projects)
+        div = [c for c in conns if c.type == "api_spec_divergence"]
+        assert len(div) == 1
+        assert "REST" in div[0].detail
+        assert "GraphQL" in div[0].detail
+        assert div[0].severity == "info"
+
+    def test_rest_vs_rpc_divergence(self):
+        projects = [
+            _proj("a", api_specs=["OpenAPI"]),
+            _proj("b", api_specs=["gRPC/Protobuf"]),
+        ]
+        conns = _find_api_spec_patterns(projects)
+        div = [c for c in conns if c.type == "api_spec_divergence"]
+        assert len(div) == 1
+        assert "REST" in div[0].detail
+        assert "RPC" in div[0].detail
+
+    def test_no_divergence_same_paradigm(self):
+        projects = [
+            _proj("a", api_specs=["OpenAPI"]),
+            _proj("b", api_specs=["AsyncAPI"]),
+        ]
+        conns = _find_api_spec_patterns(projects)
+        div = [c for c in conns if c.type == "api_spec_divergence"]
+        assert len(div) == 0
+
+    def test_three_paradigm_divergence(self):
+        projects = [
+            _proj("a", api_specs=["OpenAPI"]),
+            _proj("b", api_specs=["GraphQL"]),
+            _proj("c", api_specs=["tRPC"]),
+        ]
+        conns = _find_api_spec_patterns(projects)
+        div = [c for c in conns if c.type == "api_spec_divergence"]
+        assert len(div) == 1
+        assert len(div[0].projects) == 3
+
+    # --- API spec gap ---
+
+    def test_api_gap_web_framework_no_spec(self):
+        projects = [
+            _proj("a", api_specs=["OpenAPI"], frameworks=["FastAPI"]),
+            _proj("b", api_specs=[], frameworks=["Flask"], source_files=20),
+        ]
+        conns = _find_api_spec_patterns(projects)
+        gaps = [c for c in conns if c.type == "api_spec_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "warning"
+
+    def test_no_gap_when_all_have_specs(self):
+        projects = [
+            _proj("a", api_specs=["OpenAPI"], frameworks=["FastAPI"]),
+            _proj("b", api_specs=["GraphQL"], frameworks=["Express"]),
+        ]
+        conns = _find_api_spec_patterns(projects)
+        gaps = [c for c in conns if c.type == "api_spec_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_when_no_web_frameworks(self):
+        projects = [
+            _proj("a", api_specs=["OpenAPI"]),
+            _proj("b", api_specs=[], frameworks=["React"], source_files=20),
+        ]
+        conns = _find_api_spec_patterns(projects)
+        gaps = [c for c in conns if c.type == "api_spec_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", api_specs=["OpenAPI"], frameworks=["FastAPI"]),
+            _proj("b", api_specs=[], frameworks=["Flask"], source_files=3),
+        ]
+        conns = _find_api_spec_patterns(projects)
+        gaps = [c for c in conns if c.type == "api_spec_gap"]
+        assert len(gaps) == 0
+
+    # --- Edge cases ---
+
+    def test_empty_projects(self):
+        conns = _find_api_spec_patterns([])
+        assert conns == []
+
+    def test_no_specs_no_connections(self):
+        projects = [
+            _proj("a", api_specs=[]),
+            _proj("b", api_specs=[]),
+        ]
+        conns = _find_api_spec_patterns(projects)
+        assert len(conns) == 0
+
+    def test_limit_10(self):
+        specs = [f"Spec{i}" for i in range(20)]
+        projects = [_proj("a", api_specs=specs), _proj("b", api_specs=specs)]
+        conns = _find_api_spec_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", api_specs=["OpenAPI", "GraphQL"]),
+            _proj("b", api_specs=["OpenAPI", "gRPC/Protobuf"]),
+        ]
+        conns = find_connections(projects)
+        api_types = {c.type for c in conns if "api_spec" in c.type}
+        assert "shared_api_spec" in api_types
+        assert "api_spec_divergence" in api_types

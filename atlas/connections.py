@@ -25,6 +25,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_ci_config_patterns(projects))
     connections.extend(_find_runtime_version_patterns(projects))
     connections.extend(_find_build_tool_patterns(projects))
+    connections.extend(_find_api_spec_patterns(projects))
     return connections
 
 
@@ -1064,6 +1065,68 @@ def _find_build_tool_patterns(projects: list[Project]) -> list[Connection]:
                 type="build_tool_gap",
                 detail=f"{len(no_build)} project(s) have no build/task automation",
                 projects=sorted(no_build),
+                severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_api_spec_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project API specification patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared API specs — same spec in 2+ projects
+    spec_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for spec in p.tech_stack.api_specs:
+            spec_to_projects[spec].append(p.name)
+
+    for spec, projs in sorted(spec_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_api_spec",
+                detail=f"{spec} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # API protocol divergence — REST vs GraphQL vs gRPC across portfolio
+    rest_specs = {"OpenAPI", "AsyncAPI"}
+    graph_specs = {"GraphQL"}
+    rpc_specs = {"gRPC/Protobuf", "tRPC"}
+    categories_found: dict[str, set[str]] = {}
+    category_labels = {"REST": rest_specs, "GraphQL": graph_specs, "RPC": rpc_specs}
+    for p in projects:
+        for cat_name, cat_specs in category_labels.items():
+            if any(s in cat_specs for s in p.tech_stack.api_specs):
+                categories_found.setdefault(cat_name, set()).add(p.name)
+    if len(categories_found) >= 2:
+        detail_parts = [f"{cat} ({', '.join(sorted(ps))})"
+                        for cat, ps in categories_found.items()]
+        all_projs = sorted({p for ps in categories_found.values() for p in ps})
+        connections.append(Connection(
+            type="api_spec_divergence",
+            detail=f"Multiple API paradigms: {', '.join(detail_parts)} — consider standardizing",
+            projects=all_projs,
+            severity="info",
+        ))
+
+    # API spec gap — projects with web frameworks but no API spec
+    web_frameworks = {
+        "FastAPI", "Django", "Flask", "Express", "Koa", "NestJS",
+        "Spring Boot", "Rails", "Gin", "Echo", "Fiber", "Actix",
+    }
+    has_api = {p.name for p in projects if p.tech_stack.api_specs}
+    if has_api:
+        no_api = [p.name for p in projects
+                  if not p.tech_stack.api_specs
+                  and any(fw in web_frameworks for fw in p.tech_stack.frameworks)
+                  and p.source_file_count > 5]
+        if no_api:
+            connections.append(Connection(
+                type="api_spec_gap",
+                detail=f"{len(no_api)} project(s) with web frameworks but no API spec",
+                projects=sorted(no_api),
                 severity="warning",
             ))
 
