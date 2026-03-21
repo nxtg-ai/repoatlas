@@ -145,8 +145,9 @@
 | N-132 | [Event Streaming Detection](#n-132-event-streaming-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-133 | [Status Grade Distribution](#n-133-status-grade-distribution) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-134 | [Event Streaming Intelligence](#n-134-event-streaming-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-135 | [Payment & Billing Detection](#n-135-payment--billing-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 131/134 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 132/135 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -195,7 +196,8 @@
 - WebSocket library detection: websockets, python-socketio, Django Channels, Starlette WebSocket, Tornado WebSocket, Autobahn, aiohttp WebSocket, wsproto (Python), Socket.IO, ws, SockJS, Primus, tRPC WebSocket, graphql-ws, Pusher, Ably, Action Cable, Centrifugo (JS/TS), Gorilla WebSocket, nhooyr/websocket, gobwas/ws, Melody (Go), Tungstenite, Axum/Actix/Warp WebSocket (Rust), Spring WebSocket, Jakarta WebSocket, Tyrus, Netty WebSocket (Java)
 - GraphQL library detection: Graphene, Graphene-Django, Ariadne, Strawberry, sgqlc, gql, graphql-core, Tartiflette (Python), graphql-js, Apollo Server, Apollo Client, GraphQL Yoga, TypeGraphQL, Nexus, GraphQL Code Generator, graphql-request, URQL, Relay, Mercurius, Pothos, graphql-tools, graphql-tag (JS/TS), gqlgen, graphql-go, graph-gophers, Thunder, genqlient (Go), Juniper, async-graphql, graphql-client, Cynic (Rust), graphql-java, GraphQL Spring, Netflix DGS, SmallRye GraphQL, graphql-kotlin (Java) — also detects .graphql/.gql schema files
 - Event streaming detection: Confluent Kafka, kafka-python, aiokafka, RabbitMQ (pika/aio-pika), Kombu, NATS, Apache Pulsar, Faust (Python), KafkaJS, RabbitMQ (amqplib), NATS, BullMQ, Google Pub/Sub, AWS SQS/SNS/Kinesis, Azure Event Hubs/Service Bus (JS/TS), kafka-go, Sarama, Watermill, NATS (Go), rdkafka, RabbitMQ (lapin), NATS (Rust), Spring Kafka/AMQP, Kafka Clients (Java)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132
+- Payment & billing detection: Stripe, PayPal, Braintree, Square, Adyen, Paddle, Razorpay, Mollie, Coinbase Commerce, GoCardless, Paystack, Flutterwave, Lemon Squeezy (Python), Stripe, PayPal, Braintree, Square, Adyen, Paddle, Razorpay, Mollie, Recurly, Chargebee, Lemon Squeezy (JS/TS), Stripe, PayPal, Braintree, Adyen, Razorpay (Go), async-stripe (Rust), Stripe, PayPal, Braintree, Adyen, Square, Razorpay (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -679,6 +681,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-135: Payment & Billing Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects payment and billing libraries across Python (Stripe, PayPal, Braintree, Square, Adyen, Paddle, Razorpay, Mollie, Coinbase Commerce, GoCardless, Paystack, Flutterwave, Lemon Squeezy), JS/TS (Stripe, PayPal, Braintree, Square, Adyen, Paddle, Razorpay, Mollie, Recurly, Chargebee, Lemon Squeezy), Go (Stripe, PayPal, Braintree, Adyen, Razorpay), Rust (async-stripe), Java (Stripe, PayPal, Braintree, Adyen, Square, Razorpay). Added TechStack field, portfolio summary, project card, CSV/markdown/JSON export, CLI search. 26 tests.
+**Shipped**: 2026-03-21. Total test count: 2061 → 2087. 42nd detection category.
 
 ### N-134: Event Streaming Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

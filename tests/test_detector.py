@@ -47,6 +47,7 @@ from atlas.detector import (
     detect_websocket_libs,
     detect_graphql_libs,
     detect_event_streaming,
+    detect_payment_tools,
     walk_files,
 )
 
@@ -5316,3 +5317,137 @@ class TestDetectEventStreaming:
         assert "KafkaJS" in result
         assert "RabbitMQ (amqplib)" in result
         assert "BullMQ" in result
+
+
+# ---------------------------------------------------------------------------
+# detect_payment_tools
+# ---------------------------------------------------------------------------
+class TestDetectPaymentTools:
+    def test_empty(self, tmp_path):
+        assert detect_payment_tools(tmp_path) == []
+
+    def test_python_stripe(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("stripe>=5.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert "Stripe" in result
+
+    def test_python_paypal(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("paypalrestsdk>=1.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert "PayPal" in result
+
+    def test_python_braintree(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("braintree>=4.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert "Braintree" in result
+
+    def test_python_square(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("square>=20.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert "Square" in result
+
+    def test_python_razorpay(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("razorpay>=1.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert "Razorpay" in result
+
+    def test_python_adyen(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("adyen>=8.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert "Adyen" in result
+
+    def test_python_paddle(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("paddle-python-sdk>=1.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert "Paddle" in result
+
+    def test_python_mollie(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("mollie-api-python>=3.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert "Mollie" in result
+
+    def test_python_gocardless(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("gocardless-pro>=1.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert "GoCardless" in result
+
+    def test_python_lemon_squeezy(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("lemonsqueezy>=1.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert "Lemon Squeezy" in result
+
+    def test_js_stripe(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"stripe": "^12.0"}}')
+        result = detect_payment_tools(tmp_path)
+        assert "Stripe" in result
+
+    def test_js_stripe_react(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@stripe/react-stripe-js": "^2.0"}}')
+        result = detect_payment_tools(tmp_path)
+        assert "Stripe" in result
+
+    def test_js_paypal(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@paypal/react-paypal-js": "^8.0"}}')
+        result = detect_payment_tools(tmp_path)
+        assert "PayPal" in result
+
+    def test_js_paddle(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@paddle/paddle-js": "^1.0"}}')
+        result = detect_payment_tools(tmp_path)
+        assert "Paddle" in result
+
+    def test_js_adyen(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@adyen/adyen-web": "^5.0"}}')
+        result = detect_payment_tools(tmp_path)
+        assert "Adyen" in result
+
+    def test_js_recurly(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"recurly": "^4.0"}}')
+        result = detect_payment_tools(tmp_path)
+        assert "Recurly" in result
+
+    def test_js_chargebee(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"chargebee": "^2.0"}}')
+        result = detect_payment_tools(tmp_path)
+        assert "Chargebee" in result
+
+    def test_js_lemon_squeezy(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@lemonsqueezy/lemonsqueezy.js": "^2.0"}}')
+        result = detect_payment_tools(tmp_path)
+        assert "Lemon Squeezy" in result
+
+    def test_go_stripe(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire github.com/stripe/stripe-go v72.0.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert "Stripe" in result
+
+    def test_go_paypal(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire github.com/plutov/paypal v4.0.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert "PayPal" in result
+
+    def test_rust_stripe(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nasync-stripe = "0.25"\n')
+        result = detect_payment_tools(tmp_path)
+        assert "Stripe" in result
+
+    def test_java_stripe(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'com.stripe:stripe-java:24.0'\n")
+        result = detect_payment_tools(tmp_path)
+        assert "Stripe" in result
+
+    def test_java_adyen(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency>adyen-java-api-library</dependency>\n")
+        result = detect_payment_tools(tmp_path)
+        assert "Adyen" in result
+
+    def test_sorted(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("stripe>=5.0\nrazorpay>=1.0\n")
+        result = detect_payment_tools(tmp_path)
+        assert result == sorted(result)
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("stripe>=5.0\n")
+        (tmp_path / "package.json").write_text('{"dependencies": {"stripe": "^12.0"}}')
+        result = detect_payment_tools(tmp_path)
+        assert result.count("Stripe") == 1

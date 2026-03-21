@@ -731,6 +731,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         es_parts = [f"{es} ({count})" for es, count in top_es]
         lines.append(f"  [bold]Streaming:[/bold]  {has_es}/{n} projects · {', '.join(es_parts)}")
 
+    # Payment tools
+    has_pay = sum(1 for p in projects if p.tech_stack.payment_tools)
+    if has_pay:
+        pay_counter: Counter[str] = Counter()
+        for p in projects:
+            for pay in p.tech_stack.payment_tools:
+                pay_counter[pay] += 1
+        top_pay = pay_counter.most_common(6)
+        pay_parts = [f"{pay} ({count})" for pay, count in top_pay]
+        lines.append(f"  [bold]Payments:[/bold]   {has_pay}/{n} projects · {', '.join(pay_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1181,6 +1192,10 @@ def show_project_card(project: Project):
     if project.tech_stack.event_streaming:
         es = ", ".join(project.tech_stack.event_streaming[:8])
         lines.append(f"  [bold]Streaming:[/bold]  {es}")
+
+    if project.tech_stack.payment_tools:
+        pay = ", ".join(project.tech_stack.payment_tools[:8])
+        lines.append(f"  [bold]Payments:[/bold]   {pay}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

@@ -51,6 +51,7 @@ from atlas.detector import (
     detect_websocket_libs,
     detect_graphql_libs,
     detect_event_streaming,
+    detect_payment_tools,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -104,6 +105,7 @@ def scan_project(project_path: Path) -> Project:
     websocket_libs = detect_websocket_libs(path)
     graphql_libs = detect_graphql_libs(path)
     event_streaming = detect_event_streaming(path)
+    payment_tools = detect_payment_tools(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -152,6 +154,7 @@ def scan_project(project_path: Path) -> Project:
         websocket_libs=websocket_libs,
         graphql_libs=graphql_libs,
         event_streaming=event_streaming,
+        payment_tools=payment_tools,
     )
 
     project = Project(
