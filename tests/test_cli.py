@@ -397,6 +397,37 @@ class TestConnections:
         for conn in data["connections"]:
             assert conn["severity"] == "info"
 
+    def test_connections_csv_format(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--format", "csv"])
+        assert result.exit_code == 0
+        lines = result.output.strip().split("\n")
+        assert lines[0] == "Type,Detail,Projects,Severity"
+
+    def test_connections_csv_with_severity_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--format", "csv", "--severity", "info"])
+        assert result.exit_code == 0
+        import csv
+        import io
+        reader = csv.reader(io.StringIO(result.output))
+        next(reader)  # skip header
+        for row in reader:
+            if row:
+                assert row[3] == "info"
+
 
 # ===========================================================================
 # atlas search

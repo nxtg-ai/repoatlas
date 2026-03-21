@@ -114,8 +114,9 @@
 | N-101 | [Connections JSON Export](#n-101-connections-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-102 | [HTTP Client Detection](#n-102-http-client-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-103 | [HTTP Client Intelligence](#n-103-http-client-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-104 | [Connections CSV Export](#n-104-connections-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 100/103 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 101/104 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -225,7 +226,8 @@
 - Export filtering: `atlas export --grade A --lang Python --has Docker --min-health 80 --max-health 100` filters projects in any export format (markdown/json/csv)
 - Doctor JSON export: `atlas doctor --format json` outputs structured JSON with recommendations array, priority/category summary counts for CI integration
 - Connections JSON export: `atlas connections --format json` outputs structured JSON with connections array (type, detail, projects, severity), total count, severity summary for CI integration
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101
+- Connections CSV export: `atlas connections --format csv` outputs CSV with Type, Detail, Projects, Severity columns. Works with --type and --severity filters
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -617,6 +619,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-104: Connections CSV Export
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--format csv` option to `atlas connections` command. Outputs CSV with Type, Detail, Projects, Severity columns. Filter messages suppressed in CSV mode. Works with `--type` and `--severity` filters. 2 tests.
+**Shipped**: 2026-03-21. Total test count: 1743 → 1745. 31st experience feature.
 
 ### N-103: HTTP Client Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

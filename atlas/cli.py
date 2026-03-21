@@ -311,7 +311,7 @@ CONNECTION_CATEGORIES = {
 def connections(
     type_filter: Optional[str] = typer.Option(None, "--type", "-t", help="Filter by category (use --type list to see all)"),
     severity: Optional[str] = typer.Option(None, "--severity", "-s", help="Filter by severity (info, warning, critical)"),
-    format: Optional[str] = typer.Option(None, help="Output format: json for structured output"),
+    format: Optional[str] = typer.Option(None, help="Output format: json or csv for structured output"),
 ):
     """Show cross-project intelligence."""
     portfolio = _load_portfolio()
@@ -342,7 +342,7 @@ def connections(
         allowed = CONNECTION_CATEGORIES[cat]
         total = len(conns)
         conns = [c for c in conns if c.type in allowed]
-        if not (format and format.lower() == "json"):
+        if not (format and format.lower() in ("json", "csv")):
             console.print()
             console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (category: {cat})[/dim]")
 
@@ -354,7 +354,7 @@ def connections(
             raise typer.Exit(1)
         total = len(conns)
         conns = [c for c in conns if c.severity == sev]
-        if not (format and format.lower() == "json"):
+        if not (format and format.lower() in ("json", "csv")):
             console.print()
             console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (severity: {sev})[/dim]")
 
@@ -377,6 +377,17 @@ def connections(
             "summary": sev_counts,
         }
         print(json_mod.dumps(data, indent=2))
+        return
+
+    if format and format.lower() == "csv":
+        import csv
+        import io
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(["Type", "Detail", "Projects", "Severity"])
+        for c in conns:
+            writer.writerow([c.type, c.detail, "; ".join(c.projects), c.severity])
+        print(buf.getvalue(), end="")
         return
 
     console.print()
