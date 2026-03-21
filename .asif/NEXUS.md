@@ -24,8 +24,9 @@
 | N-11 | [CLI Integration Tests](#n-11-cli-integration-tests) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-12 | [Doctor — Actionable Recommendations](#n-12-doctor-actionable-recommendations) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-13 | [Scan History & Trends](#n-13-scan-history--trends) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
+| N-14 | [CI Mode](#n-14-ci-mode) | DISTRIBUTION | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 10/13 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 11/14 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -51,7 +52,8 @@
 - PyPI package, GitHub repo, CI pipeline
 - Show HN launch, Dev.to articles, Product Hunt
 - Open Core monetization (Free single-repo, Pro $49 cross-project)
-- **Shipped**: N-05 | **Next**: N-06, N-07, N-08
+- CI health gates with JSON output and exit codes
+- **Shipped**: N-05, N-14 | **Next**: N-06, N-08
 
 ---
 
@@ -121,6 +123,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: New `atlas trends` command with scan history tracking (`history.py`). Each `atlas scan` saves a snapshot (health, tests, LOC, per-project grades) to `~/.atlas/history.json`. `atlas trends` compares the last two scans showing portfolio-level deltas, per-project direction (up/down/stable/new/removed), and test count changes. Capped at 100 entries. 22 history unit tests + 3 CLI trends tests.
 **Shipped**: 2026-03-13. README commands table updated.
+
+### N-14: CI Mode
+**Pillar**: DISTRIBUTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `atlas ci` command for CI/CD pipelines. Re-scans portfolio, outputs structured JSON (or summary), and exits non-zero on health violations. Supports `--min-health` (portfolio threshold) and `--min-project-health` (per-project threshold). Replaces "CI integration coming soon" FAQ with working GitHub Actions example. 6 CI tests.
+**Shipped**: 2026-03-13. Total test count: 336 → 342. README commands table + FAQ updated.
 
 ### N-11: CLI Integration Tests
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

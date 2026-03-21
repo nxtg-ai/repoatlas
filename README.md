@@ -147,6 +147,7 @@ Atlas finds patterns across your repos that no single-repo tool can see:
 | `atlas connections` | Cross-project patterns |
 | `atlas doctor` | Diagnose issues and suggest fixes |
 | `atlas trends` | Show health trends across scans |
+| `atlas ci` | Health gate for CI pipelines (JSON output, exit codes) |
 | `atlas batch-add <dir>` | Add all repos in a directory |
 | `atlas export` | Markdown/JSON report |
 | `atlas support` | How to support this project |
@@ -184,7 +185,12 @@ No. Zero network calls. No telemetry. No analytics. Your code stays on your mach
 Each `atlas add` path is treated as one project. For monorepos, add the root.
 
 **Can I use it in CI?**
-`atlas export --format json` outputs machine-readable data. CI integration coming soon.
+Yes. `atlas ci` outputs JSON and exits non-zero on health violations:
+
+```yaml
+# GitHub Actions example
+- run: atlas ci --min-health 70 --min-project-health 50
+```
 
 ## Support This Project
 

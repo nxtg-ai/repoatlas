@@ -257,6 +257,79 @@ class TestDoctor:
 
 
 # ===========================================================================
+# atlas ci
+# ===========================================================================
+
+
+class TestCi:
+    def _setup_portfolio_with_project(self, portfolio_dir, tmp_path, health=0.8):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        hs = HealthScore(tests=health, git_hygiene=health, documentation=health, structure=health)
+        hs.compute()
+        proj = Project(
+            name="proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=50, has_remote=True),
+            health=hs, test_file_count=5, source_file_count=20, total_file_count=30, loc=1000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        return proj
+
+    def test_ci_json_pass(self, portfolio_dir, tmp_path):
+        proj = self._setup_portfolio_with_project(portfolio_dir, tmp_path)
+        with patch("atlas.cli.scan_project", return_value=proj):
+            result = runner.invoke(app, ["ci"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["status"] == "pass"
+        assert data["portfolio"]["health"] == 80
+        assert len(data["projects"]) == 1
+
+    def test_ci_json_fail_portfolio_health(self, portfolio_dir, tmp_path):
+        proj = self._setup_portfolio_with_project(portfolio_dir, tmp_path, health=0.5)
+        with patch("atlas.cli.scan_project", return_value=proj):
+            result = runner.invoke(app, ["ci", "--min-health", "70"])
+        assert result.exit_code == 1
+        data = json.loads(result.output)
+        assert data["status"] == "fail"
+        assert len(data["violations"]) >= 1
+        assert data["violations"][0]["type"] == "portfolio_health"
+
+    def test_ci_json_fail_project_health(self, portfolio_dir, tmp_path):
+        proj = self._setup_portfolio_with_project(portfolio_dir, tmp_path, health=0.4)
+        with patch("atlas.cli.scan_project", return_value=proj):
+            result = runner.invoke(app, ["ci", "--min-project-health", "60"])
+        assert result.exit_code == 1
+        data = json.loads(result.output)
+        assert data["status"] == "fail"
+        assert any(v["type"] == "project_health" for v in data["violations"])
+
+    def test_ci_summary_format(self, portfolio_dir, tmp_path):
+        proj = self._setup_portfolio_with_project(portfolio_dir, tmp_path)
+        with patch("atlas.cli.scan_project", return_value=proj):
+            result = runner.invoke(app, ["ci", "--format", "summary"])
+        assert result.exit_code == 0
+        assert "PASS" in result.output
+
+    def test_ci_no_projects(self, portfolio_dir):
+        runner.invoke(app, ["init"])
+        result = runner.invoke(app, ["ci"])
+        assert result.exit_code == 1
+
+    def test_ci_pass_with_thresholds_met(self, portfolio_dir, tmp_path):
+        proj = self._setup_portfolio_with_project(portfolio_dir, tmp_path, health=0.9)
+        with patch("atlas.cli.scan_project", return_value=proj):
+            result = runner.invoke(app, ["ci", "--min-health", "80", "--min-project-health", "80"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["status"] == "pass"
+        assert data["violations"] == []
+
+
+# ===========================================================================
 # atlas inspect
 # ===========================================================================
 

@@ -223,6 +223,108 @@ def doctor():
 
 
 @app.command()
+def ci(
+    min_health: int = typer.Option(0, help="Minimum portfolio health % (0-100). Fail if below."),
+    min_project_health: int = typer.Option(0, help="Minimum per-project health %. Fail if any project below."),
+    format: str = typer.Option("json", help="Output format: json, summary"),
+):
+    """Run health checks for CI pipelines. Exits non-zero on violations."""
+    import json as json_mod
+
+    portfolio = _load_portfolio()
+
+    if not portfolio.projects:
+        if format == "json":
+            print(json_mod.dumps({"status": "error", "message": "No projects in portfolio"}))
+        else:
+            console.print("[red]No projects in portfolio.[/red]")
+        raise typer.Exit(1)
+
+    # Re-scan all projects
+    updated_projects = []
+    for proj in portfolio.projects:
+        project_path = Path(proj.path)
+        if project_path.is_dir():
+            updated = scan_project(project_path)
+            updated.name = proj.name
+            updated_projects.append(updated)
+        else:
+            updated_projects.append(proj)
+
+    portfolio.projects = updated_projects
+    portfolio.last_scan = datetime.now(timezone.utc).isoformat()
+    _save_portfolio(portfolio)
+    save_scan(build_scan_entry(portfolio))
+
+    # Check violations
+    violations = []
+    portfolio_pct = int(portfolio.avg_health * 100)
+
+    if min_health > 0 and portfolio_pct < min_health:
+        violations.append({
+            "type": "portfolio_health",
+            "threshold": min_health,
+            "actual": portfolio_pct,
+            "message": f"Portfolio health {portfolio_pct}% < {min_health}% minimum",
+        })
+
+    if min_project_health > 0:
+        for p in portfolio.projects:
+            pct = p.health.percent
+            if pct < min_project_health:
+                violations.append({
+                    "type": "project_health",
+                    "project": p.name,
+                    "threshold": min_project_health,
+                    "actual": pct,
+                    "message": f"{p.name} health {pct}% < {min_project_health}% minimum",
+                })
+
+    passed = len(violations) == 0
+
+    if format == "json":
+        result = {
+            "status": "pass" if passed else "fail",
+            "portfolio": {
+                "name": portfolio.name,
+                "health": portfolio_pct,
+                "grade": portfolio.avg_grade,
+                "projects": len(portfolio.projects),
+                "test_files": portfolio.total_tests,
+                "loc": portfolio.total_loc,
+            },
+            "projects": [
+                {
+                    "name": p.name,
+                    "health": p.health.percent,
+                    "grade": p.health.grade,
+                    "tests": p.test_file_count,
+                    "loc": p.loc,
+                }
+                for p in portfolio.projects
+            ],
+            "violations": violations,
+        }
+        print(json_mod.dumps(result, indent=2))
+    else:
+        # Summary format — one-liner for CI logs
+        status = "PASS" if passed else "FAIL"
+        console.print(
+            f"atlas ci: {status} | {portfolio.name} | "
+            f"{portfolio.avg_grade} ({portfolio_pct}%) | "
+            f"{len(portfolio.projects)} projects | "
+            f"{portfolio.total_tests} test files | "
+            f"{portfolio.total_loc:,} LOC"
+        )
+        if violations:
+            for v in violations:
+                console.print(f"  [red]FAIL[/red] {v['message']}")
+
+    if not passed:
+        raise typer.Exit(1)
+
+
+@app.command()
 def trends():
     """Show health trends across scans."""
     entries = load_history()
