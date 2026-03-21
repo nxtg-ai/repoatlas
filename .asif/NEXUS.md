@@ -123,8 +123,9 @@
 | N-110 | [Status JSON Export](#n-110-status-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-111 | [Configuration Management Detection](#n-111-configuration-management-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-112 | [Configuration Management Intelligence](#n-112-configuration-management-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-113 | [Compare JSON Export](#n-113-compare-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 109/112 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 110/113 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -243,7 +244,8 @@
 - Connections CSV export: `atlas connections --format csv` outputs CSV with Type, Detail, Projects, Severity columns. Works with --type and --severity filters
 - Doctor CSV export: `atlas doctor --format csv` outputs CSV with Priority, Category, Message, Projects columns for spreadsheet analysis
 - Status JSON export: `atlas status --format json` outputs structured JSON with project array (name, path, health grades/scores, languages, frameworks, LOC, files, license). Works with all filters
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110
+- Compare JSON export: `atlas compare A B --format json` outputs structured JSON with project_a/project_b summaries (health, metrics, languages, frameworks), deltas (health_percent, loc, source_files, test_files, commits), shared/unique frameworks and deps
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -635,6 +637,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-113: Compare JSON Export
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--format json` option to `atlas compare` command. Outputs structured JSON with `project_a`/`project_b` summaries (name, path, health object, loc, source/test files, commits, languages, frameworks, license), `deltas` (health_percent, loc, source_files, test_files, commits), `shared_frameworks`, `unique_frameworks_a`, `unique_frameworks_b`, `shared_deps`. 3 tests.
+**Shipped**: 2026-03-21. Total test count: 1840 → 1843. 34th experience feature.
 
 ### N-112: Configuration Management Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

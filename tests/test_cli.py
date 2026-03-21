@@ -889,6 +889,31 @@ class TestCompare:
         result = runner.invoke(app, ["compare", "a", "b"])
         assert result.exit_code == 1
 
+    def test_compare_json_format(self, portfolio_dir, tmp_path):
+        self._add_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["compare", "proj-a", "proj-b", "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["project_a"]["name"] == "proj-a"
+        assert data["project_b"]["name"] == "proj-b"
+        assert "deltas" in data
+        assert "health_percent" in data["deltas"]
+
+    def test_compare_json_deltas(self, portfolio_dir, tmp_path):
+        self._add_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["compare", "proj-a", "proj-b", "--format", "json"])
+        data = json.loads(result.output)
+        # proj-a has 1000 LOC, proj-b has 800 LOC
+        assert data["deltas"]["loc"] == 200
+
+    def test_compare_json_shared_frameworks(self, portfolio_dir, tmp_path):
+        self._add_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["compare", "proj-a", "proj-b", "--format", "json"])
+        data = json.loads(result.output)
+        assert isinstance(data["shared_frameworks"], list)
+        assert isinstance(data["unique_frameworks_a"], list)
+        assert isinstance(data["unique_frameworks_b"], list)
+
 
 # ===========================================================================
 # atlas remove

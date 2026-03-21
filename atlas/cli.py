@@ -831,6 +831,7 @@ def inspect(name: str = typer.Argument(help="Project name to inspect")):
 def compare(
     project_a: str = typer.Argument(help="First project name"),
     project_b: str = typer.Argument(help="Second project name"),
+    format: Optional[str] = typer.Option(None, "--format", "-f", help="Output format: json"),
 ):
     """Compare two projects side by side."""
     portfolio = _load_portfolio()
@@ -851,6 +852,53 @@ def compare(
     if a.name == b.name:
         console.print("[yellow]Cannot compare a project with itself.[/yellow]")
         raise typer.Exit(1)
+
+    if format == "json":
+        import json as json_mod
+
+        def _proj_summary(p: Project) -> dict:
+            return {
+                "name": p.name,
+                "path": p.path,
+                "health": {
+                    "grade": p.health.grade,
+                    "percent": p.health.percent,
+                    "tests": round(p.health.tests, 2),
+                    "git_hygiene": round(p.health.git_hygiene, 2),
+                    "documentation": round(p.health.documentation, 2),
+                    "structure": round(p.health.structure, 2),
+                },
+                "loc": p.loc,
+                "source_files": p.source_file_count,
+                "test_files": p.test_file_count,
+                "commits": p.git_info.total_commits,
+                "languages": dict(p.tech_stack.languages),
+                "frameworks": p.tech_stack.frameworks,
+                "license": p.license,
+            }
+
+        fw_a = set(a.tech_stack.frameworks)
+        fw_b = set(b.tech_stack.frameworks)
+        deps_a = set(a.tech_stack.key_deps.keys())
+        deps_b = set(b.tech_stack.key_deps.keys())
+
+        data = {
+            "project_a": _proj_summary(a),
+            "project_b": _proj_summary(b),
+            "deltas": {
+                "health_percent": a.health.percent - b.health.percent,
+                "loc": a.loc - b.loc,
+                "source_files": a.source_file_count - b.source_file_count,
+                "test_files": a.test_file_count - b.test_file_count,
+                "commits": a.git_info.total_commits - b.git_info.total_commits,
+            },
+            "shared_frameworks": sorted(fw_a & fw_b),
+            "unique_frameworks_a": sorted(fw_a - fw_b),
+            "unique_frameworks_b": sorted(fw_b - fw_a),
+            "shared_deps": sorted(deps_a & deps_b),
+        }
+        console.print(json_mod.dumps(data, indent=2))
+        return
 
     show_comparison(a, b)
 
