@@ -34,7 +34,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
-          state_management=None, project_license="",
+          state_management=None, css_frameworks=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -60,6 +60,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             messaging_tools=messaging_tools or [],
             deploy_targets=deploy_targets or [],
             state_management=state_management or [],
+            css_frameworks=css_frameworks or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -3022,3 +3023,142 @@ class TestFindStateManagementPatterns:
         conns = find_connections(projects)
         state_types = {c.type for c in conns if "state_mgmt" in c.type}
         assert "shared_state_mgmt" in state_types
+
+
+# ---------------------------------------------------------------------------
+# _find_css_framework_patterns
+# ---------------------------------------------------------------------------
+class TestFindCssFrameworkPatterns:
+    def test_shared_css_framework(self):
+        projects = [
+            _proj("a", css_frameworks=["Tailwind CSS"]),
+            _proj("b", css_frameworks=["Tailwind CSS"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_css"]
+        assert len(shared) == 1
+        assert "Tailwind CSS" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_shared_multiple(self):
+        projects = [
+            _proj("a", css_frameworks=["Tailwind CSS", "PostCSS"]),
+            _proj("b", css_frameworks=["Tailwind CSS", "PostCSS"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_css"]
+        assert len(shared) == 2
+
+    def test_no_shared_unique(self):
+        projects = [
+            _proj("a", css_frameworks=["Tailwind CSS"]),
+            _proj("b", css_frameworks=["Bootstrap"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_css"]
+        assert len(shared) == 0
+
+    def test_divergence_utility_vs_css_in_js(self):
+        projects = [
+            _proj("a", css_frameworks=["Tailwind CSS"]),
+            _proj("b", css_frameworks=["Styled Components"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "css_divergence"]
+        assert len(div) == 1
+        assert "utility-first" in div[0].detail
+        assert "CSS-in-JS" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_divergence_utility_vs_component_lib(self):
+        projects = [
+            _proj("a", css_frameworks=["Tailwind CSS"]),
+            _proj("b", css_frameworks=["Material UI"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "css_divergence"]
+        assert len(div) == 1
+        assert "utility-first" in div[0].detail
+        assert "component library" in div[0].detail
+
+    def test_divergence_css_in_js_vs_component_lib(self):
+        projects = [
+            _proj("a", css_frameworks=["Emotion"]),
+            _proj("b", css_frameworks=["Chakra UI"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "css_divergence"]
+        assert len(div) == 1
+
+    def test_no_divergence_same_paradigm(self):
+        projects = [
+            _proj("a", css_frameworks=["Tailwind CSS"]),
+            _proj("b", css_frameworks=["UnoCSS"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "css_divergence"]
+        assert len(div) == 0
+
+    def test_no_divergence_empty(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "css_divergence"]
+        assert len(div) == 0
+
+    def test_gap_frontend_no_css(self):
+        projects = [
+            _proj("a", frameworks=["React"], css_frameworks=["Tailwind CSS"], source_files=15),
+            _proj("b", frameworks=["React"], source_files=15),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "css_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "warning"
+
+    def test_gap_multiple(self):
+        projects = [
+            _proj("a", frameworks=["Next.js"], css_frameworks=["Tailwind CSS"], source_files=20),
+            _proj("b", frameworks=["Vue"], source_files=20),
+            _proj("c", frameworks=["Angular"], source_files=20),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "css_gap"]
+        assert len(gaps) == 1
+        assert "2 frontend" in gaps[0].detail
+
+    def test_no_gap_no_frontend(self):
+        projects = [
+            _proj("a", frameworks=["FastAPI"], css_frameworks=["Tailwind CSS"], source_files=20),
+            _proj("b", frameworks=["Django"], source_files=20),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "css_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_no_css_portfolio(self):
+        projects = [
+            _proj("a", frameworks=["React"], source_files=20),
+            _proj("b", frameworks=["Vue"], source_files=20),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "css_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", frameworks=["React"], css_frameworks=["Tailwind CSS"], source_files=20),
+            _proj("b", frameworks=["React"], source_files=5),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "css_gap"]
+        assert len(gaps) == 0
+
+    def test_integration_with_find_connections_css(self):
+        projects = [
+            _proj("a", css_frameworks=["Tailwind CSS"]),
+            _proj("b", css_frameworks=["Tailwind CSS", "Emotion"]),
+        ]
+        conns = find_connections(projects)
+        css_types = {c.type for c in conns if "css" in c.type}
+        assert "shared_css" in css_types

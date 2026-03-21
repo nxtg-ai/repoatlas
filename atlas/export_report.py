@@ -406,6 +406,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_state_mgmt": "Shared State Management",
         "state_mgmt_divergence": "State Management Divergence",
         "state_mgmt_gap": "State Management Gaps",
+        "shared_css": "Shared CSS Frameworks",
+        "css_divergence": "CSS Framework Divergence",
+        "css_gap": "CSS Framework Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

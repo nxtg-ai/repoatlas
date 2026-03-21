@@ -31,6 +31,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_messaging_patterns(projects))
     connections.extend(_find_deploy_target_patterns(projects))
     connections.extend(_find_state_management_patterns(projects))
+    connections.extend(_find_css_framework_patterns(projects))
     return connections
 
 
@@ -1511,6 +1512,82 @@ def _find_state_management_patterns(projects: list[Project]) -> list[Connection]
                 type="state_mgmt_gap",
                 detail=f"{len(no_state)} frontend project(s) have no state management library",
                 projects=sorted(no_state),
+                severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_css_framework_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project CSS/styling patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared CSS frameworks — same framework in 2+ projects
+    fw_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for fw in p.tech_stack.css_frameworks:
+            fw_to_projects[fw].append(p.name)
+
+    for fw, projs in sorted(fw_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_css",
+                detail=f"{fw} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # CSS paradigm divergence — utility-first vs CSS-in-JS vs component library
+    utility_first = {"Tailwind CSS", "UnoCSS", "Windi CSS", "Twin Macro"}
+    css_in_js = {"Styled Components", "Emotion", "Vanilla Extract", "Linaria",
+                 "Stitches", "Panda CSS"}
+    component_libs = {"Bootstrap", "Bulma", "Chakra UI", "Mantine", "Material UI",
+                      "Vuetify", "Ant Design", "Radix UI", "shadcn/ui"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "utility-first": {}, "CSS-in-JS": {}, "component library": {},
+    }
+    cat_sets = [
+        ("utility-first", utility_first),
+        ("CSS-in-JS", css_in_js),
+        ("component library", component_libs),
+    ]
+    for p in projects:
+        for fw in p.tech_stack.css_frameworks:
+            for cat_name, cat_set in cat_sets:
+                if fw in cat_set:
+                    cat_found[cat_name].setdefault(fw, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys()))
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="css_divergence",
+            detail=f"Mixed CSS paradigms: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # CSS gap — frontend projects with frameworks but no CSS/styling tools
+    frontend_frameworks = {"React", "Next.js", "Vue", "Nuxt", "Angular", "Svelte", "SvelteKit",
+                           "Solid", "Preact", "Remix", "Gatsby", "Astro"}
+    has_css = {p.name for p in projects if p.tech_stack.css_frameworks}
+    if has_css:
+        no_css = [p.name for p in projects
+                  if not p.tech_stack.css_frameworks
+                  and any(fw in frontend_frameworks for fw in p.tech_stack.frameworks)
+                  and p.source_file_count > 10]
+        if no_css:
+            connections.append(Connection(
+                type="css_gap",
+                detail=f"{len(no_css)} frontend project(s) have no CSS/styling framework",
+                projects=sorted(no_css),
                 severity="warning",
             ))
 

@@ -98,6 +98,9 @@ CONNECTION_ICONS = {
     "shared_state_mgmt": "[green]\u26a1[/green]",
     "state_mgmt_divergence": "[yellow]\u26a1[/yellow]",
     "state_mgmt_gap": "[red]\u26a1[/red]",
+    "shared_css": "[green]\u2744[/green]",
+    "css_divergence": "[yellow]\u2744[/yellow]",
+    "css_gap": "[red]\u2744[/red]",
 }
 
 
@@ -546,6 +549,9 @@ def show_connections(connections: list[Connection]):
         "shared_state_mgmt": "Shared State Management",
         "state_mgmt_divergence": "State Management Divergence",
         "state_mgmt_gap": "State Management Gaps",
+        "shared_css": "Shared CSS Frameworks",
+        "css_divergence": "CSS Framework Divergence",
+        "css_gap": "CSS Framework Gaps",
     }
 
     lines = []
@@ -604,6 +610,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_messaging": "messaging", "messaging_divergence": "messaging", "messaging_gap": "messaging",
         "shared_deploy": "deploy", "deploy_divergence": "deploy", "deploy_gap": "deploy",
         "shared_state_mgmt": "state_mgmt", "state_mgmt_divergence": "state_mgmt", "state_mgmt_gap": "state_mgmt",
+        "shared_css": "css", "css_divergence": "css", "css_gap": "css",
     }
 
     for conn in connections:
