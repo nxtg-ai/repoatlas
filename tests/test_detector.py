@@ -42,6 +42,7 @@ from atlas.detector import (
     detect_config_tools,
     detect_caching_tools,
     detect_template_engines,
+    detect_serialization_formats,
     walk_files,
 )
 
@@ -4803,3 +4804,123 @@ class TestDetectTemplateEngines:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         assert detect_template_engines(tmp_path) == []
+
+
+# ---------------------------------------------------------------------------
+# detect_serialization_formats
+# ---------------------------------------------------------------------------
+
+
+class TestDetectSerializationFormats:
+    def test_empty(self, tmp_path):
+        assert detect_serialization_formats(tmp_path) == []
+
+    # --- Python ---
+    def test_python_protobuf(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("protobuf>=4.0\n")
+        assert "Protocol Buffers" in detect_serialization_formats(tmp_path)
+
+    def test_python_msgpack(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("msgpack>=1.0\n")
+        assert "MessagePack" in detect_serialization_formats(tmp_path)
+
+    def test_python_avro(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("fastavro>=1.0\n")
+        assert "Apache Avro" in detect_serialization_formats(tmp_path)
+
+    def test_python_cbor(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("cbor2>=5.0\n")
+        assert "CBOR" in detect_serialization_formats(tmp_path)
+
+    def test_python_yaml(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pyyaml>=6.0\n")
+        assert "YAML" in detect_serialization_formats(tmp_path)
+
+    def test_python_toml(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("tomli>=2.0\n")
+        assert "TOML" in detect_serialization_formats(tmp_path)
+
+    def test_python_orjson(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("orjson>=3.0\n")
+        assert "orjson" in detect_serialization_formats(tmp_path)
+
+    def test_python_pydantic(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pydantic>=2.0\n")
+        assert "Pydantic" in detect_serialization_formats(tmp_path)
+
+    def test_python_marshmallow(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("marshmallow>=3.0\n")
+        assert "Marshmallow" in detect_serialization_formats(tmp_path)
+
+    def test_python_arrow(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pyarrow>=10.0\n")
+        assert "Apache Arrow" in detect_serialization_formats(tmp_path)
+
+    def test_python_bson(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pymongo>=4.0\n")
+        assert "BSON" in detect_serialization_formats(tmp_path)
+
+    # --- JS/TS ---
+    def test_js_protobuf(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"protobufjs": "^7.0"}}))
+        assert "Protocol Buffers" in detect_serialization_formats(tmp_path)
+
+    def test_js_yaml(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"js-yaml": "^4.0"}}))
+        assert "YAML" in detect_serialization_formats(tmp_path)
+
+    def test_js_bson(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"bson": "^6.0"}}))
+        assert "BSON" in detect_serialization_formats(tmp_path)
+
+    # --- Go ---
+    def test_go_protobuf(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire google.golang.org/protobuf v1.30\n")
+        assert "Protocol Buffers" in detect_serialization_formats(tmp_path)
+
+    def test_go_yaml(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire gopkg.in/yaml.v3 v3.0\n")
+        assert "YAML" in detect_serialization_formats(tmp_path)
+
+    def test_go_toml(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/BurntSushi/toml v1.0\n")
+        assert "TOML" in detect_serialization_formats(tmp_path)
+
+    # --- Rust ---
+    def test_rust_serde_json(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nserde_json = "1.0"\n')
+        assert "serde_json" in detect_serialization_formats(tmp_path)
+
+    def test_rust_bincode(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nbincode = "1.3"\n')
+        assert "Bincode" in detect_serialization_formats(tmp_path)
+
+    # --- Java ---
+    def test_java_jackson(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><artifactId>jackson-core</artifactId></dependency>")
+        assert "Jackson" in detect_serialization_formats(tmp_path)
+
+    def test_java_gson(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'com.google.code.gson:gson:2.10'\n")
+        assert "Gson" in detect_serialization_formats(tmp_path)
+
+    # --- File-based ---
+    def test_proto_files(self, tmp_path):
+        (tmp_path / "schema.proto").write_text('syntax = "proto3";')
+        assert "Protocol Buffers" in detect_serialization_formats(tmp_path)
+
+    def test_avsc_files(self, tmp_path):
+        (tmp_path / "user.avsc").write_text('{"type": "record", "name": "User"}')
+        assert "Apache Avro" in detect_serialization_formats(tmp_path)
+
+    def test_sorted(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pyyaml>=6.0\nprotobuf>=4.0\norjson>=3.0\n")
+        result = detect_serialization_formats(tmp_path)
+        assert result == sorted(result)
+
+    def test_no_duplicates(self, tmp_path):
+        # protobuf from deps AND .proto file
+        (tmp_path / "requirements.txt").write_text("protobuf>=4.0\n")
+        (tmp_path / "schema.proto").write_text('syntax = "proto3";')
+        result = detect_serialization_formats(tmp_path)
+        assert result.count("Protocol Buffers") == 1

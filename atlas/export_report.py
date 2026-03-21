@@ -424,6 +424,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         tpl_names = ", ".join(t for t, _ in top_tpl)
         lines.append(f"**Template Engines**: {has_tpl}/{n} projects \u00b7 {tpl_names}")
 
+    has_ser = sum(1 for p in projects if p.tech_stack.serialization_formats)
+    if has_ser:
+        ser_counter: Counter[str] = Counter()
+        for p in projects:
+            for sf in p.tech_stack.serialization_formats:
+                ser_counter[sf] += 1
+        top_ser = ser_counter.most_common(6)
+        ser_names = ", ".join(s for s, _ in top_ser)
+        lines.append(f"**Serialization**: {has_ser}/{n} projects \u00b7 {ser_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -545,6 +555,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.template_engines:
             lines.append(f"- **Templates**: {', '.join(p.tech_stack.template_engines[:8])}")
+
+        if p.tech_stack.serialization_formats:
+            lines.append(f"- **Serialization**: {', '.join(p.tech_stack.serialization_formats[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -1010,6 +1023,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             tpl_counter2[te] += 1
     has_tpl = sum(1 for p in projects if p.tech_stack.template_engines)
 
+    # Serialization formats
+    ser_counter2: Counter[str] = Counter()
+    for p in projects:
+        for sf in p.tech_stack.serialization_formats:
+            ser_counter2[sf] += 1
+    has_ser = sum(1 for p in projects if p.tech_stack.serialization_formats)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1058,6 +1078,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "config_tools": {"coverage": f"{has_cfg}/{n}", "tools": dict(cfg_counter2.most_common(10))},
         "caching_tools": {"coverage": f"{has_caching}/{n}", "tools": dict(caching_counter2.most_common(10))},
         "template_engines": {"coverage": f"{has_tpl}/{n}", "engines": dict(tpl_counter2.most_common(10))},
+        "serialization_formats": {"coverage": f"{has_ser}/{n}", "formats": dict(ser_counter2.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1078,7 +1099,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1135,6 +1156,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.config_tools),
             "; ".join(ts.caching_tools),
             "; ".join(ts.template_engines),
+            "; ".join(ts.serialization_formats),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

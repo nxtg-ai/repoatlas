@@ -3841,6 +3841,191 @@ def detect_template_engines(project_path: Path) -> list[str]:
     return sorted(tools)
 
 
+def detect_serialization_formats(project_path: Path) -> list[str]:
+    """Detect serialization formats and data interchange libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # --- Python ---
+    if "protobuf" in py_deps or "grpcio" in py_deps:
+        _add("Protocol Buffers")
+    if "msgpack" in py_deps or "msgpack-python" in py_deps:
+        _add("MessagePack")
+    if "avro-python3" in py_deps or "avro" in py_deps or "fastavro" in py_deps:
+        _add("Apache Avro")
+    if "thrift" in py_deps:
+        _add("Apache Thrift")
+    if "flatbuffers" in py_deps:
+        _add("FlatBuffers")
+    if "cbor2" in py_deps or "cbor" in py_deps:
+        _add("CBOR")
+    if "pyyaml" in py_deps:
+        _add("YAML")
+    if "toml" in py_deps or "tomli" in py_deps or "tomllib" in py_deps or "tomli-w" in py_deps:
+        _add("TOML")
+    if "orjson" in py_deps:
+        _add("orjson")
+    if "ujson" in py_deps:
+        _add("ujson")
+    if "pydantic" in py_deps:
+        _add("Pydantic")
+    if "marshmallow" in py_deps:
+        _add("Marshmallow")
+    if "cattrs" in py_deps:
+        _add("cattrs")
+    if "pickle5" in py_deps or "cloudpickle" in py_deps or "dill" in py_deps:
+        _add("Pickle")
+    if "arrow" in py_deps and "pyarrow" in py_deps:
+        _add("Apache Arrow")
+    elif "pyarrow" in py_deps:
+        _add("Apache Arrow")
+    if "parquet" in py_deps or "fastparquet" in py_deps:
+        _add("Parquet")
+    if "bson" in py_deps or "pymongo" in py_deps:
+        _add("BSON")
+
+    # --- JS/TS ---
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            content = pkg_json.read_text().lower()
+            if "protobufjs" in content or "google-protobuf" in content or "@grpc/" in content:
+                _add("Protocol Buffers")
+            if "msgpack" in content or "@msgpack/" in content:
+                _add("MessagePack")
+            if "avro" in content or "avsc" in content:
+                _add("Apache Avro")
+            if "flatbuffers" in content:
+                _add("FlatBuffers")
+            if "cbor" in content:
+                _add("CBOR")
+            if "js-yaml" in content or "yaml" in content:
+                _add("YAML")
+            if '"toml"' in content or "@iarna/toml" in content:
+                _add("TOML")
+            if "superjson" in content:
+                _add("superjson")
+            if "ajv" in content or "zod" in content or "joi" in content or "yup" in content:
+                pass  # validation, not serialization
+            if "apache-arrow" in content or "arquero" in content:
+                _add("Apache Arrow")
+            if "bson" in content:
+                _add("BSON")
+        except Exception:
+            pass
+
+    # --- Go ---
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            if "google.golang.org/protobuf" in content or "google.golang.org/grpc" in content:
+                _add("Protocol Buffers")
+            if "msgpack" in content or "vmihailenco/msgpack" in content:
+                _add("MessagePack")
+            if "linkedin/goavro" in content:
+                _add("Apache Avro")
+            if "google/flatbuffers" in content:
+                _add("FlatBuffers")
+            if "fxamacker/cbor" in content:
+                _add("CBOR")
+            if "go-yaml" in content or "gopkg.in/yaml" in content:
+                _add("YAML")
+            if "burntsushi/toml" in content or "pelletier/go-toml" in content:
+                _add("TOML")
+            if "json-iterator" in content or "goccy/go-json" in content:
+                _add("go-json")
+            if "apache/arrow" in content:
+                _add("Apache Arrow")
+        except Exception:
+            pass
+
+    # --- Rust ---
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            content = cargo_toml.read_text().lower()
+            if "prost" in content or "protobuf" in content or "tonic" in content:
+                _add("Protocol Buffers")
+            if "rmp" in content or "rmp-serde" in content or "msgpack" in content:
+                _add("MessagePack")
+            if "apache-avro" in content:
+                _add("Apache Avro")
+            if "flatbuffers" in content:
+                _add("FlatBuffers")
+            if "ciborium" in content or "cbor" in content:
+                _add("CBOR")
+            if "serde_yaml" in content:
+                _add("YAML")
+            if "toml " in content or "toml_edit" in content or 'toml"' in content:
+                _add("TOML")
+            if "serde_json" in content:
+                _add("serde_json")
+            if "simd-json" in content:
+                _add("simd-json")
+            if "bincode" in content:
+                _add("Bincode")
+            if "postcard" in content:
+                _add("Postcard")
+            if "arrow" in content and "arrow-rs" in content:
+                _add("Apache Arrow")
+        except Exception:
+            pass
+
+    # --- Java ---
+    for pom in [project_path / "pom.xml", project_path / "build.gradle", project_path / "build.gradle.kts"]:
+        if pom.exists():
+            try:
+                content = pom.read_text().lower()
+                if "protobuf" in content or "grpc" in content:
+                    _add("Protocol Buffers")
+                if "msgpack" in content:
+                    _add("MessagePack")
+                if "avro" in content:
+                    _add("Apache Avro")
+                if "flatbuffers" in content:
+                    _add("FlatBuffers")
+                if "cbor" in content:
+                    _add("CBOR")
+                if "snakeyaml" in content or "jackson-dataformat-yaml" in content:
+                    _add("YAML")
+                if "jackson-dataformat-toml" in content:
+                    _add("TOML")
+                if "jackson" in content:
+                    _add("Jackson")
+                if "gson" in content:
+                    _add("Gson")
+                if "thrift" in content:
+                    _add("Apache Thrift")
+                if "arrow" in content and "apache" in content:
+                    _add("Apache Arrow")
+                if "parquet" in content:
+                    _add("Parquet")
+                if "kryo" in content:
+                    _add("Kryo")
+            except Exception:
+                pass
+
+    # --- .proto files ---
+    for proto in project_path.rglob("*.proto"):
+        _add("Protocol Buffers")
+        break
+
+    # --- .avro / .avsc files ---
+    for avro_file in project_path.rglob("*.avsc"):
+        _add("Apache Avro")
+        break
+
+    return sorted(tools)
+
+
 def _collect_python_deps(project_path: Path) -> set[str]:
     """Collect Python dependency names from pyproject.toml and requirements.txt."""
     py_deps: set[str] = set()

@@ -130,8 +130,9 @@
 | N-117 | [Template Engine Detection](#n-117-template-engine-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-118 | [Template Engine Intelligence](#n-118-template-engine-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-119 | [Search JSON Export](#n-119-search-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-120 | [Serialization Format Detection](#n-120-serialization-format-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 116/119 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 117/120 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -175,7 +176,8 @@
 - Configuration management detection: python-dotenv, Dynaconf, Hydra, OmegaConf, Pydantic Settings, python-decouple, environs, Everett, Confuse, ConfigObj (Python), .env/.env.example file detection, dotenv, Convict, node-config, envalid, env-cmd, cross-env, nconf, cosmiconfig, rc, t3-env (JS/TS), Viper, envconfig, godotenv, koanf, env, cleanenv (Go), config-rs, dotenvy, Figment, envy (Rust), Spring Config, Typesafe Config, Commons Configuration, dotenv-java (Java)
 - Caching library detection: redis-py, cachetools, DiskCache, django-redis, Flask-Caching, aiocache, cashews, dogpile.cache, pymemcache, pylibmc, CacheControl (Python), ioredis, redis (Node), node-cache, lru-cache, Keyv, cache-manager, Memcached (Node), catbox (JS/TS), go-redis, Ristretto, BigCache, groupcache, FreeCache, GCache, gomemcache (Go), moka, cached, redis-rs, mini-moka (Rust), Caffeine, Ehcache, Spring Cache, Jedis, Lettuce, Redisson, Guava Cache, Hazelcast (Java)
 - Template engine detection: Jinja2, Mako, Chameleon, Genshi, Cheetah, Django Templates (Python), Handlebars, EJS, Pug, Nunjucks, Mustache, Liquid, Eta, Marko, Edge.js, Vue SFC, Svelte, Solid, Astro (JS/TS), Pongo2, Raymond, Jet, Amber (Go), Tera, Askama, Handlebars (Rust), MiniJinja, Maud (Rust), Thymeleaf, FreeMarker, Velocity, Mustache (Java), Pebble (Java)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117
+- Serialization format detection: Protocol Buffers, MessagePack, Apache Avro, Apache Thrift, FlatBuffers, CBOR, YAML, TOML, orjson, ujson, Pydantic, Marshmallow, cattrs, Pickle, Apache Arrow, Parquet, BSON (Python), protobufjs, js-yaml, superjson, Apache Arrow (JS/TS), Protocol Buffers, MessagePack, YAML, TOML, go-json (Go), serde_json, simd-json, Bincode, Postcard (Rust), Jackson, Gson, Kryo (Java) — via deps, config files, .proto/.avsc files
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -649,6 +651,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-120: Serialization Format Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_serialization_formats()` in detector.py. Detects serialization/interchange formats across ecosystems: Python (Protocol Buffers, MessagePack, Apache Avro, Thrift, FlatBuffers, CBOR, YAML, TOML, orjson, ujson, Pydantic, Marshmallow, cattrs, Pickle, Apache Arrow, Parquet, BSON), JS/TS (protobufjs, js-yaml, BSON, Apache Arrow, superjson), Go (protobuf, msgpack, yaml, toml, go-json, Apache Avro, Arrow), Rust (serde_json, simd-json, Bincode, Postcard, prost, rmp, cbor, yaml, toml), Java (Jackson, Gson, protobuf, Avro, Kryo, Thrift, Parquet, Arrow). Also detects .proto and .avsc files. Added `serialization_formats` field to TechStack model. Shows in project card, portfolio summary, all exports. 26 detection tests.
+**Shipped**: 2026-03-21. Total test count: 1905 → 1931. 37th detection category.
 
 ### N-119: Search JSON Export
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1

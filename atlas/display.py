@@ -666,6 +666,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         tpl_parts = [f"{te} ({count})" for te, count in top_tpl]
         lines.append(f"  [bold]Templates:[/bold]   {has_tpl}/{n} projects \u00b7 {', '.join(tpl_parts)}")
 
+    # Serialization formats
+    has_ser = sum(1 for p in projects if p.tech_stack.serialization_formats)
+    if has_ser:
+        ser_counter: Counter[str] = Counter()
+        for p in projects:
+            for sf in p.tech_stack.serialization_formats:
+                ser_counter[sf] += 1
+        top_ser = ser_counter.most_common(6)
+        ser_parts = [f"{sf} ({count})" for sf, count in top_ser]
+        lines.append(f"  [bold]Serialization:[/bold] {has_ser}/{n} projects \u00b7 {', '.join(ser_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1081,6 +1092,10 @@ def show_project_card(project: Project):
     if project.tech_stack.template_engines:
         tpl = ", ".join(project.tech_stack.template_engines[:8])
         lines.append(f"  [bold]Templates:[/bold]  {tpl}")
+
+    if project.tech_stack.serialization_formats:
+        ser = ", ".join(project.tech_stack.serialization_formats[:8])
+        lines.append(f"  [bold]Serialization:[/bold] {ser}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

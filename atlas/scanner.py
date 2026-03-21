@@ -46,6 +46,7 @@ from atlas.detector import (
     detect_config_tools,
     detect_caching_tools,
     detect_template_engines,
+    detect_serialization_formats,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -94,6 +95,7 @@ def scan_project(project_path: Path) -> Project:
     config_tools = detect_config_tools(path)
     caching_tools = detect_caching_tools(path)
     template_engines = detect_template_engines(path)
+    serialization_formats = detect_serialization_formats(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -137,6 +139,7 @@ def scan_project(project_path: Path) -> Project:
         config_tools=config_tools,
         caching_tools=caching_tools,
         template_engines=template_engines,
+        serialization_formats=serialization_formats,
     )
 
     project = Project(
