@@ -244,6 +244,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "logging_divergence": "infra",
         "container_orch_gap": "infra",
         "container_orch_divergence": "infra",
+        "cloud_gap": "infra",
+        "cloud_divergence": "infra",
     }
 
     for conn in connections:

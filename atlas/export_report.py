@@ -537,6 +537,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_container_orch": "Shared Container Orchestration",
         "container_orch_divergence": "Container Orchestration Divergence",
         "container_orch_gap": "Container Orchestration Gaps",
+        "shared_cloud": "Shared Cloud Providers",
+        "cloud_divergence": "Cloud Provider Divergence",
+        "cloud_gap": "Cloud Provider Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

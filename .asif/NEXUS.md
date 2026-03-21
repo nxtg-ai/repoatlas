@@ -101,8 +101,9 @@
 | N-88 | [Container Orchestration Detection](#n-88-container-orchestration-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-89 | [Container Orchestration Intelligence](#n-89-container-orchestration-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-90 | [Cloud Provider & SDK Detection](#n-90-cloud-provider--sdk-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-91 | [Cloud Provider Intelligence](#n-91-cloud-provider-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 87/90 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 88/91 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -168,7 +169,8 @@
 - Cross-project validation intelligence (shared validation tools, schema-first vs model/decorator-based vs form validation divergence, validation gaps for API/backend projects)
 - Cross-project logging intelligence (shared logging tools, structured vs traditional logging divergence, logging gaps for backend projects)
 - Cross-project container orchestration intelligence (shared orchestration tools, IaC vs Kubernetes-native vs Compose divergence, orchestration gaps for Docker projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89
+- Cross-project cloud provider intelligence (shared providers, hyperscaler vs edge/PaaS divergence, multi-hyperscaler complexity warnings, cloud gaps for deployed projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -550,6 +552,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: Detects cloud provider SDKs across Python (boto3, google-cloud-*, azure-*), JS/TS (@aws-sdk/*, @google-cloud/*, @azure/*), Go (aws-sdk-go, cloud.google.com/go), Rust (aws-sdk-*, google-cloud), Java (software.amazon.awssdk, com.google.cloud, com.azure). Also detects Cloudflare (wrangler), Fly.io, Railway, Render via config files. Added TechStack.cloud_providers field wired through scanner, display, export, CLI search. 22 tests.
 **Shipped**: 2026-03-21. Total test count: 1575 → 1597. 27th detection feature.
+
+### N-91: Cloud Provider Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project cloud provider intelligence: shared cloud providers (shared_cloud), hyperscaler vs edge/PaaS strategy divergence (cloud_divergence), multi-hyperscaler complexity warnings, cloud gaps for deployed projects (cloud_gap). New CONNECTION_CATEGORIES entry "cloud". 10 tests.
+**Shipped**: 2026-03-21. Total test count: 1597 → 1606. 29th intelligence feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

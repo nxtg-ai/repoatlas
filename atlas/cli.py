@@ -295,6 +295,7 @@ CONNECTION_CATEGORIES = {
     "validation": {"shared_validation", "validation_divergence", "validation_gap"},
     "logging": {"shared_logging", "logging_divergence", "logging_gap"},
     "containers": {"shared_container_orch", "container_orch_divergence", "container_orch_gap"},
+    "cloud": {"shared_cloud", "cloud_divergence", "cloud_gap"},
 }
 
 

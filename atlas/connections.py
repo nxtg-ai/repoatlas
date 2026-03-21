@@ -38,6 +38,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_validation_patterns(projects))
     connections.extend(_find_logging_patterns(projects))
     connections.extend(_find_container_orchestration_patterns(projects))
+    connections.extend(_find_cloud_provider_patterns(projects))
     return connections
 
 
@@ -2056,6 +2057,94 @@ def _find_container_orchestration_patterns(projects: list[Project]) -> list[Conn
                 detail=f"{len(no_orch)} Docker project(s) have no orchestration tooling",
                 projects=sorted(no_orch),
                 severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_cloud_provider_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cloud provider patterns across projects."""
+    connections: list[Connection] = []
+
+    # Shared cloud providers
+    provider_to_projs: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for cp in p.tech_stack.cloud_providers:
+            provider_to_projs[cp].append(p.name)
+
+    for provider, projs in sorted(provider_to_projs.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_cloud",
+                detail=f"{provider} used across {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Cloud provider divergence — different cloud strategies
+    hyperscalers = {"AWS", "GCP", "Azure"}
+    edge_paas = {"Cloudflare", "Fly.io", "Railway", "Render", "DigitalOcean"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "hyperscaler": {}, "edge_paas": {},
+    }
+    cat_sets = [
+        ("hyperscaler", hyperscalers),
+        ("edge_paas", edge_paas),
+    ]
+    for p in projects:
+        for cp in p.tech_stack.cloud_providers:
+            for cat_name, cat_set in cat_sets:
+                if cp in cat_set:
+                    cat_found[cat_name].setdefault(cp, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, providers in active_cats.items():
+            provider_names = ", ".join(sorted(providers.keys())[:3])
+            parts.append(f"{cat_name} ({provider_names})")
+            for ps in providers.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="cloud_divergence",
+            detail=f"Mixed cloud strategies: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # Multi-hyperscaler divergence within hyperscalers
+    hyper_found: dict[str, set[str]] = {}
+    for p in projects:
+        for cp in p.tech_stack.cloud_providers:
+            if cp in hyperscalers:
+                hyper_found.setdefault(cp, set()).add(p.name)
+    if len(hyper_found) >= 2:
+        parts = [f"{cp} ({len(ps)})" for cp, ps in sorted(hyper_found.items())]
+        all_projs_h: set[str] = set()
+        for ps in hyper_found.values():
+            all_projs_h.update(ps)
+        connections.append(Connection(
+            type="cloud_divergence",
+            detail=f"Multiple hyperscalers in use: {', '.join(parts)} — watch for vendor lock-in complexity",
+            projects=sorted(all_projs_h),
+            severity="warning",
+        ))
+
+    # Cloud gap — deployed projects with no cloud provider detected
+    has_cloud = {p.name for p in projects if p.tech_stack.cloud_providers}
+    if has_cloud:
+        no_cloud = [p.name for p in projects
+                    if not p.tech_stack.cloud_providers
+                    and (p.tech_stack.deploy_targets or p.tech_stack.container_orchestration)
+                    and p.source_file_count > 10]
+        if no_cloud:
+            connections.append(Connection(
+                type="cloud_gap",
+                detail=f"{len(no_cloud)} deployed project(s) have no cloud provider SDK detected",
+                projects=sorted(no_cloud),
+                severity="info",
             ))
 
     return connections[:10]

@@ -26,6 +26,7 @@ from atlas.connections import (
     _find_validation_patterns,
     _find_logging_patterns,
     _find_container_orchestration_patterns,
+    _find_cloud_provider_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -3778,3 +3779,91 @@ class TestFindContainerOrchestrationPatterns:
         conns = find_connections(projects)
         co_types = {c.type for c in conns if "container_orch" in c.type}
         assert "shared_container_orch" in co_types
+
+
+# ---------------------------------------------------------------------------
+# Cloud Provider Patterns
+# ---------------------------------------------------------------------------
+class TestFindCloudProviderPatterns:
+    def test_shared_cloud_provider(self):
+        projects = [
+            _proj("a", cloud_providers=["AWS"]),
+            _proj("b", cloud_providers=["AWS", "GCP"]),
+        ]
+        conns = _find_cloud_provider_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_cloud"]
+        assert len(shared) == 1
+        assert "AWS" in shared[0].detail
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", cloud_providers=["AWS"]),
+            _proj("b", cloud_providers=["GCP"]),
+        ]
+        conns = _find_cloud_provider_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_cloud"]
+        assert len(shared) == 0
+
+    def test_divergence_hyperscaler_vs_edge(self):
+        projects = [
+            _proj("a", cloud_providers=["AWS"]),
+            _proj("b", cloud_providers=["Cloudflare"]),
+        ]
+        conns = _find_cloud_provider_patterns(projects)
+        divs = [c for c in conns if c.type == "cloud_divergence"]
+        assert len(divs) >= 1
+
+    def test_multi_hyperscaler_divergence(self):
+        projects = [
+            _proj("a", cloud_providers=["AWS"]),
+            _proj("b", cloud_providers=["GCP"]),
+        ]
+        conns = _find_cloud_provider_patterns(projects)
+        divs = [c for c in conns if c.type == "cloud_divergence"]
+        assert any("hyperscalers" in d.detail for d in divs)
+
+    def test_no_divergence_same_provider(self):
+        projects = [
+            _proj("a", cloud_providers=["AWS"]),
+            _proj("b", cloud_providers=["AWS"]),
+        ]
+        conns = _find_cloud_provider_patterns(projects)
+        divs = [c for c in conns if c.type == "cloud_divergence"]
+        assert len(divs) == 0
+
+    def test_gap_deployed_without_cloud(self):
+        projects = [
+            _proj("a", cloud_providers=["AWS"]),
+            _proj("b", cloud_providers=[], deploy_targets=["Vercel"], source_files=20),
+        ]
+        conns = _find_cloud_provider_patterns(projects)
+        gaps = [c for c in conns if c.type == "cloud_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+
+    def test_no_gap_all_have_cloud(self):
+        projects = [
+            _proj("a", cloud_providers=["AWS"]),
+            _proj("b", cloud_providers=["GCP"]),
+        ]
+        conns = _find_cloud_provider_patterns(projects)
+        gaps = [c for c in conns if c.type == "cloud_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_without_deploy(self):
+        projects = [
+            _proj("a", cloud_providers=["AWS"]),
+            _proj("b", cloud_providers=[], source_files=20),
+        ]
+        conns = _find_cloud_provider_patterns(projects)
+        gaps = [c for c in conns if c.type == "cloud_gap"]
+        assert len(gaps) == 0
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", cloud_providers=["AWS"]),
+            _proj("b", cloud_providers=["AWS", "GCP"]),
+        ]
+        conns = find_connections(projects)
+        cloud_types = {c.type for c in conns if "cloud" in c.type}
+        assert "shared_cloud" in cloud_types
