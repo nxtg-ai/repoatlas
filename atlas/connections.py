@@ -13,7 +13,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_shared_frameworks(projects))
     connections.extend(_find_version_mismatches(projects))
     connections.extend(_find_health_gaps(projects))
-    connections.extend(_find_shared_databases(projects))
+    connections.extend(_find_database_patterns(projects))
     connections.extend(_find_infra_patterns(projects))
     connections.extend(_find_security_patterns(projects))
     connections.extend(_find_quality_patterns(projects))
@@ -134,15 +134,16 @@ def _find_health_gaps(projects: list[Project]) -> list[Connection]:
     return connections
 
 
-def _find_shared_databases(projects: list[Project]) -> list[Connection]:
-    """Find shared database patterns."""
+def _find_database_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project database and data store patterns."""
+    connections: list[Connection] = []
     db_to_projects: dict[str, list[str]] = defaultdict(list)
 
     for proj in projects:
         for db in proj.tech_stack.databases:
             db_to_projects[db].append(proj.name)
 
-    connections = []
+    # Shared databases (2+ projects)
     for db, projs in sorted(db_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
         if len(projs) >= 2:
             connections.append(Connection(
@@ -152,7 +153,78 @@ def _find_shared_databases(projects: list[Project]) -> list[Connection]:
                 severity="info",
             ))
 
-    return connections[:5]
+    # Relational DB divergence
+    relational_dbs = {"PostgreSQL", "MySQL", "SQLite", "CockroachDB", "PlanetScale", "Supabase"}
+    rel_divergence: dict[str, set[str]] = {}
+    for p in projects:
+        for db in p.tech_stack.databases:
+            if db in relational_dbs:
+                rel_divergence.setdefault(db, set()).add(p.name)
+
+    # Only flag if 2+ different relational DBs across portfolio (excluding SQLite for dev)
+    prod_rel = {k: v for k, v in rel_divergence.items() if k != "SQLite"}
+    if len(prod_rel) >= 2:
+        detail_parts = [f"{db} ({', '.join(sorted(projs))})" for db, projs in prod_rel.items()]
+        all_projects = sorted({p for projs in prod_rel.values() for p in projs})
+        connections.append(Connection(
+            type="database_divergence",
+            detail=f"Multiple relational DBs: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
+        ))
+
+    # Vector DB divergence
+    vector_dbs = {"pgvector", "ChromaDB", "Pinecone", "Qdrant", "Weaviate"}
+    vec_divergence: dict[str, set[str]] = {}
+    for p in projects:
+        for db in p.tech_stack.databases:
+            if db in vector_dbs:
+                vec_divergence.setdefault(db, set()).add(p.name)
+
+    if len(vec_divergence) >= 2:
+        detail_parts = [f"{db} ({', '.join(sorted(projs))})" for db, projs in vec_divergence.items()]
+        all_projects = sorted({p for projs in vec_divergence.values() for p in projs})
+        connections.append(Connection(
+            type="database_divergence",
+            detail=f"Multiple vector DBs: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
+        ))
+
+    # Message broker divergence
+    brokers = {"RabbitMQ", "Kafka"}
+    broker_divergence: dict[str, set[str]] = {}
+    for p in projects:
+        for db in p.tech_stack.databases:
+            if db in brokers:
+                broker_divergence.setdefault(db, set()).add(p.name)
+
+    if len(broker_divergence) >= 2:
+        detail_parts = [f"{db} ({', '.join(sorted(projs))})" for db, projs in broker_divergence.items()]
+        all_projects = sorted({p for projs in broker_divergence.values() for p in projs})
+        connections.append(Connection(
+            type="database_divergence",
+            detail=f"Multiple message brokers: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
+        ))
+
+    # Database gap — web/API projects with no database
+    web_frameworks = {"FastAPI", "Django", "Flask", "Express", "Next.js", "Rails", "Spring Boot"}
+    no_db = [
+        p.name for p in projects
+        if not p.tech_stack.databases
+        and any(fw in web_frameworks for fw in p.tech_stack.frameworks)
+    ]
+    if no_db:
+        connections.append(Connection(
+            type="database_gap",
+            detail=f"{len(no_db)} web/API projects have no database detected",
+            projects=no_db,
+            severity="warning",
+        ))
+
+    return connections[:10]
 
 
 def _find_infra_patterns(projects: list[Project]) -> list[Connection]:

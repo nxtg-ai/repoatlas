@@ -42,8 +42,9 @@
 | N-29 | [Testing Intelligence](#n-29-testing-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-30 | [Testing Summary Panel](#n-30-testing-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 | N-31 | [Enhanced Database Detection](#n-31-enhanced-database-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
+| N-32 | [Database Intelligence](#n-32-database-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 28/31 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 29/32 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -69,7 +70,8 @@
 - Cross-project quality intelligence (shared tools, adoption gaps, linter divergence)
 - Cross-project AI/ML intelligence (shared tools, LLM provider divergence, experiment tracking gaps)
 - Cross-project testing intelligence (shared frameworks, runner divergence, testing gaps)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29
+- Cross-project database intelligence (shared databases, relational/vector/broker divergence, database gaps)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -217,6 +219,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Enhanced `atlas doctor` recommendations engine to leverage all detection data from N-17/N-19/N-24/N-25. Per-project: security (no tooling, missing dep scanning, missing secret scanning), quality (no tooling, missing linting, missing type checking), infrastructure (no CI/CD). Cross-project: maps security_gap/security_divergence, quality_gap/quality_divergence, infra_gap/infra_divergence connections to prioritized recommendations. 23 new recommendation tests.
 **Shipped**: 2026-03-13. Total test count: 583 → 606. Surfaces all detection+intelligence data through actionable `atlas doctor` output.
+
+### N-32: Database Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Replaced `_find_shared_databases()` with `_find_database_patterns()` in connections.py. Keeps shared database detection (info) and adds: relational DB divergence (PostgreSQL vs MySQL across portfolio, SQLite excluded as dev DB), vector DB divergence (ChromaDB vs Pinecone), message broker divergence (RabbitMQ vs Kafka), and database gaps (web/API projects with FastAPI/Django/Express/etc but no database detected). New connection types (`database_divergence`, `database_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. 16 new database pattern tests (replacing 5 old shared-only tests = net +11).
+**Shipped**: 2026-03-13. Total test count: 694 → 705. Completes N-31 detection→intelligence pipeline. All 6 detection→intelligence pipelines complete.
 
 ### N-31: Enhanced Database Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

@@ -7,7 +7,7 @@ from atlas.connections import (
     _find_infra_patterns,
     _find_quality_patterns,
     _find_security_patterns,
-    _find_shared_databases,
+    _find_database_patterns,
     _find_shared_deps,
     _find_shared_frameworks,
     _find_testing_patterns,
@@ -309,42 +309,145 @@ class TestFindHealthGaps:
 
 
 # ---------------------------------------------------------------------------
-# _find_shared_databases
+# _find_database_patterns
 # ---------------------------------------------------------------------------
-class TestFindSharedDatabases:
+class TestFindDatabasePatterns:
     def test_shared_db(self):
         projects = [
             _proj("a", databases=["PostgreSQL"]),
             _proj("b", databases=["PostgreSQL"]),
         ]
-        conns = _find_shared_databases(projects)
-        assert len(conns) == 1
-        assert "PostgreSQL" in conns[0].detail
+        conns = _find_database_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_database"]
+        assert len(shared) == 1
+        assert "PostgreSQL" in shared[0].detail
 
     def test_no_shared_db(self):
         projects = [
             _proj("a", databases=["PostgreSQL"]),
             _proj("b", databases=["Redis"]),
         ]
-        assert _find_shared_databases(projects) == []
+        shared = [c for c in _find_database_patterns(projects) if c.type == "shared_database"]
+        assert shared == []
 
     def test_single_project(self):
         projects = [_proj("a", databases=["PostgreSQL"])]
-        assert _find_shared_databases(projects) == []
+        shared = [c for c in _find_database_patterns(projects) if c.type == "shared_database"]
+        assert shared == []
 
-    def test_limit_5(self):
-        dbs = [f"db{i}" for i in range(10)]
+    def test_limit_10(self):
+        dbs = [f"db{i}" for i in range(15)]
         projects = [_proj("a", databases=dbs), _proj("b", databases=dbs)]
-        conns = _find_shared_databases(projects)
-        assert len(conns) <= 5
+        conns = _find_database_patterns(projects)
+        assert len(conns) <= 10
 
-    def test_severity_is_info(self):
+    def test_shared_severity_is_info(self):
         projects = [
             _proj("a", databases=["Redis"]),
             _proj("b", databases=["Redis"]),
         ]
-        conns = _find_shared_databases(projects)
-        assert conns[0].severity == "info"
+        conns = _find_database_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_database"]
+        assert shared[0].severity == "info"
+
+    def test_relational_divergence(self):
+        projects = [
+            _proj("a", databases=["PostgreSQL"]),
+            _proj("b", databases=["MySQL"]),
+        ]
+        conns = _find_database_patterns(projects)
+        div = [c for c in conns if c.type == "database_divergence"]
+        assert len(div) == 1
+        assert "relational" in div[0].detail.lower()
+        assert div[0].severity == "warning"
+
+    def test_no_relational_divergence_same_db(self):
+        projects = [
+            _proj("a", databases=["PostgreSQL"]),
+            _proj("b", databases=["PostgreSQL"]),
+        ]
+        conns = _find_database_patterns(projects)
+        div = [c for c in conns if c.type == "database_divergence"]
+        assert len(div) == 0
+
+    def test_sqlite_excluded_from_relational_divergence(self):
+        projects = [
+            _proj("a", databases=["PostgreSQL", "SQLite"]),
+            _proj("b", databases=["PostgreSQL"]),
+        ]
+        conns = _find_database_patterns(projects)
+        div = [c for c in conns if c.type == "database_divergence" and "relational" in c.detail.lower()]
+        assert len(div) == 0
+
+    def test_vector_db_divergence(self):
+        projects = [
+            _proj("a", databases=["ChromaDB"]),
+            _proj("b", databases=["Pinecone"]),
+        ]
+        conns = _find_database_patterns(projects)
+        div = [c for c in conns if c.type == "database_divergence" and "vector" in c.detail.lower()]
+        assert len(div) == 1
+        assert div[0].severity == "warning"
+
+    def test_no_vector_divergence_same_db(self):
+        projects = [
+            _proj("a", databases=["ChromaDB"]),
+            _proj("b", databases=["ChromaDB"]),
+        ]
+        conns = _find_database_patterns(projects)
+        div = [c for c in conns if c.type == "database_divergence" and "vector" in c.detail.lower()]
+        assert len(div) == 0
+
+    def test_broker_divergence(self):
+        projects = [
+            _proj("a", databases=["RabbitMQ"]),
+            _proj("b", databases=["Kafka"]),
+        ]
+        conns = _find_database_patterns(projects)
+        div = [c for c in conns if c.type == "database_divergence" and "broker" in c.detail.lower()]
+        assert len(div) == 1
+
+    def test_database_gap_web_no_db(self):
+        projects = [
+            _proj("a", frameworks=["FastAPI"], databases=["PostgreSQL"]),
+            _proj("b", frameworks=["FastAPI"], databases=[]),
+        ]
+        conns = _find_database_patterns(projects)
+        gap = [c for c in conns if c.type == "database_gap"]
+        assert len(gap) == 1
+        assert "b" in gap[0].projects
+        assert gap[0].severity == "warning"
+
+    def test_no_gap_non_web_project(self):
+        projects = [
+            _proj("a", frameworks=[], databases=[]),
+            _proj("b", frameworks=[], databases=[]),
+        ]
+        conns = _find_database_patterns(projects)
+        gap = [c for c in conns if c.type == "database_gap"]
+        assert len(gap) == 0
+
+    def test_no_gap_all_have_db(self):
+        projects = [
+            _proj("a", frameworks=["Django"], databases=["PostgreSQL"]),
+            _proj("b", frameworks=["Express"], databases=["MongoDB"]),
+        ]
+        conns = _find_database_patterns(projects)
+        gap = [c for c in conns if c.type == "database_gap"]
+        assert len(gap) == 0
+
+    def test_empty_projects(self):
+        conns = _find_database_patterns([])
+        assert conns == []
+
+    def test_integration_with_find_connections_database(self):
+        projects = [
+            _proj("a", databases=["PostgreSQL"]),
+            _proj("b", databases=["PostgreSQL", "MySQL"]),
+        ]
+        conns = find_connections(projects)
+        db_types = {c.type for c in conns if "database" in c.type}
+        assert "shared_database" in db_types
 
 
 # ---------------------------------------------------------------------------

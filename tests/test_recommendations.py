@@ -33,6 +33,7 @@ def _make_project(
     quality_tools: list[str] | None = None,
     infrastructure: list[str] | None = None,
     testing_frameworks: list[str] | None = None,
+    databases: list[str] | None = None,
 ) -> Project:
     hs = HealthScore(tests=tests, git_hygiene=git, documentation=docs, structure=structure)
     hs.compute()
@@ -47,6 +48,7 @@ def _make_project(
             quality_tools=quality_tools or [],
             infrastructure=infrastructure or [],
             testing_frameworks=testing_frameworks or [],
+            databases=databases or [],
         ),
         git_info=GitInfo(
             branch="main",
@@ -221,12 +223,14 @@ class TestCrossProjectRecommendations:
                           security_tools=["Dependabot", "Gitleaks"],
                           quality_tools=["Ruff", "mypy"],
                           infrastructure=["GitHub Actions"],
-                          testing_frameworks=["pytest"])
+                          testing_frameworks=["pytest"],
+                          databases=["PostgreSQL"])
         b = _make_project("b", tests=0.9, git=1.0, docs=0.8, structure=0.9,
                           security_tools=["Dependabot", "Gitleaks"],
                           quality_tools=["Ruff", "mypy"],
                           infrastructure=["GitHub Actions"],
-                          testing_frameworks=["pytest"])
+                          testing_frameworks=["pytest"],
+                          databases=["PostgreSQL"])
         portfolio = _make_portfolio(a, b)
         recs = _cross_project_recommendations(portfolio)
         # Should only have low-priority recs or none

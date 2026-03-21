@@ -174,6 +174,8 @@ def _connections_section(conns: list) -> list[str]:
         "version_mismatch": "Version Mismatches",
         "health_gap": "Health Gaps",
         "shared_database": "Shared Databases",
+        "database_divergence": "Database Divergence",
+        "database_gap": "Database Gaps",
         "shared_infra": "Shared Infrastructure",
         "infra_divergence": "Infrastructure Divergence",
         "infra_gap": "Infrastructure Gaps",
