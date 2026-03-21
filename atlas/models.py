@@ -27,6 +27,7 @@ class TechStack:
     messaging_tools: list[str] = field(default_factory=list)
     deploy_targets: list[str] = field(default_factory=list)
     state_management: list[str] = field(default_factory=list)
+    css_frameworks: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -135,6 +136,7 @@ class Project:
                 "messaging_tools": self.tech_stack.messaging_tools,
                 "deploy_targets": self.tech_stack.deploy_targets,
                 "state_management": self.tech_stack.state_management,
+                "css_frameworks": self.tech_stack.css_frameworks,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -188,6 +190,7 @@ class Project:
                 messaging_tools=ts.get("messaging_tools", []),
                 deploy_targets=ts.get("deploy_targets", []),
                 state_management=ts.get("state_management", []),
+                css_frameworks=ts.get("css_frameworks", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

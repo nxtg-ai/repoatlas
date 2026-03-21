@@ -80,8 +80,9 @@
 | N-67 | [Frontend State Management Detection](#n-67-frontend-state-management-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-68 | [State Management Intelligence](#n-68-state-management-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-69 | [Doctor Category Summary](#n-69-doctor-category-summary) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-70 | [CSS & Styling Framework Detection](#n-70-css--styling-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 66/69 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 67/70 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -108,7 +109,8 @@
 - Messaging & notifications: SendGrid, Twilio, Slack SDK, Nodemailer, Resend, Pusher, Socket.IO, BullMQ, Celery, Novu, Postmark, Firebase Cloud Messaging, Gomail, Lettre
 - Deployment targets: Vercel, Netlify, Fly.io, Railway, Render, Heroku, Firebase Hosting, AWS Amplify, Serverless Framework, Google App Engine, DigitalOcean App Platform, Cloudflare Workers, GitHub Pages
 - Frontend state management: Redux, Zustand, Recoil, Jotai, Valtio, MobX, XState, Pinia, Vuex, NgRx, Signals, Effector, Nanostores, Legend State
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67
+- CSS & styling frameworks: Tailwind CSS, Styled Components, Emotion, Sass, Less, PostCSS, CSS Modules, Vanilla Extract, Linaria, Panda CSS, UnoCSS, Windi CSS, Bootstrap, Bulma, Chakra UI, Mantine, Material UI, Vuetify, Ant Design, Radix UI, shadcn/ui, Stitches, Twin Macro, Stylelint
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -403,6 +405,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: `atlas doctor` now shows a category breakdown line after the priority summary (e.g., "Categories: 3 security, 2 testing, 1 infra"). Groups recommendations by category and displays counts sorted by frequency (most common first). Helps users prioritize remediation by domain area rather than just severity. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1284 → 1287. 20th experience feature.
+
+### N-70: CSS & Styling Framework Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: `detect_css_frameworks()` in detector.py identifies CSS and styling frameworks from config files, file extensions, and package.json dependencies. Config files: tailwind.config.{js,ts,mjs,cjs}, postcss.config.*, .postcssrc*, stylelint.config.*, .stylelintrc*. File extensions: .scss/.sass (Sass), .less (Less), .module.css/.module.scss (CSS Modules) — checks root and src/. Package.json: Tailwind CSS, Styled Components, Emotion, Sass, Less, Stylus, PostCSS, Stylelint, Vanilla Extract, Linaria, Twin Macro, Stitches, Panda CSS, UnoCSS, Windi CSS, Bootstrap, Bulma, Chakra UI, Mantine, Material UI, Vuetify, Ant Design, Radix UI, shadcn/ui. Returns sorted deduplicated list. Integrated across models.py (TechStack field + to_dict/from_dict), scanner.py, display.py (project card + portfolio summary), export_report.py (CSV column + markdown detail + markdown summary + JSON summary), and cli.py (_project_has_tech). 29 tests.
+**Shipped**: 2026-03-21. Total test count: 1287 → 1316. 21st detection category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

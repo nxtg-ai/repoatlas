@@ -1768,3 +1768,125 @@ def detect_state_management(project_path: Path) -> list[str]:
             pass
 
     return sorted(tools)
+
+
+def detect_css_frameworks(project_path: Path) -> list[str]:
+    """Detect CSS and styling frameworks."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Config file detection
+    config_files = {
+        "tailwind.config.js": "Tailwind CSS",
+        "tailwind.config.ts": "Tailwind CSS",
+        "tailwind.config.mjs": "Tailwind CSS",
+        "tailwind.config.cjs": "Tailwind CSS",
+        "postcss.config.js": "PostCSS",
+        "postcss.config.cjs": "PostCSS",
+        "postcss.config.mjs": "PostCSS",
+        ".postcssrc": "PostCSS",
+        ".postcssrc.json": "PostCSS",
+        "stylelint.config.js": "Stylelint",
+        "stylelint.config.cjs": "Stylelint",
+        "stylelint.config.mjs": "Stylelint",
+        ".stylelintrc": "Stylelint",
+        ".stylelintrc.json": "Stylelint",
+    }
+    for filename, name in config_files.items():
+        if (project_path / filename).exists():
+            _add(name)
+
+    # Sass detection — .scss/.sass files or config
+    sass_extensions = {".scss", ".sass"}
+    for child in project_path.iterdir():
+        if child.is_file() and child.suffix in sass_extensions:
+            _add("Sass")
+            break
+    # Also check src/ for Sass
+    src_dir = project_path / "src"
+    if src_dir.is_dir() and "Sass" not in seen:
+        for child in src_dir.iterdir():
+            if child.is_file() and child.suffix in sass_extensions:
+                _add("Sass")
+                break
+
+    # Less detection
+    for child in project_path.iterdir():
+        if child.is_file() and child.suffix == ".less":
+            _add("Less")
+            break
+    if (project_path / "src").is_dir() and "Less" not in seen:
+        for child in (project_path / "src").iterdir():
+            if child.is_file() and child.suffix == ".less":
+                _add("Less")
+                break
+
+    # CSS Modules detection — *.module.css or *.module.scss
+    for check_dir in [project_path, src_dir]:
+        if check_dir.is_dir() and "CSS Modules" not in seen:
+            for child in check_dir.iterdir():
+                if child.is_file() and (".module.css" in child.name or ".module.scss" in child.name):
+                    _add("CSS Modules")
+                    break
+
+    # package.json dependency detection
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text())
+            all_deps: set[str] = set()
+            for key in ("dependencies", "devDependencies"):
+                all_deps.update(data.get(key, {}).keys())
+
+            js_css = {
+                "tailwindcss": "Tailwind CSS",
+                "@tailwindcss/typography": "Tailwind CSS",
+                "styled-components": "Styled Components",
+                "@emotion/react": "Emotion",
+                "@emotion/styled": "Emotion",
+                "@emotion/css": "Emotion",
+                "sass": "Sass",
+                "node-sass": "Sass",
+                "less": "Less",
+                "stylus": "Stylus",
+                "postcss": "PostCSS",
+                "autoprefixer": "PostCSS",
+                "stylelint": "Stylelint",
+                "@vanilla-extract/css": "Vanilla Extract",
+                "@vanilla-extract/recipes": "Vanilla Extract",
+                "linaria": "Linaria",
+                "@linaria/core": "Linaria",
+                "twin.macro": "Twin Macro",
+                "stitches": "Stitches",
+                "@stitches/react": "Stitches",
+                "panda-css": "Panda CSS",
+                "@pandacss/dev": "Panda CSS",
+                "unocss": "UnoCSS",
+                "@unocss/preset-uno": "UnoCSS",
+                "windicss": "Windi CSS",
+                "bootstrap": "Bootstrap",
+                "react-bootstrap": "Bootstrap",
+                "@ng-bootstrap/ng-bootstrap": "Bootstrap",
+                "bulma": "Bulma",
+                "@chakra-ui/react": "Chakra UI",
+                "@mantine/core": "Mantine",
+                "@mui/material": "Material UI",
+                "@mui/system": "Material UI",
+                "vuetify": "Vuetify",
+                "ant-design-vue": "Ant Design",
+                "antd": "Ant Design",
+                "@radix-ui/themes": "Radix UI",
+                "shadcn-ui": "shadcn/ui",
+            }
+            for dep, name in js_css.items():
+                if dep in all_deps:
+                    _add(name)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    return sorted(tools)

@@ -25,6 +25,7 @@ from atlas.detector import (
     detect_messaging_tools,
     detect_deploy_targets,
     detect_state_management,
+    detect_css_frameworks,
     walk_files,
 )
 
@@ -2519,3 +2520,196 @@ class TestDetectStateManagement:
         (tmp_path / "package.json").write_text("not json")
         result = detect_state_management(tmp_path)
         assert result == []
+
+
+class TestDetectCssFrameworks:
+    def test_empty_project(self, tmp_path):
+        result = detect_css_frameworks(tmp_path)
+        assert result == []
+
+    def test_tailwind_config(self, tmp_path):
+        (tmp_path / "tailwind.config.js").write_text("module.exports = {}")
+        result = detect_css_frameworks(tmp_path)
+        assert "Tailwind CSS" in result
+
+    def test_tailwind_config_ts(self, tmp_path):
+        (tmp_path / "tailwind.config.ts").write_text("export default {}")
+        result = detect_css_frameworks(tmp_path)
+        assert "Tailwind CSS" in result
+
+    def test_postcss_config(self, tmp_path):
+        (tmp_path / "postcss.config.js").write_text("module.exports = {}")
+        result = detect_css_frameworks(tmp_path)
+        assert "PostCSS" in result
+
+    def test_stylelint_config(self, tmp_path):
+        (tmp_path / ".stylelintrc.json").write_text("{}")
+        result = detect_css_frameworks(tmp_path)
+        assert "Stylelint" in result
+
+    def test_sass_files_root(self, tmp_path):
+        (tmp_path / "styles.scss").write_text("body { color: red; }")
+        result = detect_css_frameworks(tmp_path)
+        assert "Sass" in result
+
+    def test_sass_files_src(self, tmp_path):
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "app.scss").write_text("body { color: red; }")
+        result = detect_css_frameworks(tmp_path)
+        assert "Sass" in result
+
+    def test_less_files(self, tmp_path):
+        (tmp_path / "theme.less").write_text("@primary: blue;")
+        result = detect_css_frameworks(tmp_path)
+        assert "Less" in result
+
+    def test_css_modules_root(self, tmp_path):
+        (tmp_path / "button.module.css").write_text(".btn { color: red; }")
+        result = detect_css_frameworks(tmp_path)
+        assert "CSS Modules" in result
+
+    def test_css_modules_scss(self, tmp_path):
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "card.module.scss").write_text(".card { color: blue; }")
+        result = detect_css_frameworks(tmp_path)
+        assert "CSS Modules" in result
+
+    def test_tailwindcss_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"tailwindcss": "^3.4.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Tailwind CSS" in result
+
+    def test_styled_components(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"styled-components": "^6.0.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Styled Components" in result
+
+    def test_emotion(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@emotion/react": "^11.0.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Emotion" in result
+
+    def test_vanilla_extract(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"@vanilla-extract/css": "^1.0.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Vanilla Extract" in result
+
+    def test_bootstrap(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"bootstrap": "^5.3.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Bootstrap" in result
+
+    def test_chakra_ui(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@chakra-ui/react": "^2.0.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Chakra UI" in result
+
+    def test_material_ui(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@mui/material": "^5.0.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Material UI" in result
+
+    def test_mantine(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@mantine/core": "^7.0.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Mantine" in result
+
+    def test_ant_design(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"antd": "^5.0.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Ant Design" in result
+
+    def test_panda_css(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"@pandacss/dev": "^0.30.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Panda CSS" in result
+
+    def test_unocss(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"unocss": "^0.58.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "UnoCSS" in result
+
+    def test_multiple_frameworks(self, tmp_path):
+        (tmp_path / "tailwind.config.js").write_text("{}")
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@emotion/react": "^11.0.0"},
+            "devDependencies": {"sass": "^1.70.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Tailwind CSS" in result
+        assert "Emotion" in result
+        assert "Sass" in result
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "tailwind.config.js").write_text("{}")
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"tailwindcss": "^3.4.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert result.count("Tailwind CSS") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {
+                "styled-components": "^6.0.0",
+                "bootstrap": "^5.3.0",
+                "@emotion/react": "^11.0.0",
+            }
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        result = detect_css_frameworks(tmp_path)
+        assert result == []
+
+    def test_sass_file_extension(self, tmp_path):
+        (tmp_path / "main.sass").write_text("body\n  color: red")
+        result = detect_css_frameworks(tmp_path)
+        assert "Sass" in result
+
+    def test_less_in_src(self, tmp_path):
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "theme.less").write_text("@primary: blue;")
+        result = detect_css_frameworks(tmp_path)
+        assert "Less" in result
+
+    def test_vuetify(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"vuetify": "^3.0.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Vuetify" in result
+
+    def test_radix_ui(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@radix-ui/themes": "^3.0.0"}
+        }))
+        result = detect_css_frameworks(tmp_path)
+        assert "Radix UI" in result

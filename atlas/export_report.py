@@ -239,6 +239,17 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         sm_names = ", ".join(t for t, _ in top_sm)
         lines.append(f"**State Mgmt**: {has_sm}/{n} projects \u00b7 {sm_names}")
 
+    # CSS frameworks
+    has_css = sum(1 for p in projects if p.tech_stack.css_frameworks)
+    if has_css:
+        css_counter: Counter[str] = Counter()
+        for p in projects:
+            for css in p.tech_stack.css_frameworks:
+                css_counter[css] += 1
+        top_css = css_counter.most_common(6)
+        css_names = ", ".join(t for t, _ in top_css)
+        lines.append(f"**CSS/Style**: {has_css}/{n} projects \u00b7 {css_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -309,6 +320,9 @@ def _project_details(projects: list[Project]) -> list[str]:
             lines.append(f"- **Deploy Targets**: {', '.join(p.tech_stack.deploy_targets[:8])}")
         if p.tech_stack.state_management:
             lines.append(f"- **State Mgmt**: {', '.join(p.tech_stack.state_management[:8])}")
+
+        if p.tech_stack.css_frameworks:
+            lines.append(f"- **CSS/Style**: {', '.join(p.tech_stack.css_frameworks[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -588,6 +602,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             sm_counter[sm] += 1
     has_sm = sum(1 for p in projects if p.tech_stack.state_management)
 
+    # CSS frameworks
+    css_counter: Counter[str] = Counter()
+    for p in projects:
+        for css in p.tech_stack.css_frameworks:
+            css_counter[css] += 1
+    has_css = sum(1 for p in projects if p.tech_stack.css_frameworks)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -619,6 +640,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "messaging": {"coverage": f"{has_msg}/{n}", "tools": dict(msg_counter2.most_common(10))},
         "deploy_targets": {"coverage": f"{has_deploy}/{n}", "targets": dict(dt_counter.most_common(10))},
         "state_management": {"coverage": f"{has_sm}/{n}", "tools": dict(sm_counter.most_common(10))},
+        "css_frameworks": {"coverage": f"{has_css}/{n}", "frameworks": dict(css_counter.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -637,6 +659,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Testing Frameworks", "Package Managers", "AI/ML Tools",
         "Docs Artifacts", "CI Config", "Runtime Versions", "Build Tools", "API Specs",
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
+        "CSS Frameworks",
         "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
@@ -677,6 +700,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.messaging_tools),
             "; ".join(ts.deploy_targets),
             "; ".join(ts.state_management),
+            "; ".join(ts.css_frameworks),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",
