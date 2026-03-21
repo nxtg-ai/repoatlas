@@ -508,6 +508,37 @@ class TestSearch:
         result = runner.invoke(app, ["search", "test"])
         assert result.exit_code == 1
 
+    def test_search_json_format(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "myproject"
+        d.mkdir()
+        proj = _make_project("myproject", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["search", "myproject", "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["query"] == "myproject"
+        assert data["total"] == 1
+        assert len(data["projects"]) == 1
+        assert data["projects"][0]["name"] == "myproject"
+        assert "health_grade" in data["projects"][0]
+        assert "languages" in data["projects"][0]
+
+    def test_search_json_no_match(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["search", "nonexistent", "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["query"] == "nonexistent"
+        assert data["total"] == 0
+        assert data["projects"] == []
+
 
 # ===========================================================================
 # atlas doctor

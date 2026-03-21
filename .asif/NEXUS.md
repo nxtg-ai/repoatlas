@@ -129,8 +129,9 @@
 | N-116 | [Top Projects JSON Export](#n-116-top-projects-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-117 | [Template Engine Detection](#n-117-template-engine-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-118 | [Template Engine Intelligence](#n-118-template-engine-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-119 | [Search JSON Export](#n-119-search-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 115/118 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 116/119 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -255,7 +256,8 @@
 - Status JSON export: `atlas status --format json` outputs structured JSON with project array (name, path, health grades/scores, languages, frameworks, LOC, files, license). Works with all filters
 - Compare JSON export: `atlas compare A B --format json` outputs structured JSON with project_a/project_b summaries (health, metrics, languages, frameworks), deltas (health_percent, loc, source_files, test_files, commits), shared/unique frameworks and deps
 - Top projects JSON export: `atlas top --format json` outputs structured JSON with metric, limit, and projects array (rank, name, value, health_grade, stack). Works with --by and --limit options
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116
+- Search JSON export: `atlas search <term> --format json` outputs structured JSON with query, total count, and projects array (name, path, health_grade, health_percent, languages, frameworks, loc, license)
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -647,6 +649,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-119: Search JSON Export
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--format json` option to `atlas search` command. Outputs structured JSON with `query`, `total` count, and `projects` array (name, path, health_grade, health_percent, languages, frameworks, loc, license). Enables programmatic search integration. 2 tests.
+**Shipped**: 2026-03-21. Total test count: 1903 → 1905. 36th experience feature.
 
 ### N-118: Template Engine Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

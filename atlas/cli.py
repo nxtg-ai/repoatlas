@@ -526,6 +526,7 @@ def doctor(
 @app.command()
 def search(
     query: str = typer.Argument(help="Search term (matches name, language, framework, or tech)"),
+    format: Optional[str] = typer.Option(None, "--format", "-f", help="Output format: json"),
 ):
     """Search portfolio projects by name, language, framework, or technology."""
     portfolio = _load_portfolio()
@@ -549,6 +550,28 @@ def search(
         if _project_has_tech(p, term):
             matches.append(p)
             continue
+
+    if format == "json":
+        import json as json_mod
+        data = {
+            "query": query,
+            "total": len(matches),
+            "projects": [
+                {
+                    "name": p.name,
+                    "path": p.path,
+                    "health_grade": p.health.grade,
+                    "health_percent": p.health.percent,
+                    "languages": dict(p.tech_stack.languages),
+                    "frameworks": p.tech_stack.frameworks,
+                    "loc": p.loc,
+                    "license": p.license,
+                }
+                for p in matches
+            ],
+        }
+        console.print(json_mod.dumps(data, indent=2))
+        return
 
     console.print()
     if not matches:
