@@ -5012,3 +5012,138 @@ def detect_crypto_libs(project_path: Path) -> list[str]:
             _add(name)
 
     return sorted(tools)
+
+
+def detect_pdf_libs(project_path: Path) -> list[str]:
+    """Detect PDF and document generation libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map = {
+        "reportlab": "ReportLab",
+        "fpdf2": "FPDF2",
+        "fpdf": "FPDF",
+        "weasyprint": "WeasyPrint",
+        "xhtml2pdf": "xhtml2pdf",
+        "pypdf": "pypdf",
+        "pypdf2": "PyPDF2",
+        "pdfplumber": "pdfplumber",
+        "pymupdf": "PyMuPDF",
+        "fitz": "PyMuPDF",
+        "pdfminer": "PDFMiner",
+        "pdfminer.six": "PDFMiner",
+        "camelot-py": "Camelot",
+        "tabula-py": "tabula-py",
+        "pikepdf": "pikepdf",
+        "borb": "borb",
+        "python-docx": "python-docx",
+        "openpyxl": "openpyxl",
+        "xlsxwriter": "XlsxWriter",
+        "python-pptx": "python-pptx",
+        "pandoc": "Pandoc",
+    }
+    for dep, name in py_map.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    js_content = ""
+    if pkg_json.exists():
+        try:
+            js_content = pkg_json.read_text().lower()
+        except OSError:
+            pass
+
+    js_map = {
+        "pdfkit": "PDFKit",
+        "pdf-lib": "pdf-lib",
+        "jspdf": "jsPDF",
+        "puppeteer": "Puppeteer",
+        "playwright": "Playwright",
+        "@react-pdf/renderer": "React-PDF",
+        "react-pdf": "react-pdf",
+        "pdfjs-dist": "PDF.js",
+        "pdfmake": "pdfmake",
+        "docx": "docx",
+        "exceljs": "ExcelJS",
+        "xlsx": "SheetJS",
+        "papaparse": "PapaParse",
+        "csv-parse": "csv-parse",
+        "handlebars": "Handlebars",
+    }
+    for dep, name in js_map.items():
+        if dep in js_content:
+            _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_content = ""
+    if go_sum.exists():
+        try:
+            go_content = go_sum.read_text().lower()
+        except OSError:
+            pass
+
+    go_map = {
+        "unidoc/unipdf": "UniPDF",
+        "jung-kurt/gofpdf": "gofpdf",
+        "signintech/gopdf": "goPDF",
+        "pdfcpu": "pdfcpu",
+        "excelize": "Excelize",
+    }
+    for dep, name in go_map.items():
+        if dep.lower() in go_content:
+            _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    rust_content = ""
+    if cargo_toml.exists():
+        try:
+            rust_content = cargo_toml.read_text().lower()
+        except OSError:
+            pass
+
+    rust_map = {
+        "printpdf": "printpdf",
+        "genpdf": "genpdf",
+        "lopdf": "lopdf",
+        "pdf-extract": "pdf-extract",
+        "calamine": "calamine",
+    }
+    for dep, name in rust_map.items():
+        if dep in rust_content:
+            _add(name)
+
+    # Java
+    java_deps = []
+    for build_file in ("build.gradle", "build.gradle.kts", "pom.xml"):
+        bf = project_path / build_file
+        if bf.exists():
+            try:
+                java_deps.append(bf.read_text())
+            except Exception:
+                pass
+    java_content = " ".join(java_deps)
+
+    java_map = {
+        "itext": "iText",
+        "pdfbox": "Apache PDFBox",
+        "openpdf": "OpenPDF",
+        "jasperreports": "JasperReports",
+        "apache-poi": "Apache POI",
+        "poi": "Apache POI",
+    }
+    for dep, name in java_map.items():
+        if dep in java_content:
+            _add(name)
+
+    return sorted(tools)

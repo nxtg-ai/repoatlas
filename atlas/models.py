@@ -53,6 +53,7 @@ class TechStack:
     date_libs: list[str] = field(default_factory=list)
     image_libs: list[str] = field(default_factory=list)
     crypto_libs: list[str] = field(default_factory=list)
+    pdf_libs: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -187,6 +188,7 @@ class Project:
                 "date_libs": self.tech_stack.date_libs,
                 "image_libs": self.tech_stack.image_libs,
                 "crypto_libs": self.tech_stack.crypto_libs,
+                "pdf_libs": self.tech_stack.pdf_libs,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -266,6 +268,7 @@ class Project:
                 date_libs=ts.get("date_libs", []),
                 image_libs=ts.get("image_libs", []),
                 crypto_libs=ts.get("crypto_libs", []),
+                pdf_libs=ts.get("pdf_libs", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

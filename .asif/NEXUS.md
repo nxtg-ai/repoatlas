@@ -156,8 +156,9 @@
 | N-143 | [Status Sort Command](#n-143-status-sort-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-144 | [Image Processing Intelligence](#n-144-image-processing-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-145 | [Cryptography Library Detection](#n-145-cryptography-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-146 | [PDF & Document Library Detection](#n-146-pdf--document-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 142/145 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 143/146 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -210,7 +211,8 @@
 - Date & time library detection: Arrow, Pendulum, python-dateutil, pytz, humanize, dateparser, iso8601, ciso8601 (Python), Day.js, date-fns, Luxon, Moment.js, Spacetime, Temporal, timeago.js, chrono-node (JS/TS), jinzhu/now, dateparse (Go), chrono, time (Rust), Joda-Time, ThreeTen-Extra, PrettyTime (Java)
 - Image processing library detection: Pillow, OpenCV, scikit-image, imageio, Wand, CairoSVG, pyvips, rawpy (Python), Sharp, Jimp, node-canvas, napi-canvas, GraphicsMagick, image-size, pngjs, pixelmatch, BlurHash, Plaiceholder, IMG.LY, Cropper.js (JS/TS), imaging, gg, nfnt/resize, bild, GoCV, x/image (Go), image, imageproc, resvg, OpenCV (Rust), Thumbnailator, imgscalr, TwelveMonkeys, Scrimage (Java)
 - Cryptography library detection: cryptography, PyCryptodome, PyNaCl, bcrypt, Passlib, Argon2, pyOpenSSL (Python), CryptoJS, bcrypt.js, jose, node-forge, TweetNaCl, libsodium, OpenPGP.js, noble-curves/hashes (JS/TS), x/crypto, age, CIRCL (Go), ring, rustls, Orion, sha2, aes-gcm (Rust), Bouncy Castle, Tink, Jasypt (Java)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145
+- PDF & document library detection: ReportLab, WeasyPrint, xhtml2pdf, pypdf, PyMuPDF, pdfplumber, PDFMiner, python-docx, openpyxl, XlsxWriter (Python), jsPDF, pdf-lib, PDFKit, pdfmake, React-PDF, ExcelJS, SheetJS, PapaParse (JS/TS), Excelize, UniPDF, gofpdf (Go), printpdf, genpdf, lopdf (Rust), iText, Apache PDFBox, OpenPDF, JasperReports, Apache POI (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -701,6 +703,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-146: PDF & Document Library Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects PDF and document generation libraries across Python (ReportLab, FPDF2, WeasyPrint, xhtml2pdf, pypdf, PyMuPDF, pdfplumber, PDFMiner, Camelot, tabula-py, pikepdf, borb, python-docx, openpyxl, XlsxWriter, python-pptx, Pandoc), JS/TS (PDFKit, pdf-lib, jsPDF, Puppeteer, Playwright, React-PDF, PDF.js, pdfmake, docx, ExcelJS, SheetJS, PapaParse, csv-parse), Go (UniPDF, gofpdf, goPDF, pdfcpu, Excelize), Rust (printpdf, genpdf, lopdf, pdf-extract, calamine), Java (iText, Apache PDFBox, OpenPDF, JasperReports, Apache POI). TechStack field, portfolio summary, project card, CSV/MD/JSON export, CLI search. 18 tests.
+**Shipped**: 2026-03-21. Total test count: 2181 → 2199. 46th detection category.
 
 ### N-145: Cryptography Library Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

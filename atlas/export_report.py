@@ -514,6 +514,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         cl_names = ", ".join(f"{t} ({c})" for t, c in cl_counter_md.most_common(8))
         lines.append(f"**Crypto Libs**: {has_cl_md}/{n} projects · {cl_names}")
 
+    # PDF/doc libs
+    has_pdf_md = sum(1 for p in projects if p.tech_stack.pdf_libs)
+    if has_pdf_md:
+        pdf_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for pl in p.tech_stack.pdf_libs:
+                pdf_counter_md[pl] += 1
+        pdf_names = ", ".join(f"{t} ({c})" for t, c in pdf_counter_md.most_common(8))
+        lines.append(f"**PDF/Doc Libs**: {has_pdf_md}/{n} projects · {pdf_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -662,6 +672,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.crypto_libs:
             lines.append(f"- **Crypto**: {', '.join(p.tech_stack.crypto_libs[:8])}")
+
+        if p.tech_stack.pdf_libs:
+            lines.append(f"- **PDF/Docs**: {', '.join(p.tech_stack.pdf_libs[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -1206,6 +1219,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             cl_counter_j[cl] += 1
     has_cl_j = sum(1 for p in projects if p.tech_stack.crypto_libs)
 
+    # PDF/doc libs
+    pdf_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for pl in p.tech_stack.pdf_libs:
+            pdf_counter_j[pl] += 1
+    has_pdf_j = sum(1 for p in projects if p.tech_stack.pdf_libs)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1263,6 +1283,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "date_libs": {"coverage": f"{has_dl_j}/{n}", "libs": dict(dl_counter_j.most_common(10))},
         "image_libs": {"coverage": f"{has_il_j}/{n}", "libs": dict(il_counter_j.most_common(10))},
         "crypto_libs": {"coverage": f"{has_cl_j}/{n}", "libs": dict(cl_counter_j.most_common(10))},
+        "pdf_libs": {"coverage": f"{has_pdf_j}/{n}", "libs": dict(pdf_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1283,7 +1304,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1349,6 +1370,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.date_libs),
             "; ".join(ts.image_libs),
             "; ".join(ts.crypto_libs),
+            "; ".join(ts.pdf_libs),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

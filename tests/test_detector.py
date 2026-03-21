@@ -51,6 +51,7 @@ from atlas.detector import (
     detect_date_libs,
     detect_image_libs,
     detect_crypto_libs,
+    detect_pdf_libs,
     walk_files,
 )
 
@@ -5773,4 +5774,99 @@ class TestDetectCryptoLibs:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("pynacl>=1.0\nbcrypt>=4.0\ncryptography>=41.0\n")
         result = detect_crypto_libs(tmp_path)
+        assert result == sorted(result)
+
+
+# ---------------------------------------------------------------------------
+# detect_pdf_libs
+# ---------------------------------------------------------------------------
+class TestDetectPdfLibs:
+    def test_empty(self, tmp_path):
+        assert detect_pdf_libs(tmp_path) == []
+
+    def test_python_reportlab(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("reportlab>=4.0\n")
+        result = detect_pdf_libs(tmp_path)
+        assert "ReportLab" in result
+
+    def test_python_weasyprint(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("weasyprint>=60.0\n")
+        result = detect_pdf_libs(tmp_path)
+        assert "WeasyPrint" in result
+
+    def test_python_pypdf(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pypdf>=3.0\n")
+        result = detect_pdf_libs(tmp_path)
+        assert "pypdf" in result
+
+    def test_python_pymupdf(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pymupdf>=1.23\n")
+        result = detect_pdf_libs(tmp_path)
+        assert "PyMuPDF" in result
+
+    def test_python_docx(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("python-docx>=1.0\n")
+        result = detect_pdf_libs(tmp_path)
+        assert "python-docx" in result
+
+    def test_python_openpyxl(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("openpyxl>=3.0\n")
+        result = detect_pdf_libs(tmp_path)
+        assert "openpyxl" in result
+
+    def test_python_pdfplumber(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pdfplumber>=0.10\n")
+        result = detect_pdf_libs(tmp_path)
+        assert "pdfplumber" in result
+
+    def test_js_jspdf(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"jspdf": "^2.0"}}')
+        result = detect_pdf_libs(tmp_path)
+        assert "jsPDF" in result
+
+    def test_js_pdf_lib(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"pdf-lib": "^1.0"}}')
+        result = detect_pdf_libs(tmp_path)
+        assert "pdf-lib" in result
+
+    def test_js_exceljs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"exceljs": "^4.0"}}')
+        result = detect_pdf_libs(tmp_path)
+        assert "ExcelJS" in result
+
+    def test_js_pdfmake(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"pdfmake": "^0.2"}}')
+        result = detect_pdf_libs(tmp_path)
+        assert "pdfmake" in result
+
+    def test_go_excelize(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/xuri/excelize/v2 v2.8.0 h1:abc\n")
+        result = detect_pdf_libs(tmp_path)
+        assert "Excelize" in result
+
+    def test_rust_printpdf(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nprintpdf = "0.6"')
+        result = detect_pdf_libs(tmp_path)
+        assert "printpdf" in result
+
+    def test_java_pdfbox(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><groupId>org.apache.pdfbox</groupId></dependency>")
+        result = detect_pdf_libs(tmp_path)
+        assert "Apache PDFBox" in result
+
+    def test_java_itext(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'com.itextpdf:itext7-core:7.2'")
+        result = detect_pdf_libs(tmp_path)
+        assert "iText" in result
+
+    def test_multiple_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("reportlab>=4.0\npypdf>=3.0\nopenpyxl>=3.0\n")
+        result = detect_pdf_libs(tmp_path)
+        assert "ReportLab" in result
+        assert "pypdf" in result
+        assert "openpyxl" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("weasyprint>=60.0\nreportlab>=4.0\npypdf>=3.0\n")
+        result = detect_pdf_libs(tmp_path)
         assert result == sorted(result)

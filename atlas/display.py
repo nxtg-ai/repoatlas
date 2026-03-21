@@ -781,6 +781,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         cl_parts = [f"{cl} ({count})" for cl, count in top_cl]
         lines.append(f"  [bold]Crypto:[/bold]     {has_cl}/{n} projects · {', '.join(cl_parts)}")
 
+    # PDF/doc libs
+    has_pdf = sum(1 for p in projects if p.tech_stack.pdf_libs)
+    if has_pdf:
+        pdf_counter: Counter[str] = Counter()
+        for p in projects:
+            for pl in p.tech_stack.pdf_libs:
+                pdf_counter[pl] += 1
+        top_pdf = pdf_counter.most_common(6)
+        pdf_parts = [f"{pl} ({count})" for pl, count in top_pdf]
+        lines.append(f"  [bold]PDF/Docs:[/bold]   {has_pdf}/{n} projects · {', '.join(pdf_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1256,6 +1267,10 @@ def show_project_card(project: Project):
     if project.tech_stack.crypto_libs:
         cl = ", ".join(project.tech_stack.crypto_libs[:8])
         lines.append(f"  [bold]Crypto:[/bold]     {cl}")
+
+    if project.tech_stack.pdf_libs:
+        pl = ", ".join(project.tech_stack.pdf_libs[:8])
+        lines.append(f"  [bold]PDF/Docs:[/bold]   {pl}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")
