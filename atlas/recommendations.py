@@ -264,6 +264,7 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "template_engine_divergence": "deps",
         "serialization_divergence": "deps",
         "di_divergence": "deps",
+        "websocket_divergence": "deps",
     }
 
     for conn in connections:

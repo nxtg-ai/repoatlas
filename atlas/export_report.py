@@ -732,6 +732,8 @@ def _connections_section(conns: list) -> list[str]:
         "serialization_divergence": "Serialization Divergence",
         "shared_di_framework": "Shared DI Frameworks",
         "di_divergence": "DI Approach Divergence",
+        "shared_websocket_lib": "Shared WebSocket Libs",
+        "websocket_divergence": "WebSocket Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

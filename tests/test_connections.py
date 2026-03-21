@@ -4825,3 +4825,66 @@ class TestFindDIPatterns:
         conns = find_connections(projects)
         di_types = {c.type for c in conns if "di" in c.type}
         assert "shared_di_framework" in di_types
+
+
+class TestFindWebSocketPatterns:
+    def test_shared_websocket_lib(self):
+        projects = [
+            _proj("a", websocket_libs=["Socket.IO", "ws"]),
+            _proj("b", websocket_libs=["Socket.IO"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_websocket_lib"]
+        assert any("Socket.IO" in c.detail for c in shared)
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", websocket_libs=["ws"]),
+            _proj("b", websocket_libs=["Gorilla WebSocket"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_websocket_lib"]
+        assert len(shared) == 0
+
+    def test_divergence_managed_vs_self_hosted(self):
+        projects = [
+            _proj("a", websocket_libs=["Pusher"]),
+            _proj("b", websocket_libs=["Socket.IO"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "websocket_divergence"]
+        assert len(div) == 1
+        assert "managed" in div[0].detail
+        assert "self_hosted" in div[0].detail
+
+    def test_no_divergence_same_category(self):
+        projects = [
+            _proj("a", websocket_libs=["ws"]),
+            _proj("b", websocket_libs=["Socket.IO"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "websocket_divergence"]
+        assert len(div) == 0
+
+    def test_empty_websocket(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        ws = [c for c in conns if "websocket" in c.type]
+        assert len(ws) == 0
+
+    def test_cap_at_10(self):
+        projects = [
+            _proj(f"p{i}", websocket_libs=["Socket.IO"]) for i in range(20)
+        ]
+        from atlas.connections import _find_websocket_patterns
+        conns = _find_websocket_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", websocket_libs=["Socket.IO", "Pusher"]),
+            _proj("b", websocket_libs=["Socket.IO", "ws"]),
+        ]
+        conns = find_connections(projects)
+        ws_types = {c.type for c in conns if "websocket" in c.type}
+        assert "shared_websocket_lib" in ws_types

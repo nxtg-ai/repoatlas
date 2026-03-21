@@ -354,6 +354,7 @@ CONNECTION_CATEGORIES = {
     "templates": {"shared_template_engine", "template_engine_divergence"},
     "serialization": {"shared_serialization_format", "serialization_divergence"},
     "di": {"shared_di_framework", "di_divergence"},
+    "websocket": {"shared_websocket_lib", "websocket_divergence"},
 }
 
 

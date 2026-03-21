@@ -151,6 +151,8 @@ CONNECTION_ICONS = {
     "serialization_divergence": "[yellow]\u2b12[/yellow]",
     "shared_di_framework": "[green]\u2b19[/green]",
     "di_divergence": "[yellow]\u2b19[/yellow]",
+    "shared_websocket_lib": "[green]⇌[/green]",
+    "websocket_divergence": "[yellow]⇌[/yellow]",
 }
 
 
@@ -857,6 +859,8 @@ def show_connections(connections: list[Connection]):
         "serialization_divergence": "Serialization Divergence",
         "shared_di_framework": "Shared DI Frameworks",
         "di_divergence": "DI Approach Divergence",
+        "shared_websocket_lib": "Shared WebSocket Libs",
+        "websocket_divergence": "WebSocket Approach Divergence",
     }
 
     lines = []
@@ -934,6 +938,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_template_engine": "templates", "template_engine_divergence": "templates",
         "shared_serialization_format": "serialization", "serialization_divergence": "serialization",
         "shared_di_framework": "di", "di_divergence": "di",
+        "shared_websocket_lib": "websocket", "websocket_divergence": "websocket",
     }
 
     for conn in connections:

@@ -137,8 +137,9 @@
 | N-124 | [Dependency Injection Intelligence](#n-124-dependency-injection-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-125 | [Connections Project Filter](#n-125-connections-project-filter) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-126 | [WebSocket Library Detection](#n-126-websocket-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-127 | [WebSocket Intelligence](#n-127-websocket-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 123/126 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 124/127 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -228,7 +229,8 @@
 - Cross-project template engine intelligence (shared template engines, string-based vs component-based paradigm divergence)
 - Cross-project serialization format intelligence (shared serialization formats, binary vs text-based paradigm divergence)
 - Cross-project DI framework intelligence (shared DI frameworks, container-based vs implicit paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124
+- Cross-project WebSocket intelligence (shared WebSocket libs, managed vs self-hosted paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -663,6 +665,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-127: WebSocket Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project WebSocket intelligence: shared WebSocket libs (shared_websocket_lib), managed vs self-hosted paradigm divergence (websocket_divergence). No gap type (WebSocket is architectural preference). New CONNECTION_CATEGORIES entry "websocket". Updated display type_labels, icons, stats category mapping, export type_labels, recommendations mapping. 7 tests.
+**Shipped**: 2026-03-21. Total test count: 1986 → 1993. 41st intelligence feature.
 
 ### N-126: WebSocket Library Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

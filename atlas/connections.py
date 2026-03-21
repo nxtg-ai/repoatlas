@@ -50,6 +50,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_template_engine_patterns(projects))
     connections.extend(_find_serialization_patterns(projects))
     connections.extend(_find_di_patterns(projects))
+    connections.extend(_find_websocket_patterns(projects))
     return connections
 
 
@@ -2913,6 +2914,63 @@ def _find_di_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="di_divergence",
             detail=f"Mixed DI approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_websocket_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project WebSocket library patterns."""
+    connections: list[Connection] = []
+
+    # Shared WebSocket libs — same lib used by 2+ projects
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.websocket_libs:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_websocket_lib",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # WebSocket divergence — managed/hosted vs self-hosted
+    managed_services = {"Pusher", "Ably", "Centrifugo", "Action Cable", "Phoenix Channels"}
+    self_hosted = {"websockets", "Socket.IO", "ws", "SockJS", "Primus", "Gorilla WebSocket",
+                   "nhooyr/websocket", "gobwas/ws", "Tungstenite", "Spring WebSocket",
+                   "Jakarta WebSocket", "Django Channels", "python-socketio",
+                   "Starlette WebSocket", "Tornado WebSocket", "Autobahn", "aiohttp WebSocket",
+                   "wsproto", "Melody", "Axum WebSocket", "Actix WebSocket", "Warp WebSocket",
+                   "tRPC WebSocket", "graphql-ws", "Tyrus", "Netty WebSocket", "Undertow WebSocket"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "managed": {}, "self_hosted": {},
+    }
+    cat_sets = [("managed", managed_services), ("self_hosted", self_hosted)]
+    for p in projects:
+        for lib in p.tech_stack.websocket_libs:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, libs in active_cats.items():
+            lib_names = ", ".join(sorted(libs.keys())[:3])
+            parts.append(f"{cat_name} ({lib_names})")
+            for ps in libs.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="websocket_divergence",
+            detail=f"Mixed WebSocket approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))
