@@ -17,11 +17,11 @@
 | N-04 | [Terminal Dashboard](#n-04-terminal-dashboard) | EXPERIENCE | SHIPPED | P0 | 2026-03-04 |
 | N-05 | [GitHub CI](#n-05-github-ci) | DISTRIBUTION | SHIPPED | P1 | 2026-03-04 |
 | N-06 | [PyPI Publishing](#n-06-pypi-publishing) | DISTRIBUTION | DECIDED | P0 | 2026-03-13 |
-| N-07 | [README + GIF Demo](#n-07-readme-gif-demo) | DISTRIBUTION | IDEA | P1 | — |
+| N-07 | [README + GIF Demo](#n-07-readme-gif-demo) | DISTRIBUTION | SHIPPED | P1 | 2026-03-13 |
 | N-08 | [Show HN Launch](#n-08-show-hn-launch) | DISTRIBUTION | IDEA | P1 | — |
 | N-09 | [Pro Tier / Monetization](#n-09-pro-tier-monetization) | DISTRIBUTION | IDEA | P2 | — |
 
-**Summary**: 5/9 SHIPPED | 1 DECIDED | 3 IDEA | 0 BUILDING
+**Summary**: 6/9 SHIPPED | 1 DECIDED | 2 IDEA | 0 BUILDING
 
 ---
 
@@ -84,9 +84,9 @@
 **Next step**: Asif sets up PyPI token, then `twine upload dist/*`.
 
 ### N-07: README + GIF Demo
-**Pillar**: DISTRIBUTION | **Status**: IDEA | **Priority**: P1
+**Pillar**: DISTRIBUTION | **Status**: SHIPPED | **Priority**: P1
 **What**: Polished README with terminal recording GIF showing full portfolio scan.
-**Next step**: Record terminal session with asciinema or VHS, convert to GIF.
+**Shipped**: 2026-03-13. GIF recorded via asciinema + agg (271KB). Shows `atlas status`, `atlas connections`, `atlas inspect`. VHS tape also included at `demo/demo.tape`.
 
 ### N-08: Show HN Launch
 **Pillar**: DISTRIBUTION | **Status**: IDEA | **Priority**: P1

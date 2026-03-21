@@ -9,6 +9,10 @@
 
 Scan your repos. Score health. Find cross-project patterns nobody else sees.
 
+<p align="center">
+  <img src="demo/demo.gif" alt="Atlas terminal demo" width="800">
+</p>
+
 ```
 pip install nxtg-atlas
 ```
