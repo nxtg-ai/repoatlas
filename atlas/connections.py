@@ -42,6 +42,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_task_queue_patterns(projects))
     connections.extend(_find_search_engine_patterns(projects))
     connections.extend(_find_feature_flag_patterns(projects))
+    connections.extend(_find_http_client_patterns(projects))
     return connections
 
 
@@ -2379,6 +2380,89 @@ def _find_feature_flag_patterns(projects: list[Project]) -> list[Connection]:
                 type="feature_flag_gap",
                 detail=f"{len(no_flags)} web project(s) have no feature flag tooling detected",
                 projects=sorted(no_flags),
+                severity="info",
+            ))
+
+    return connections[:10]
+
+
+def _find_http_client_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project HTTP client patterns."""
+    connections: list[Connection] = []
+
+    # Shared HTTP clients — same client used by 2+ projects
+    client_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for c in p.tech_stack.http_clients:
+            client_to_projects[c].append(p.name)
+
+    for c, projs in sorted(client_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_http_client",
+                detail=f"{c} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # HTTP client divergence — different paradigms across portfolio
+    sync_clients = {"Requests", "urllib3", "httplib2", "PycURL", "Got",
+                    "SuperAgent", "Needle", "ureq", "attohttpc", "OkHttp",
+                    "Apache HttpClient", "Unirest", "RestTemplate"}
+    async_clients = {"HTTPX", "aiohttp", "treq", "asks", "niquests",
+                     "Undici", "reqwest", "hyper", "surf", "isahc",
+                     "WebClient"}
+    fetch_based = {"node-fetch", "cross-fetch", "isomorphic-fetch", "ofetch",
+                   "Ky", "Wretch"}
+    rpc_style = {"Retrofit", "Feign", "Resty", "Uplink", "Sling",
+                 "go-retryablehttp", "Heimdall", "Req", "Gentleman", "Axios"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "sync": {}, "async": {}, "fetch": {}, "rpc": {},
+    }
+    cat_sets = [
+        ("sync", sync_clients),
+        ("async", async_clients),
+        ("fetch", fetch_based),
+        ("rpc", rpc_style),
+    ]
+    for p in projects:
+        for c in p.tech_stack.http_clients:
+            for cat_name, cat_set in cat_sets:
+                if c in cat_set:
+                    cat_found[cat_name].setdefault(c, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, clients in active_cats.items():
+            client_names = ", ".join(sorted(clients.keys())[:3])
+            parts.append(f"{cat_name} ({client_names})")
+            for ps in clients.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="http_client_divergence",
+            detail=f"Mixed HTTP client approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # HTTP client gap — backend projects with no HTTP client
+    has_clients = {p.name for p in projects if p.tech_stack.http_clients}
+    if has_clients:
+        no_clients = [p.name for p in projects
+                      if not p.tech_stack.http_clients
+                      and p.source_file_count > 20
+                      and any(f in p.tech_stack.frameworks
+                              for f in ("FastAPI", "Django", "Flask", "Express",
+                                        "NestJS", "Spring Boot", "Gin", "Echo",
+                                        "Actix", "Axum", "Fiber"))]
+        if no_clients:
+            connections.append(Connection(
+                type="http_client_gap",
+                detail=f"{len(no_clients)} backend project(s) have no HTTP client library detected",
+                projects=sorted(no_clients),
                 severity="info",
             ))
 

@@ -303,6 +303,7 @@ CONNECTION_CATEGORIES = {
     "queues": {"shared_task_queue", "task_queue_divergence", "task_queue_gap"},
     "search": {"shared_search", "search_divergence", "search_gap"},
     "flags": {"shared_feature_flag", "feature_flag_divergence", "feature_flag_gap"},
+    "http": {"shared_http_client", "http_client_divergence", "http_client_gap"},
 }
 
 

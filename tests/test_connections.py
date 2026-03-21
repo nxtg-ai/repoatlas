@@ -4177,3 +4177,96 @@ class TestFindFeatureFlagPatterns:
         conns = find_connections(projects)
         flag_types = {c.type for c in conns if "feature_flag" in c.type}
         assert "shared_feature_flag" in flag_types
+
+
+class TestFindHttpClientPatterns:
+    def test_no_http_clients(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        http_conns = [c for c in conns if "http_client" in c.type]
+        assert len(http_conns) == 0
+
+    def test_shared_http_client(self):
+        projects = [
+            _proj("a", http_clients=["Requests"]),
+            _proj("b", http_clients=["Requests"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_http_client"]
+        assert len(shared) == 1
+        assert "Requests" in shared[0].detail
+
+    def test_http_client_divergence(self):
+        projects = [
+            _proj("a", http_clients=["Requests"]),
+            _proj("b", http_clients=["Axios"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "http_client_divergence"]
+        assert len(div) == 1
+        assert div[0].severity == "warning"
+
+    def test_http_client_gap(self):
+        projects = [
+            _proj("a", http_clients=["Requests"], frameworks=["FastAPI"], source_files=30),
+            _proj("b", frameworks=["FastAPI"], source_files=30),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "http_client_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+
+    def test_no_gap_when_no_one_has_clients(self):
+        projects = [
+            _proj("a", frameworks=["FastAPI"], source_files=30),
+            _proj("b", frameworks=["FastAPI"], source_files=30),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "http_client_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_for_small_projects(self):
+        projects = [
+            _proj("a", http_clients=["HTTPX"], frameworks=["FastAPI"], source_files=30),
+            _proj("b", frameworks=["FastAPI"], source_files=5),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "http_client_gap"]
+        assert len(gaps) == 0
+
+    def test_no_divergence_single_paradigm(self):
+        projects = [
+            _proj("a", http_clients=["Requests"]),
+            _proj("b", http_clients=["urllib3"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "http_client_divergence"]
+        assert len(div) == 0
+
+    def test_multiple_shared_clients(self):
+        projects = [
+            _proj("a", http_clients=["Requests", "HTTPX"]),
+            _proj("b", http_clients=["Requests", "HTTPX"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_http_client"]
+        assert len(shared) == 2
+
+    def test_capped_at_10(self):
+        clients = [f"Client{i}" for i in range(20)]
+        projects = [
+            _proj("a", http_clients=clients),
+            _proj("b", http_clients=clients),
+        ]
+        conns = find_connections(projects)
+        http_conns = [c for c in conns if "http_client" in c.type]
+        assert len(http_conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", http_clients=["Requests"]),
+            _proj("b", http_clients=["Requests", "Axios"]),
+        ]
+        conns = find_connections(projects)
+        http_types = {c.type for c in conns if "http_client" in c.type}
+        assert "shared_http_client" in http_types

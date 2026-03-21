@@ -131,6 +131,9 @@ CONNECTION_ICONS = {
     "shared_feature_flag": "[green]\u2691[/green]",
     "feature_flag_divergence": "[yellow]\u2691[/yellow]",
     "feature_flag_gap": "[red]\u2691[/red]",
+    "shared_http_client": "[green]\u21c4[/green]",
+    "http_client_divergence": "[yellow]\u21c4[/yellow]",
+    "http_client_gap": "[red]\u21c4[/red]",
 }
 
 
@@ -729,6 +732,9 @@ def show_connections(connections: list[Connection]):
         "shared_feature_flag": "Shared Feature Flags",
         "feature_flag_divergence": "Feature Flag Divergence",
         "feature_flag_gap": "Feature Flag Gaps",
+        "shared_http_client": "Shared HTTP Clients",
+        "http_client_divergence": "HTTP Client Divergence",
+        "http_client_gap": "HTTP Client Gaps",
     }
 
     lines = []
@@ -798,6 +804,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_task_queue": "queues", "task_queue_divergence": "queues", "task_queue_gap": "queues",
         "shared_search": "search", "search_divergence": "search", "search_gap": "search",
         "shared_feature_flag": "flags", "feature_flag_divergence": "flags", "feature_flag_gap": "flags",
+        "shared_http_client": "http", "http_client_divergence": "http", "http_client_gap": "http",
     }
 
     for conn in connections:

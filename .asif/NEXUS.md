@@ -113,8 +113,9 @@
 | N-100 | [Feature Flag Intelligence](#n-100-feature-flag-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-101 | [Connections JSON Export](#n-101-connections-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-102 | [HTTP Client Detection](#n-102-http-client-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-103 | [HTTP Client Intelligence](#n-103-http-client-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 99/102 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 100/103 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -188,7 +189,8 @@
 - Cross-project task queue intelligence (shared task queues, traditional vs workflow vs cron paradigm divergence, task queue gaps for backend projects)
 - Cross-project search engine intelligence (shared search engines, server-side vs client-side vs SaaS paradigm divergence, search gaps for database-backed projects)
 - Cross-project feature flag intelligence (shared flag tools, SaaS vs self-hosted vs analytics paradigm divergence, feature flag gaps for web projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100
+- Cross-project HTTP client intelligence (shared HTTP clients, sync vs async vs fetch-based vs RPC-style paradigm divergence, HTTP client gaps for backend projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -615,6 +617,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-103: HTTP Client Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project HTTP client intelligence: shared HTTP clients (shared_http_client), sync vs async vs fetch-based vs RPC-style paradigm divergence (http_client_divergence), HTTP client gaps for backend projects (http_client_gap). New CONNECTION_CATEGORIES entry "http". 10 tests.
+**Shipped**: 2026-03-21. Total test count: 1733 → 1743. 33rd intelligence feature.
 
 ### N-102: HTTP Client Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

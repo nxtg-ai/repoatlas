@@ -605,6 +605,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_feature_flag": "Shared Feature Flags",
         "feature_flag_divergence": "Feature Flag Divergence",
         "feature_flag_gap": "Feature Flag Gaps",
+        "shared_http_client": "Shared HTTP Clients",
+        "http_client_divergence": "HTTP Client Divergence",
+        "http_client_gap": "HTTP Client Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

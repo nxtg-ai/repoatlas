@@ -252,6 +252,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "search_divergence": "infra",
         "feature_flag_gap": "infra",
         "feature_flag_divergence": "infra",
+        "http_client_gap": "deps",
+        "http_client_divergence": "deps",
     }
 
     for conn in connections:
