@@ -283,6 +283,7 @@ CONNECTION_CATEGORIES = {
     "deploy": {"shared_deploy", "deploy_divergence", "deploy_gap"},
     "state_mgmt": {"shared_state_mgmt", "state_mgmt_divergence", "state_mgmt_gap"},
     "css": {"shared_css", "css_divergence", "css_gap"},
+    "bundler": {"shared_bundler", "bundler_divergence", "bundler_gap"},
 }
 
 

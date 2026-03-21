@@ -32,6 +32,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_deploy_target_patterns(projects))
     connections.extend(_find_state_management_patterns(projects))
     connections.extend(_find_css_framework_patterns(projects))
+    connections.extend(_find_bundler_patterns(projects))
     return connections
 
 
@@ -1588,6 +1589,79 @@ def _find_css_framework_patterns(projects: list[Project]) -> list[Connection]:
                 type="css_gap",
                 detail=f"{len(no_css)} frontend project(s) have no CSS/styling framework",
                 projects=sorted(no_css),
+                severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_bundler_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project bundler patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared bundlers — same tool in 2+ projects
+    bnd_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for bnd in p.tech_stack.bundlers:
+            bnd_to_projects[bnd].append(p.name)
+
+    for bnd, projs in sorted(bnd_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_bundler",
+                detail=f"{bnd} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Bundler divergence — projects using different bundler generations
+    modern_fast = {"Vite", "esbuild", "SWC", "Turbopack", "Rspack", "Bun"}
+    legacy_full = {"Webpack", "Rollup", "Parcel", "Snowpack"}
+    lib_bundlers = {"tsup", "unbuild", "microbundle"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "modern/fast": {}, "traditional": {}, "library": {},
+    }
+    cat_sets = [
+        ("modern/fast", modern_fast),
+        ("traditional", legacy_full),
+        ("library", lib_bundlers),
+    ]
+    for p in projects:
+        for bnd in p.tech_stack.bundlers:
+            for cat_name, cat_set in cat_sets:
+                if bnd in cat_set:
+                    cat_found[cat_name].setdefault(bnd, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys()))
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="bundler_divergence",
+            detail=f"Mixed bundler generations: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # Bundler gap — JS/TS projects with package.json but no bundler
+    has_bundler = {p.name for p in projects if p.tech_stack.bundlers}
+    if has_bundler:
+        js_langs = {"JavaScript", "TypeScript"}
+        no_bundler = [p.name for p in projects
+                      if not p.tech_stack.bundlers
+                      and any(lang in js_langs for lang in p.tech_stack.languages)
+                      and p.source_file_count > 10]
+        if no_bundler:
+            connections.append(Connection(
+                type="bundler_gap",
+                detail=f"{len(no_bundler)} JS/TS project(s) have no bundler configured",
+                projects=sorted(no_bundler),
                 severity="warning",
             ))
 

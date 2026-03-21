@@ -34,7 +34,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
-          state_management=None, css_frameworks=None, project_license="",
+          state_management=None, css_frameworks=None, bundlers=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -61,6 +61,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             deploy_targets=deploy_targets or [],
             state_management=state_management or [],
             css_frameworks=css_frameworks or [],
+            bundlers=bundlers or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -3162,3 +3163,124 @@ class TestFindCssFrameworkPatterns:
         conns = find_connections(projects)
         css_types = {c.type for c in conns if "css" in c.type}
         assert "shared_css" in css_types
+
+
+# ---------------------------------------------------------------------------
+# _find_bundler_patterns
+# ---------------------------------------------------------------------------
+class TestFindBundlerPatterns:
+    def test_shared_bundler(self):
+        projects = [
+            _proj("a", bundlers=["Vite"]),
+            _proj("b", bundlers=["Vite"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_bundler"]
+        assert len(shared) == 1
+        assert "Vite" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_shared_multiple(self):
+        projects = [
+            _proj("a", bundlers=["Vite", "esbuild"]),
+            _proj("b", bundlers=["Vite", "esbuild"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_bundler"]
+        assert len(shared) == 2
+
+    def test_no_shared_unique(self):
+        projects = [
+            _proj("a", bundlers=["Vite"]),
+            _proj("b", bundlers=["Webpack"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_bundler"]
+        assert len(shared) == 0
+
+    def test_divergence_modern_vs_traditional(self):
+        projects = [
+            _proj("a", bundlers=["Vite"]),
+            _proj("b", bundlers=["Webpack"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "bundler_divergence"]
+        assert len(div) == 1
+        assert "modern/fast" in div[0].detail
+        assert "traditional" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_divergence_modern_vs_library(self):
+        projects = [
+            _proj("a", bundlers=["esbuild"]),
+            _proj("b", bundlers=["tsup"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "bundler_divergence"]
+        assert len(div) == 1
+
+    def test_no_divergence_same_generation(self):
+        projects = [
+            _proj("a", bundlers=["Vite"]),
+            _proj("b", bundlers=["esbuild"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "bundler_divergence"]
+        assert len(div) == 0
+
+    def test_no_divergence_empty(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "bundler_divergence"]
+        assert len(div) == 0
+
+    def test_gap_js_no_bundler(self):
+        projects = [
+            _proj("a", bundlers=["Vite"], source_files=15),
+            _proj("b", source_files=15),
+        ]
+        # b needs JS/TS languages for gap
+        projects[1].tech_stack.languages = {"TypeScript": 100}
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "bundler_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+
+    def test_no_gap_no_js(self):
+        projects = [
+            _proj("a", bundlers=["Vite"], source_files=15),
+            _proj("b", source_files=15),
+        ]
+        projects[1].tech_stack.languages = {"Python": 100}
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "bundler_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_no_bundler_portfolio(self):
+        projects = [
+            _proj("a", source_files=15),
+            _proj("b", source_files=15),
+        ]
+        projects[0].tech_stack.languages = {"TypeScript": 100}
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "bundler_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", bundlers=["Vite"], source_files=15),
+            _proj("b", source_files=5),
+        ]
+        projects[1].tech_stack.languages = {"TypeScript": 50}
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "bundler_gap"]
+        assert len(gaps) == 0
+
+    def test_integration_with_find_connections_bundler(self):
+        projects = [
+            _proj("a", bundlers=["Vite"]),
+            _proj("b", bundlers=["Vite", "Webpack"]),
+        ]
+        conns = find_connections(projects)
+        bnd_types = {c.type for c in conns if "bundler" in c.type}
+        assert "shared_bundler" in bnd_types

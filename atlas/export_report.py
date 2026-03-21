@@ -423,6 +423,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_css": "Shared CSS Frameworks",
         "css_divergence": "CSS Framework Divergence",
         "css_gap": "CSS Framework Gaps",
+        "shared_bundler": "Shared Bundlers",
+        "bundler_divergence": "Bundler Divergence",
+        "bundler_gap": "Bundler Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

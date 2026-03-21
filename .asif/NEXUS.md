@@ -84,8 +84,9 @@
 | N-71 | [CSS & Styling Intelligence](#n-71-css--styling-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-72 | [Connection Category List Command](#n-72-connection-category-list-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-73 | [Bundler & Module Tool Detection](#n-73-bundler--module-tool-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-74 | [Bundler Intelligence](#n-74-bundler-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 70/73 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 71/74 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -139,7 +140,8 @@
 - Cross-project deployment target intelligence (shared targets, serverless/edge vs container PaaS vs IaC divergence, deploy gaps for web projects)
 - Cross-project state management intelligence (shared libraries, flux/proxy/atomic/machine paradigm divergence, state management gaps for frontend projects)
 - Cross-project CSS/styling intelligence (shared frameworks, utility-first/CSS-in-JS/component library paradigm divergence, CSS gaps for frontend projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71
+- Cross-project bundler intelligence (shared bundlers, modern/fast vs traditional vs library generation divergence, bundler gaps for JS/TS projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -431,6 +433,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: `detect_bundlers()` in detector.py identifies JavaScript/TypeScript bundlers and module tools from config files and package.json dependencies. Config files: webpack.config.{js,ts,cjs,mjs}, vite.config.{js,ts,mjs}, rollup.config.{js,ts,mjs}, .parcelrc, turbo.json, .swcrc, rspack.config.{js,ts}, tsup.config.{ts,js}. Package.json: Webpack, Vite, esbuild, Rollup, Parcel, SWC, Turbopack, Rspack, tsup, unbuild, microbundle, Bun, Snowpack, WMR. Returns sorted deduplicated list. Integrated across models.py (TechStack field + to_dict/from_dict), scanner.py, display.py (project card + portfolio summary), export_report.py (CSV column + markdown detail + markdown summary + JSON summary), and cli.py (_project_has_tech). 24 tests.
 **Shipped**: 2026-03-21. Total test count: 1334 → 1358. 22nd detection category.
+
+### N-74: Bundler Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project bundler pattern detection via `_find_bundler_patterns()` in connections.py. Analyzes bundlers data from N-73 across the portfolio to detect: shared bundlers (Vite/Webpack across 2+ projects, info), generation divergence (modern/fast [Vite, esbuild, SWC, Turbopack, Rspack, Bun] vs traditional [Webpack, Rollup, Parcel, Snowpack] vs library [tsup, unbuild, microbundle], warning), and bundler gaps (JS/TS projects with 10+ source files but no bundler, warning). New connection types (`shared_bundler`, `bundler_divergence`, `bundler_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps bundler_gap and bundler_divergence to `frontend` recommendation category. 22 categories in CONNECTION_CATEGORIES. 12 intelligence tests.
+**Shipped**: 2026-03-21. Total test count: 1358 → 1370. Completes N-73 detection→intelligence pipeline.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
