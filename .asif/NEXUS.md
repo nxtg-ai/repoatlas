@@ -88,8 +88,9 @@
 | N-75 | [Export Connection Summary Stats](#n-75-export-connection-summary-stats) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-76 | [ORM & Database Client Detection](#n-76-orm--database-client-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-77 | [ORM Intelligence](#n-77-orm-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-78 | [Connection Severity Filtering](#n-78-connection-severity-filtering) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 74/77 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 75/78 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -172,7 +173,8 @@
 - Doctor category summary: `atlas doctor` shows recommendation category breakdown (e.g., "3 security, 2 testing, 1 infra") after priority summary
 - Connection category list: `atlas connections --type list` shows all available categories with their connection types
 - Export connection summary stats: markdown exports show "N connections: X warning, Y info" header, JSON exports include connection_summary with total/critical/warning/info counts
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75
+- Connection severity filtering: `atlas connections --severity warning` filters connections by severity level (info, warning, critical)
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -459,6 +461,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project ORM and database client intelligence. Shared ORM detection (same tool in 2+ projects), ORM strategy divergence (ORM frameworks vs raw database clients — flags when portfolio mixes paradigms), ORM gap detection (projects with databases but no ORM/client library detected, min 10 source files). Connection types: shared_orm (info), orm_divergence (warning), orm_gap (warning). Added to CONNECTION_CATEGORIES as "orm" category (23rd). 11 tests.
 **Shipped**: 2026-03-21. Total test count: 1411 → 1422. 24th intelligence feature.
+
+### N-78: Connection Severity Filtering
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: New `--severity` / `-s` option on `atlas connections` command. Filters connections by severity level: info, warning, or critical. Shows filtered count summary. Invalid severity values show error with valid options. Combinable with `--type` for double filtering. 3 tests.
+**Shipped**: 2026-03-21. Total test count: 1422 → 1425. 23rd experience feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

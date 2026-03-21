@@ -311,6 +311,39 @@ class TestConnections:
         result = runner.invoke(app, ["connections", "--type", "list"])
         assert result.exit_code == 1
 
+    def test_connections_severity_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--severity", "warning"])
+        assert result.exit_code == 0
+        assert "severity: warning" in result.output
+
+    def test_connections_severity_invalid(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--severity", "high"])
+        assert result.exit_code == 1
+        assert "Unknown severity" in result.output
+
+    def test_connections_severity_info(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--severity", "info"])
+        assert result.exit_code == 0
+        assert "severity: info" in result.output
+
 
 # ===========================================================================
 # atlas doctor

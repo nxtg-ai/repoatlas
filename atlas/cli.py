@@ -292,6 +292,7 @@ CONNECTION_CATEGORIES = {
 @app.command()
 def connections(
     type_filter: Optional[str] = typer.Option(None, "--type", "-t", help="Filter by category (use --type list to see all)"),
+    severity: Optional[str] = typer.Option(None, "--severity", "-s", help="Filter by severity (info, warning, critical)"),
 ):
     """Show cross-project intelligence."""
     portfolio = _load_portfolio()
@@ -324,6 +325,17 @@ def connections(
         conns = [c for c in conns if c.type in allowed]
         console.print()
         console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (category: {cat})[/dim]")
+
+    if severity:
+        sev = severity.lower()
+        valid_severities = {"info", "warning", "critical"}
+        if sev not in valid_severities:
+            console.print(f"[red]Unknown severity '{severity}'. Valid: info, warning, critical[/red]")
+            raise typer.Exit(1)
+        total = len(conns)
+        conns = [c for c in conns if c.severity == sev]
+        console.print()
+        console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (severity: {sev})[/dim]")
 
     console.print()
     show_connections(conns)
