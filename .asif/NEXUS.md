@@ -21,8 +21,9 @@
 | N-08 | [Show HN Launch](#n-08-show-hn-launch) | DISTRIBUTION | DECIDED | P1 | 2026-03-13 |
 | N-09 | [Pro Tier / Monetization](#n-09-pro-tier-monetization) | DISTRIBUTION | DECIDED | P2 | 2026-03-13 |
 | N-10 | [Tag-Based Release Automation](#n-10-tag-based-release-automation) | DISTRIBUTION | SHIPPED | P1 | 2026-03-13 |
+| N-11 | [CLI Integration Tests](#n-11-cli-integration-tests) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 7/10 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 8/11 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -107,6 +108,11 @@
 **What**: GitHub Actions release workflow triggered by git tags (`v*`). Runs full test matrix, builds sdist+wheel, validates with twine check, publishes to PyPI via Trusted Publisher (OIDC), and creates GitHub Release with auto-generated notes. Replaces fragile commit-message-based publish trigger.
 **Shipped**: 2026-03-13. Release flow: `git tag v0.2.0 && git push origin v0.2.0` — everything else is automated.
 **Impact**: Simplifies N-06 unblock — Asif only needs to configure PyPI Trusted Publisher for `nxtg-ai/repoatlas`, then push a tag.
+
+### N-11: CLI Integration Tests
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Full integration test coverage for every CLI command — init, add, scan, status, connections, inspect, remove, batch-add, export, license, activate, support, reset. 36 tests covering happy paths, error cases, edge cases (duplicate adds, missing portfolios, case-insensitive lookups, dot-dir exclusion, file export, reset confirmation/cancel).
+**Shipped**: 2026-03-13. Total test count: 248 → 284. Every user-facing command now has test coverage.
 
 ---
 
