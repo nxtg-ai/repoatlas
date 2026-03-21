@@ -86,6 +86,9 @@ CONNECTION_ICONS = {
     "shared_monitoring": "[green]\u2302[/green]",
     "monitoring_divergence": "[yellow]\u2300[/yellow]",
     "monitoring_gap": "[red]\u2301[/red]",
+    "shared_auth": "[green]\u2302[/green]",
+    "auth_divergence": "[yellow]\u2300[/yellow]",
+    "auth_gap": "[red]\u2301[/red]",
 }
 
 
@@ -479,6 +482,9 @@ def show_connections(connections: list[Connection]):
         "shared_monitoring": "Shared Monitoring Tools",
         "monitoring_divergence": "Monitoring Divergence",
         "monitoring_gap": "Monitoring Gaps",
+        "shared_auth": "Shared Auth Tools",
+        "auth_divergence": "Auth Divergence",
+        "auth_gap": "Auth Gaps",
     }
 
     lines = []

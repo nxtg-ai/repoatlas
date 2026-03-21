@@ -27,6 +27,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_build_tool_patterns(projects))
     connections.extend(_find_api_spec_patterns(projects))
     connections.extend(_find_monitoring_patterns(projects))
+    connections.extend(_find_auth_patterns(projects))
     return connections
 
 
@@ -1198,6 +1199,85 @@ def _find_monitoring_patterns(projects: list[Project]) -> list[Connection]:
                 type="monitoring_gap",
                 detail=f"{len(no_monitoring)} project(s) have no monitoring/observability tooling",
                 projects=sorted(no_monitoring),
+                severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_auth_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project authentication patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared auth tools — same tool in 2+ projects
+    tool_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for tool in p.tech_stack.auth_tools:
+            tool_to_projects[tool].append(p.name)
+
+    for tool, projs in sorted(tool_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_auth",
+                detail=f"{tool} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Auth provider divergence — multiple hosted auth providers across portfolio
+    auth_providers = {"Auth0", "Clerk", "Firebase Auth", "Supabase Auth", "Keycloak"}
+    provider_found: dict[str, set[str]] = {}
+    for p in projects:
+        for tool in p.tech_stack.auth_tools:
+            if tool in auth_providers:
+                provider_found.setdefault(tool, set()).add(p.name)
+    if len(provider_found) >= 2:
+        detail_parts = [f"{t} ({', '.join(sorted(ps))})" for t, ps in provider_found.items()]
+        all_projs = sorted({p for ps in provider_found.values() for p in ps})
+        connections.append(Connection(
+            type="auth_divergence",
+            detail=f"Multiple auth providers: {', '.join(detail_parts)} — standardize",
+            projects=all_projs,
+            severity="warning",
+        ))
+
+    # Auth framework divergence — multiple auth frameworks (session-based vs token-based)
+    session_auth = {"Passport.js", "Flask-Login", "express-session", "django-allauth", "Lucia"}
+    token_auth = {"NextAuth.js", "Auth.js", "PyJWT", "jsonwebtoken", "golang-jwt", "Authlib"}
+    session_found: set[str] = set()
+    token_found: set[str] = set()
+    for p in projects:
+        for tool in p.tech_stack.auth_tools:
+            if tool in session_auth:
+                session_found.add(p.name)
+            if tool in token_auth:
+                token_found.add(p.name)
+    if session_found and token_found:
+        session_only = session_found - token_found
+        token_only = token_found - session_found
+        if session_only and token_only:
+            all_projs = sorted(session_only | token_only)
+            connections.append(Connection(
+                type="auth_divergence",
+                detail=f"Mixed auth strategies: session-based ({', '.join(sorted(session_only))}) vs token-based ({', '.join(sorted(token_only))})",
+                projects=all_projs,
+                severity="info",
+            ))
+
+    # Auth gap — projects with web frameworks but no auth
+    web_frameworks = {"FastAPI", "Django", "Flask", "Express", "Next.js", "Nuxt",
+                      "Rails", "Spring Boot", "Actix", "Axum", "Gin", "Echo", "Fiber"}
+    has_auth = {p.name for p in projects if p.tech_stack.auth_tools}
+    if has_auth:
+        no_auth = [p.name for p in projects
+                   if not p.tech_stack.auth_tools
+                   and any(fw in web_frameworks for fw in p.tech_stack.frameworks)
+                   and p.source_file_count > 5]
+        if no_auth:
+            connections.append(Connection(
+                type="auth_gap",
+                detail=f"{len(no_auth)} web project(s) have no authentication tooling",
+                projects=sorted(no_auth),
                 severity="warning",
             ))
 

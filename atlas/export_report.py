@@ -341,6 +341,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_monitoring": "Shared Monitoring Tools",
         "monitoring_divergence": "Monitoring Divergence",
         "monitoring_gap": "Monitoring Gaps",
+        "shared_auth": "Shared Auth Tools",
+        "auth_divergence": "Auth Divergence",
+        "auth_gap": "Auth Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

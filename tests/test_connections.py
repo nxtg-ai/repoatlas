@@ -19,6 +19,7 @@ from atlas.connections import (
     _find_build_tool_patterns,
     _find_api_spec_patterns,
     _find_monitoring_patterns,
+    _find_auth_patterns,
     _find_version_mismatches,
     find_connections,
 )
@@ -30,7 +31,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           ai_tools=None, testing_frameworks=None, package_managers=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
-          project_license="",
+          auth_tools=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -52,6 +53,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             build_tools=build_tools or [],
             api_specs=api_specs or [],
             monitoring_tools=monitoring_tools or [],
+            auth_tools=auth_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -2362,3 +2364,173 @@ class TestFindMonitoringPatterns:
         mon_types = {c.type for c in conns if "monitoring" in c.type}
         assert "shared_monitoring" in mon_types
         assert "monitoring_divergence" in mon_types
+
+
+# ---------------------------------------------------------------------------
+# _find_auth_patterns
+# ---------------------------------------------------------------------------
+class TestFindAuthPatterns:
+    # --- Shared auth tools ---
+
+    def test_shared_auth_tool(self):
+        projects = [
+            _proj("a", auth_tools=["Clerk", "PyJWT"]),
+            _proj("b", auth_tools=["Clerk"]),
+        ]
+        conns = _find_auth_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_auth"]
+        assert len(shared) == 1
+        assert "Clerk" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_shared_multiple_tools(self):
+        projects = [
+            _proj("a", auth_tools=["Clerk", "PyJWT"]),
+            _proj("b", auth_tools=["Clerk", "PyJWT"]),
+        ]
+        conns = _find_auth_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_auth"]
+        assert len(shared) == 2
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", auth_tools=["Clerk"]),
+            _proj("b", auth_tools=["Auth0"]),
+        ]
+        conns = _find_auth_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_auth"]
+        assert len(shared) == 0
+
+    def test_shared_needs_two_projects(self):
+        projects = [_proj("a", auth_tools=["Clerk"])]
+        conns = _find_auth_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_auth"]
+        assert len(shared) == 0
+
+    # --- Auth provider divergence ---
+
+    def test_auth_provider_divergence(self):
+        projects = [
+            _proj("a", auth_tools=["Clerk"]),
+            _proj("b", auth_tools=["Auth0"]),
+        ]
+        conns = _find_auth_patterns(projects)
+        div = [c for c in conns if c.type == "auth_divergence"
+               and "provider" in c.detail.lower()]
+        assert len(div) == 1
+        assert "Clerk" in div[0].detail
+        assert "Auth0" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_no_provider_divergence_same_provider(self):
+        projects = [
+            _proj("a", auth_tools=["Auth0"]),
+            _proj("b", auth_tools=["Auth0"]),
+        ]
+        conns = _find_auth_patterns(projects)
+        div = [c for c in conns if c.type == "auth_divergence"
+               and "provider" in c.detail.lower()]
+        assert len(div) == 0
+
+    def test_no_provider_divergence_non_providers(self):
+        projects = [
+            _proj("a", auth_tools=["PyJWT"]),
+            _proj("b", auth_tools=["jsonwebtoken"]),
+        ]
+        conns = _find_auth_patterns(projects)
+        div = [c for c in conns if c.type == "auth_divergence"
+               and "provider" in c.detail.lower()]
+        assert len(div) == 0
+
+    # --- Auth strategy divergence ---
+
+    def test_auth_strategy_divergence(self):
+        projects = [
+            _proj("a", auth_tools=["Passport.js"]),
+            _proj("b", auth_tools=["PyJWT"]),
+        ]
+        conns = _find_auth_patterns(projects)
+        div = [c for c in conns if c.type == "auth_divergence"
+               and "session-based" in c.detail.lower()]
+        assert len(div) == 1
+        assert div[0].severity == "info"
+
+    def test_no_strategy_divergence_same_category(self):
+        projects = [
+            _proj("a", auth_tools=["PyJWT"]),
+            _proj("b", auth_tools=["jsonwebtoken"]),
+        ]
+        conns = _find_auth_patterns(projects)
+        div = [c for c in conns if c.type == "auth_divergence"
+               and "session-based" in c.detail.lower()]
+        assert len(div) == 0
+
+    # --- Auth gap ---
+
+    def test_auth_gap(self):
+        projects = [
+            _proj("a", auth_tools=["Clerk"], frameworks=["Next.js"]),
+            _proj("b", auth_tools=[], frameworks=["FastAPI"], source_files=15),
+        ]
+        conns = _find_auth_patterns(projects)
+        gaps = [c for c in conns if c.type == "auth_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "warning"
+
+    def test_no_gap_when_all_have_auth(self):
+        projects = [
+            _proj("a", auth_tools=["Clerk"], frameworks=["Next.js"]),
+            _proj("b", auth_tools=["PyJWT"], frameworks=["FastAPI"]),
+        ]
+        conns = _find_auth_patterns(projects)
+        gaps = [c for c in conns if c.type == "auth_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_when_no_web_frameworks(self):
+        projects = [
+            _proj("a", auth_tools=["Clerk"]),
+            _proj("b", auth_tools=[], frameworks=[], source_files=15),
+        ]
+        conns = _find_auth_patterns(projects)
+        gaps = [c for c in conns if c.type == "auth_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", auth_tools=["Clerk"], frameworks=["Next.js"]),
+            _proj("b", auth_tools=[], frameworks=["Flask"], source_files=3),
+        ]
+        conns = _find_auth_patterns(projects)
+        gaps = [c for c in conns if c.type == "auth_gap"]
+        assert len(gaps) == 0
+
+    # --- Edge cases ---
+
+    def test_empty_projects(self):
+        conns = _find_auth_patterns([])
+        assert conns == []
+
+    def test_no_tools_no_connections(self):
+        projects = [
+            _proj("a", auth_tools=[]),
+            _proj("b", auth_tools=[]),
+        ]
+        conns = _find_auth_patterns(projects)
+        assert len(conns) == 0
+
+    def test_limit_10(self):
+        tools = [f"AuthTool{i}" for i in range(20)]
+        projects = [_proj("a", auth_tools=tools), _proj("b", auth_tools=tools)]
+        conns = _find_auth_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", auth_tools=["Clerk", "PyJWT"]),
+            _proj("b", auth_tools=["Clerk", "Auth0"]),
+        ]
+        conns = find_connections(projects)
+        auth_types = {c.type for c in conns if "auth" in c.type}
+        assert "shared_auth" in auth_types
+        assert "auth_divergence" in auth_types

@@ -69,8 +69,9 @@
 | N-56 | [Monitoring & Observability Intelligence](#n-56-monitoring--observability-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-57 | [Markdown Badge Generation](#n-57-markdown-badge-generation) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-58 | [Authentication & Auth Detection](#n-58-authentication--auth-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-59 | [Authentication Intelligence](#n-59-authentication-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 55/58 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 56/59 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -114,7 +115,8 @@
 - Cross-project build tool intelligence (shared tools, Python/Java divergence, automation gaps)
 - Cross-project API specification intelligence (shared specs, REST/GraphQL/RPC paradigm divergence, API spec gaps)
 - Cross-project monitoring intelligence (shared tools, error tracker divergence, APM divergence, monitoring gaps)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56
+- Cross-project authentication intelligence (shared auth tools, auth provider divergence, session-vs-token strategy divergence, auth gaps for web projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -326,6 +328,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_auth_tools()` in detector.py. Detects authentication and authorization frameworks across ecosystems: Python (Flask-Login, Flask-Security, django-allauth, DRF SimpleJWT, Authlib, PyJWT, python-jose, Passlib, FastAPI-Users, Auth0, Firebase Admin, Clerk, Supabase), JavaScript/TypeScript (NextAuth.js, Auth.js, Passport.js, express-session, jsonwebtoken, Clerk, Auth0, Firebase, Supabase Auth, Lucia, Keycloak, bcrypt, OIDC, Grant), Go (golang-jwt, Casbin, Authelia, OIDC), Rust (jsonwebtoken, OAuth2, Actix Identity, axum-login). Added `auth_tools` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py), markdown/JSON/CSV export. `_project_has_tech()` searches auth_tools. 25 detection tests.
 **Shipped**: 2026-03-21. Total test count: 1091 → 1116. 16th detection category.
+
+### N-59: Authentication Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project authentication pattern detection via `_find_auth_patterns()` in connections.py. Analyzes auth_tools data from N-58 across the portfolio to detect: shared auth tools (Clerk/PyJWT across 2+ projects, info), auth provider divergence (Clerk vs Auth0 vs Firebase Auth vs Supabase Auth vs Keycloak across portfolio, warning), auth strategy divergence (session-based Passport.js/Flask-Login vs token-based PyJWT/NextAuth.js across portfolio, info), and auth gaps (web projects with frameworks like FastAPI/Django/Next.js but no auth tooling, warning). New connection types (`shared_auth`, `auth_divergence`, `auth_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps auth_gap and auth_divergence to `infra` recommendation categories. 17 auth pattern tests.
+**Shipped**: 2026-03-21. Total test count: 1116 → 1133. Completes N-58 detection→intelligence pipeline. All 17 detection→intelligence pipelines complete.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
