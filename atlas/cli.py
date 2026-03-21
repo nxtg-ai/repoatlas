@@ -360,6 +360,7 @@ CONNECTION_CATEGORIES = {
 def connections(
     type_filter: Optional[str] = typer.Option(None, "--type", "-t", help="Filter by category (use --type list to see all)"),
     severity: Optional[str] = typer.Option(None, "--severity", "-s", help="Filter by severity (info, warning, critical)"),
+    project: Optional[str] = typer.Option(None, "--project", "-p", help="Filter connections involving a specific project"),
     format: Optional[str] = typer.Option(None, help="Output format: json or csv for structured output"),
 ):
     """Show cross-project intelligence."""
@@ -406,6 +407,14 @@ def connections(
         if not (format and format.lower() in ("json", "csv")):
             console.print()
             console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (severity: {sev})[/dim]")
+
+    if project:
+        proj_lower = project.lower()
+        total = len(conns)
+        conns = [c for c in conns if any(proj_lower == p.lower() for p in c.projects)]
+        if not (format and format.lower() in ("json", "csv")):
+            console.print()
+            console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (project: {project})[/dim]")
 
     if format and format.lower() == "json":
         import json as json_mod

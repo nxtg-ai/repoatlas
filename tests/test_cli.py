@@ -469,6 +469,43 @@ class TestConnections:
             if row:
                 assert row[3] == "info"
 
+    def test_connections_project_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--project", "proj-a"])
+        assert result.exit_code == 0
+        assert "proj-a" in result.output
+
+    def test_connections_project_filter_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--format", "json", "--project", "proj-a"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        for conn in data["connections"]:
+            assert "proj-a" in [p.lower() for p in conn["projects"]]
+
+    def test_connections_project_filter_no_match(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--project", "nonexistent"])
+        assert result.exit_code == 0
+
 
 # ===========================================================================
 # atlas search

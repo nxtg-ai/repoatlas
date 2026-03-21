@@ -135,8 +135,9 @@
 | N-122 | [Doctor Category Filter](#n-122-doctor-category-filter) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-123 | [Dependency Injection Detection](#n-123-dependency-injection-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-124 | [Dependency Injection Intelligence](#n-124-dependency-injection-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-125 | [Connections Project Filter](#n-125-connections-project-filter) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 121/124 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 122/125 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -267,7 +268,8 @@
 - Top projects JSON export: `atlas top --format json` outputs structured JSON with metric, limit, and projects array (rank, name, value, health_grade, stack). Works with --by and --limit options
 - Search JSON export: `atlas search <term> --format json` outputs structured JSON with query, total count, and projects array (name, path, health_grade, health_percent, languages, frameworks, loc, license)
 - Doctor category filter: `atlas doctor --category tests` filters recommendations by category (tests, docs, git, infra, quality, security, structure, deps). Works with all output formats (rich, json, csv)
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122
+- Connections project filter: `atlas connections --project myapp` filters connections to only those involving a specific project. Works with all output formats and combines with --type and --severity filters
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -659,6 +661,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-125: Connections Project Filter
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--project` option to `atlas connections` command. Filters connections to only those involving a specific project (case-insensitive match). Works with all output formats (rich, JSON, CSV) and combines with existing --type and --severity filters. Enables per-project connection analysis. 3 tests.
+**Shipped**: 2026-03-21. Total test count: 1966 → 1969. 38th experience feature.
 
 ### N-124: Dependency Injection Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
