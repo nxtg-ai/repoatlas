@@ -186,6 +186,47 @@ class TestStatus:
         result = runner.invoke(app, ["status"])
         assert result.exit_code == 1
 
+    def test_status_json_format(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["total"] == 1
+        assert len(data["projects"]) == 1
+        assert data["projects"][0]["name"] == "proj"
+        assert "grade" in data["projects"][0]["health"]
+        assert "percent" in data["projects"][0]["health"]
+
+    def test_status_json_with_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--format", "json", "--lang", "Python"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["total"] == 1
+
+    def test_status_json_empty_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--format", "json", "--lang", "Rust"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["total"] == 0
+        assert data["projects"] == []
+
 
 # ===========================================================================
 # atlas connections

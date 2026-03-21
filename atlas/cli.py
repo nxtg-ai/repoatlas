@@ -159,6 +159,7 @@ def status(
     has: Optional[str] = typer.Option(None, help="Filter by tech (e.g. Docker, FastAPI, pytest)"),
     min_health: Optional[int] = typer.Option(None, help="Filter projects with health >= N%"),
     max_health: Optional[int] = typer.Option(None, help="Filter projects with health <= N%"),
+    format: Optional[str] = typer.Option(None, help="Output format: json for structured output"),
 ):
     """Display the portfolio dashboard."""
     portfolio = _load_portfolio()
@@ -196,7 +197,41 @@ def status(
         active_filters.append(f"health<={max_health}%")
 
     if active_filters and not filtered:
+        if format and format.lower() == "json":
+            print('{"projects": [], "total": 0}')
+            return
         console.print(f"[yellow]No projects match filters: {', '.join(active_filters)}[/yellow]")
+        return
+
+    display_projects = filtered if active_filters else portfolio.projects
+
+    if format and format.lower() == "json":
+        import json as json_mod
+        data = {
+            "total": len(display_projects),
+            "projects": [
+                {
+                    "name": p.name,
+                    "path": p.path,
+                    "health": {
+                        "grade": p.health.grade,
+                        "percent": p.health.percent,
+                        "tests": round(p.health.tests, 2),
+                        "git_hygiene": round(p.health.git_hygiene, 2),
+                        "documentation": round(p.health.documentation, 2),
+                        "structure": round(p.health.structure, 2),
+                    },
+                    "languages": dict(p.tech_stack.languages),
+                    "frameworks": p.tech_stack.frameworks,
+                    "loc": p.loc,
+                    "source_files": p.source_file_count,
+                    "test_files": p.test_file_count,
+                    "license": p.license,
+                }
+                for p in display_projects
+            ],
+        }
+        print(json_mod.dumps(data, indent=2))
         return
 
     if active_filters:

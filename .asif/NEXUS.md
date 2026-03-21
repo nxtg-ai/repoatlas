@@ -120,8 +120,9 @@
 | N-107 | [Doctor CSV Export](#n-107-doctor-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-108 | [CLI Framework Detection](#n-108-cli-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-109 | [CLI Framework Intelligence](#n-109-cli-framework-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-110 | [Status JSON Export](#n-110-status-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 106/109 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 107/110 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -237,7 +238,8 @@
 - Connections JSON export: `atlas connections --format json` outputs structured JSON with connections array (type, detail, projects, severity), total count, severity summary for CI integration
 - Connections CSV export: `atlas connections --format csv` outputs CSV with Type, Detail, Projects, Severity columns. Works with --type and --severity filters
 - Doctor CSV export: `atlas doctor --format csv` outputs CSV with Priority, Category, Message, Projects columns for spreadsheet analysis
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107
+- Status JSON export: `atlas status --format json` outputs structured JSON with project array (name, path, health grades/scores, languages, frameworks, LOC, files, license). Works with all filters
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -629,6 +631,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-110: Status JSON Export
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--format json` option to `atlas status` command. Outputs structured JSON with `total` count and `projects` array (name, path, health object with grade/percent/tests/git_hygiene/documentation/structure, languages, frameworks, LOC, source/test files, license). Works with all existing filters (--grade, --lang, --has, --min-health, --max-health). Returns empty array for no-match filters. 3 tests.
+**Shipped**: 2026-03-21. Total test count: 1804 → 1807. 33rd experience feature.
 
 ### N-109: CLI Framework Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
