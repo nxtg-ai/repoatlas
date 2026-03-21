@@ -4271,3 +4271,133 @@ def _collect_python_deps(project_path: Path) -> set[str]:
         except Exception:
             pass
     return py_deps
+
+
+def detect_graphql_libs(project_path: Path) -> list[str]:
+    """Detect GraphQL libraries and tools."""
+    import json as _json
+
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # --- Python ---
+    py_map = {
+        "graphene": "Graphene",
+        "graphene-django": "Graphene-Django",
+        "ariadne": "Ariadne",
+        "strawberry-graphql": "Strawberry",
+        "sgqlc": "sgqlc",
+        "gql": "gql",
+        "graphql-core": "graphql-core",
+        "tartiflette": "Tartiflette",
+    }
+    for dep, name in py_map.items():
+        if dep in py_deps:
+            _add(name)
+
+    # --- JS/TS ---
+    pkg_json_path = project_path / "package.json"
+    pkg_json: dict = {}
+    if pkg_json_path.exists():
+        try:
+            pkg_json = _json.loads(pkg_json_path.read_text())
+        except Exception:
+            pass
+    all_js = set(pkg_json.get("dependencies", {}).keys()) | set(pkg_json.get("devDependencies", {}).keys())
+    js_map = {
+        "graphql": "graphql-js",
+        "apollo-server": "Apollo Server",
+        "apollo-server-express": "Apollo Server",
+        "apollo-server-core": "Apollo Server",
+        "@apollo/server": "Apollo Server",
+        "apollo-client": "Apollo Client",
+        "@apollo/client": "Apollo Client",
+        "graphql-yoga": "GraphQL Yoga",
+        "type-graphql": "TypeGraphQL",
+        "nexus": "Nexus",
+        "@graphql-codegen/cli": "GraphQL Code Generator",
+        "graphql-request": "graphql-request",
+        "urql": "URQL",
+        "@urql/core": "URQL",
+        "relay-runtime": "Relay",
+        "react-relay": "Relay",
+        "mercurius": "Mercurius",
+        "pothos": "Pothos",
+        "@pothos/core": "Pothos",
+        "graphql-tools": "graphql-tools",
+        "graphql-tag": "graphql-tag",
+    }
+    for dep, name in js_map.items():
+        if dep in all_js:
+            _add(name)
+
+    # --- Go ---
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text()
+            go_map = {
+                "github.com/99designs/gqlgen": "gqlgen",
+                "github.com/graphql-go/graphql": "graphql-go",
+                "github.com/graph-gophers/graphql-go": "graph-gophers",
+                "github.com/samsarahq/thunder": "Thunder",
+                "github.com/Khan/genqlient": "genqlient",
+            }
+            for mod, name in go_map.items():
+                if mod in content:
+                    _add(name)
+        except Exception:
+            pass
+
+    # --- Rust ---
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            content = cargo_toml.read_text()
+            rust_map = {
+                "juniper": "Juniper",
+                "async-graphql": "async-graphql",
+                "graphql-client": "graphql-client",
+                "cynic": "Cynic",
+            }
+            for crate, name in rust_map.items():
+                if crate in content:
+                    _add(name)
+        except Exception:
+            pass
+
+    # --- Java ---
+    java_deps = set()
+    for build_file in ("build.gradle", "build.gradle.kts", "pom.xml"):
+        bf = project_path / build_file
+        if bf.exists():
+            try:
+                java_deps.add(bf.read_text())
+            except Exception:
+                pass
+    java_content = " ".join(java_deps)
+    java_map = {
+        "graphql-java": "graphql-java",
+        "graphql-spring": "GraphQL Spring",
+        "netflix.dgs": "Netflix DGS",
+        "smallrye-graphql": "SmallRye GraphQL",
+        "graphql-kotlin": "graphql-kotlin",
+    }
+    for dep, name in java_map.items():
+        if dep in java_content:
+            _add(name)
+
+    # --- Schema files ---
+    for ext in ("*.graphql", "*.gql"):
+        if list(project_path.glob(ext)):
+            _add("GraphQL Schema")
+            break
+
+    return sorted(tools)

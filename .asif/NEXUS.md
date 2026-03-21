@@ -139,8 +139,9 @@
 | N-126 | [WebSocket Library Detection](#n-126-websocket-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-127 | [WebSocket Intelligence](#n-127-websocket-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-128 | [Connections Summary Mode](#n-128-connections-summary-mode) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-129 | [GraphQL Library Detection](#n-129-graphql-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 125/128 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 126/129 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -187,7 +188,8 @@
 - Serialization format detection: Protocol Buffers, MessagePack, Apache Avro, Apache Thrift, FlatBuffers, CBOR, YAML, TOML, orjson, ujson, Pydantic, Marshmallow, cattrs, Pickle, Apache Arrow, Parquet, BSON (Python), protobufjs, js-yaml, superjson, Apache Arrow (JS/TS), Protocol Buffers, MessagePack, YAML, TOML, go-json (Go), serde_json, simd-json, Bincode, Postcard (Rust), Jackson, Gson, Kryo (Java) — via deps, config files, .proto/.avsc files
 - Dependency injection detection: dependency-injector, python-inject, Lagom, punq, wireup, svcs, dishka, FastAPI Depends (Python), InversifyJS, tsyringe, TypeDI, Awilix, BottleJS, injection-js, Angular DI, NestJS DI (JS/TS), Uber Fx, Uber Dig, Wire, do (Go), Shaku, inject (Rust), Spring DI, Google Guice, Dagger, CDI, Micronaut DI, Quarkus CDI (Java)
 - WebSocket library detection: websockets, python-socketio, Django Channels, Starlette WebSocket, Tornado WebSocket, Autobahn, aiohttp WebSocket, wsproto (Python), Socket.IO, ws, SockJS, Primus, tRPC WebSocket, graphql-ws, Pusher, Ably, Action Cable, Centrifugo (JS/TS), Gorilla WebSocket, nhooyr/websocket, gobwas/ws, Melody (Go), Tungstenite, Axum/Actix/Warp WebSocket (Rust), Spring WebSocket, Jakarta WebSocket, Tyrus, Netty WebSocket (Java)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126
+- GraphQL library detection: Graphene, Graphene-Django, Ariadne, Strawberry, sgqlc, gql, graphql-core, Tartiflette (Python), graphql-js, Apollo Server, Apollo Client, GraphQL Yoga, TypeGraphQL, Nexus, GraphQL Code Generator, graphql-request, URQL, Relay, Mercurius, Pothos, graphql-tools, graphql-tag (JS/TS), gqlgen, graphql-go, graph-gophers, Thunder, genqlient (Go), Juniper, async-graphql, graphql-client, Cynic (Rust), graphql-java, GraphQL Spring, Netflix DGS, SmallRye GraphQL, graphql-kotlin (Java) — also detects .graphql/.gql schema files
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -667,6 +669,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-129: GraphQL Library Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_graphql_libs()` in detector.py. Detects GraphQL libraries across ecosystems: Python (Graphene, Graphene-Django, Ariadne, Strawberry, sgqlc, gql, graphql-core, Tartiflette), JS/TS (graphql-js, Apollo Server, Apollo Client, GraphQL Yoga, TypeGraphQL, Nexus, GraphQL Code Generator, graphql-request, URQL, Relay, Mercurius, Pothos, graphql-tools, graphql-tag), Go (gqlgen, graphql-go, graph-gophers, Thunder, genqlient), Rust (Juniper, async-graphql, graphql-client, Cynic), Java (graphql-java, GraphQL Spring, Netflix DGS, SmallRye GraphQL, graphql-kotlin). Also detects .graphql/.gql schema files. Added `graphql_libs` field to TechStack model. Shows in project card, portfolio summary, all exports. 25 detection tests.
+**Shipped**: 2026-03-21. Total test count: 1996 → 2016. 40th detection category.
 
 ### N-128: Connections Summary Mode
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1

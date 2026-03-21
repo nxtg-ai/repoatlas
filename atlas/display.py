@@ -705,6 +705,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         ws_parts = [f"{wl} ({count})" for wl, count in top_ws]
         lines.append(f"  [bold]WebSocket:[/bold]    {has_ws}/{n} projects \u00b7 {', '.join(ws_parts)}")
 
+    # GraphQL
+    has_gql = sum(1 for p in projects if p.tech_stack.graphql_libs)
+    if has_gql:
+        gql_counter: Counter[str] = Counter()
+        for p in projects:
+            for gl in p.tech_stack.graphql_libs:
+                gql_counter[gl] += 1
+        top_gql = gql_counter.most_common(6)
+        gql_parts = [f"{gl} ({count})" for gl, count in top_gql]
+        lines.append(f"  [bold]GraphQL:[/bold]      {has_gql}/{n} projects · {', '.join(gql_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1141,6 +1152,10 @@ def show_project_card(project: Project):
     if project.tech_stack.websocket_libs:
         ws = ", ".join(project.tech_stack.websocket_libs[:8])
         lines.append(f"  [bold]WebSocket:[/bold]  {ws}")
+
+    if project.tech_stack.graphql_libs:
+        gql = ", ".join(project.tech_stack.graphql_libs[:8])
+        lines.append(f"  [bold]GraphQL:[/bold]    {gql}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

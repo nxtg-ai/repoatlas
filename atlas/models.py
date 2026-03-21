@@ -47,6 +47,7 @@ class TechStack:
     serialization_formats: list[str] = field(default_factory=list)
     di_frameworks: list[str] = field(default_factory=list)
     websocket_libs: list[str] = field(default_factory=list)
+    graphql_libs: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -175,6 +176,7 @@ class Project:
                 "serialization_formats": self.tech_stack.serialization_formats,
                 "di_frameworks": self.tech_stack.di_frameworks,
                 "websocket_libs": self.tech_stack.websocket_libs,
+                "graphql_libs": self.tech_stack.graphql_libs,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -248,6 +250,7 @@ class Project:
                 serialization_formats=ts.get("serialization_formats", []),
                 di_frameworks=ts.get("di_frameworks", []),
                 websocket_libs=ts.get("websocket_libs", []),
+                graphql_libs=ts.get("graphql_libs", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

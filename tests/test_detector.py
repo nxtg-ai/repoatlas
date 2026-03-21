@@ -45,6 +45,7 @@ from atlas.detector import (
     detect_serialization_formats,
     detect_di_frameworks,
     detect_websocket_libs,
+    detect_graphql_libs,
     walk_files,
 )
 
@@ -5090,3 +5091,105 @@ class TestDetectWebSocketLibs:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         assert detect_websocket_libs(tmp_path) == []
+
+
+class TestDetectGraphqlLibs:
+    def test_empty(self, tmp_path):
+        assert detect_graphql_libs(tmp_path) == []
+
+    def test_python_graphene(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("graphene>=3.0\n")
+        result = detect_graphql_libs(tmp_path)
+        assert "Graphene" in result
+
+    def test_python_strawberry(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("strawberry-graphql>=0.200\n")
+        result = detect_graphql_libs(tmp_path)
+        assert "Strawberry" in result
+
+    def test_python_ariadne(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("ariadne>=0.20\n")
+        result = detect_graphql_libs(tmp_path)
+        assert "Ariadne" in result
+
+    def test_js_apollo_server(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@apollo/server": "^4.0"}}')
+        result = detect_graphql_libs(tmp_path)
+        assert "Apollo Server" in result
+
+    def test_js_apollo_client(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@apollo/client": "^3.0"}}')
+        result = detect_graphql_libs(tmp_path)
+        assert "Apollo Client" in result
+
+    def test_js_graphql_yoga(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"graphql-yoga": "^4.0"}}')
+        result = detect_graphql_libs(tmp_path)
+        assert "GraphQL Yoga" in result
+
+    def test_js_urql(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"urql": "^4.0"}}')
+        result = detect_graphql_libs(tmp_path)
+        assert "URQL" in result
+
+    def test_js_relay(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"relay-runtime": "^16.0"}}')
+        result = detect_graphql_libs(tmp_path)
+        assert "Relay" in result
+
+    def test_js_type_graphql(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"type-graphql": "^2.0"}}')
+        result = detect_graphql_libs(tmp_path)
+        assert "TypeGraphQL" in result
+
+    def test_go_gqlgen(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire github.com/99designs/gqlgen v0.17\n")
+        result = detect_graphql_libs(tmp_path)
+        assert "gqlgen" in result
+
+    def test_rust_juniper(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\njuniper = "0.16"\n')
+        result = detect_graphql_libs(tmp_path)
+        assert "Juniper" in result
+
+    def test_rust_async_graphql(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nasync-graphql = "6.0"\n')
+        result = detect_graphql_libs(tmp_path)
+        assert "async-graphql" in result
+
+    def test_java_graphql_java(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'com.graphql-java:graphql-java:21.0'\n")
+        result = detect_graphql_libs(tmp_path)
+        assert "graphql-java" in result
+
+    def test_java_dgs(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'com.netflix.dgs:graphql-dgs-spring-boot-starter'\n")
+        result = detect_graphql_libs(tmp_path)
+        assert "Netflix DGS" in result
+
+    def test_schema_files(self, tmp_path):
+        (tmp_path / "schema.graphql").write_text("type Query { hello: String }")
+        result = detect_graphql_libs(tmp_path)
+        assert "GraphQL Schema" in result
+
+    def test_gql_extension(self, tmp_path):
+        (tmp_path / "query.gql").write_text("query { user { name } }")
+        result = detect_graphql_libs(tmp_path)
+        assert "GraphQL Schema" in result
+
+    def test_multiple_libs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@apollo/server": "^4.0", "@apollo/client": "^3.0", "graphql": "^16"}}')
+        result = detect_graphql_libs(tmp_path)
+        assert "Apollo Server" in result
+        assert "Apollo Client" in result
+        assert "graphql-js" in result
+
+    def test_sorted(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"urql": "^4.0", "@apollo/client": "^3.0", "graphql": "^16"}}')
+        result = detect_graphql_libs(tmp_path)
+        assert result == sorted(result)
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"apollo-server": "^3.0", "@apollo/server": "^4.0"}}')
+        result = detect_graphql_libs(tmp_path)
+        assert result.count("Apollo Server") == 1

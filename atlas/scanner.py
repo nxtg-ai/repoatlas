@@ -49,6 +49,7 @@ from atlas.detector import (
     detect_serialization_formats,
     detect_di_frameworks,
     detect_websocket_libs,
+    detect_graphql_libs,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -100,6 +101,7 @@ def scan_project(project_path: Path) -> Project:
     serialization_formats = detect_serialization_formats(path)
     di_frameworks = detect_di_frameworks(path)
     websocket_libs = detect_websocket_libs(path)
+    graphql_libs = detect_graphql_libs(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -146,6 +148,7 @@ def scan_project(project_path: Path) -> Project:
         serialization_formats=serialization_formats,
         di_frameworks=di_frameworks,
         websocket_libs=websocket_libs,
+        graphql_libs=graphql_libs,
     )
 
     project = Project(

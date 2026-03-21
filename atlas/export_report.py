@@ -454,6 +454,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         ws_names = ", ".join(w for w, _ in top_ws)
         lines.append(f"**WebSocket**: {has_ws}/{n} projects \u00b7 {ws_names}")
 
+    has_gql = sum(1 for p in projects if p.tech_stack.graphql_libs)
+    if has_gql:
+        gql_counter: Counter[str] = Counter()
+        for p in projects:
+            for gl in p.tech_stack.graphql_libs:
+                gql_counter[gl] += 1
+        top_gql = gql_counter.most_common(6)
+        gql_names = ", ".join(g for g, _ in top_gql)
+        lines.append(f"**GraphQL**: {has_gql}/{n} projects · {gql_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -584,6 +594,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.websocket_libs:
             lines.append(f"- **WebSocket**: {', '.join(p.tech_stack.websocket_libs[:8])}")
+
+        if p.tech_stack.graphql_libs:
+            lines.append(f"- **GraphQL**: {', '.join(p.tech_stack.graphql_libs[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -1076,6 +1089,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             ws_counter2[wl] += 1
     has_ws = sum(1 for p in projects if p.tech_stack.websocket_libs)
 
+    # GraphQL libs
+    gql_counter2: Counter[str] = Counter()
+    for p in projects:
+        for gl in p.tech_stack.graphql_libs:
+            gql_counter2[gl] += 1
+    has_gql = sum(1 for p in projects if p.tech_stack.graphql_libs)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1127,6 +1147,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "serialization_formats": {"coverage": f"{has_ser}/{n}", "formats": dict(ser_counter2.most_common(10))},
         "di_frameworks": {"coverage": f"{has_di}/{n}", "frameworks": dict(di_counter2.most_common(10))},
         "websocket_libs": {"coverage": f"{has_ws}/{n}", "libs": dict(ws_counter2.most_common(10))},
+        "graphql_libs": {"coverage": f"{has_gql}/{n}", "libs": dict(gql_counter2.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1147,7 +1168,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1207,6 +1228,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.serialization_formats),
             "; ".join(ts.di_frameworks),
             "; ".join(ts.websocket_libs),
+            "; ".join(ts.graphql_libs),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

@@ -310,6 +310,7 @@ def _project_has_tech(project, term: str) -> bool:
         + ts.serialization_formats
         + ts.di_frameworks
         + ts.websocket_libs
+        + ts.graphql_libs
     )
     return any(term == item.lower() for item in all_items)
 
