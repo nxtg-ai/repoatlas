@@ -36,6 +36,7 @@ from atlas.detector import (
     detect_task_queues,
     detect_search_engines,
     detect_feature_flags,
+    detect_http_clients,
     walk_files,
 )
 
@@ -4098,3 +4099,123 @@ class TestDetectFeatureFlags:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         assert detect_feature_flags(tmp_path) == []
+
+
+# ---------------------------------------------------------------------------
+# detect_http_clients
+# ---------------------------------------------------------------------------
+
+class TestDetectHttpClients:
+    def test_empty_project(self, tmp_path):
+        assert detect_http_clients(tmp_path) == []
+
+    def test_python_requests(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("requests\n")
+        result = detect_http_clients(tmp_path)
+        assert "Requests" in result
+
+    def test_python_httpx(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("httpx\n")
+        result = detect_http_clients(tmp_path)
+        assert "HTTPX" in result
+
+    def test_python_aiohttp(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("aiohttp\n")
+        result = detect_http_clients(tmp_path)
+        assert "aiohttp" in result
+
+    def test_python_urllib3(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("urllib3\n")
+        result = detect_http_clients(tmp_path)
+        assert "urllib3" in result
+
+    def test_python_pycurl(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pycurl\n")
+        result = detect_http_clients(tmp_path)
+        assert "PycURL" in result
+
+    def test_python_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = [\n    "httpx",\n]\n')
+        result = detect_http_clients(tmp_path)
+        assert "HTTPX" in result
+
+    def test_js_axios(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"axios": "^1.0.0"}
+        }))
+        result = detect_http_clients(tmp_path)
+        assert "Axios" in result
+
+    def test_js_node_fetch(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"node-fetch": "^3.0.0"}
+        }))
+        result = detect_http_clients(tmp_path)
+        assert "node-fetch" in result
+
+    def test_js_got(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"got": "^12.0.0"}
+        }))
+        result = detect_http_clients(tmp_path)
+        assert "Got" in result
+
+    def test_js_undici(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"undici": "^5.0.0"}
+        }))
+        result = detect_http_clients(tmp_path)
+        assert "Undici" in result
+
+    def test_go_resty(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/go-resty/resty/v2 v2.7.0\n")
+        result = detect_http_clients(tmp_path)
+        assert "Resty" in result
+
+    def test_go_retryablehttp(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/hashicorp/go-retryablehttp v0.7.0\n")
+        result = detect_http_clients(tmp_path)
+        assert "go-retryablehttp" in result
+
+    def test_rust_reqwest(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nreqwest = "0.11"\n')
+        result = detect_http_clients(tmp_path)
+        assert "reqwest" in result
+
+    def test_rust_ureq(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nureq = "2.0"\n')
+        result = detect_http_clients(tmp_path)
+        assert "ureq" in result
+
+    def test_java_okhttp(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'com.squareup.okhttp3:okhttp:4.9.0'\n")
+        result = detect_http_clients(tmp_path)
+        assert "OkHttp" in result
+
+    def test_java_retrofit(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><groupId>com.squareup.retrofit2</groupId></dependency>\n")
+        result = detect_http_clients(tmp_path)
+        assert "Retrofit" in result
+
+    def test_multiple_clients(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("requests\nhttpx\naiohttp\n")
+        result = detect_http_clients(tmp_path)
+        assert len(result) == 3
+        assert "HTTPX" in result
+        assert "Requests" in result
+        assert "aiohttp" in result
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("requests\n")
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["requests"]\n')
+        result = detect_http_clients(tmp_path)
+        assert result.count("Requests") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("requests\nhttpx\naiohttp\n")
+        result = detect_http_clients(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        assert detect_http_clients(tmp_path) == []

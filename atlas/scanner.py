@@ -40,6 +40,7 @@ from atlas.detector import (
     detect_task_queues,
     detect_search_engines,
     detect_feature_flags,
+    detect_http_clients,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -82,6 +83,7 @@ def scan_project(project_path: Path) -> Project:
     task_queues = detect_task_queues(path)
     search_engines = detect_search_engines(path)
     feature_flags = detect_feature_flags(path)
+    http_clients = detect_http_clients(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -119,6 +121,7 @@ def scan_project(project_path: Path) -> Project:
         task_queues=task_queues,
         search_engines=search_engines,
         feature_flags=feature_flags,
+        http_clients=http_clients,
     )
 
     project = Project(

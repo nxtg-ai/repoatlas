@@ -3122,6 +3122,130 @@ def detect_feature_flags(project_path: Path) -> list[str]:
     return sorted(tools)
 
 
+def detect_http_clients(project_path: Path) -> list[str]:
+    """Detect HTTP client libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # Python HTTP clients
+    py_mapping = {
+        "requests": "Requests",
+        "httpx": "HTTPX",
+        "aiohttp": "aiohttp",
+        "urllib3": "urllib3",
+        "httplib2": "httplib2",
+        "pycurl": "PycURL",
+        "treq": "treq",
+        "asks": "asks",
+        "niquests": "niquests",
+        "uplink": "Uplink",
+    }
+    for dep, name in py_mapping.items():
+        if dep in py_deps:
+            _add(name)
+
+    # JS/TS HTTP clients — package.json
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            content = pkg_json.read_text().lower()
+            if "\"axios\"" in content:
+                _add("Axios")
+            if "\"node-fetch\"" in content:
+                _add("node-fetch")
+            if "\"got\"" in content and "\"got\":" in content:
+                _add("Got")
+            if "\"ky\"" in content and "\"ky\":" in content:
+                _add("Ky")
+            if "\"superagent\"" in content:
+                _add("SuperAgent")
+            if "\"undici\"" in content:
+                _add("Undici")
+            if "\"ofetch\"" in content:
+                _add("ofetch")
+            if "\"wretch\"" in content:
+                _add("Wretch")
+            if "\"needle\"" in content:
+                _add("Needle")
+            if "\"cross-fetch\"" in content:
+                _add("cross-fetch")
+            if "\"isomorphic-fetch\"" in content:
+                _add("isomorphic-fetch")
+        except Exception:
+            pass
+
+    # Go HTTP clients — go.mod
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            if "go-resty/resty" in content:
+                _add("Resty")
+            if "hashicorp/go-retryablehttp" in content:
+                _add("go-retryablehttp")
+            if "go-resty/gentleman" in content or "h2non/gentleman" in content:
+                _add("Gentleman")
+            if "sling" in content and "dghubble/sling" in content:
+                _add("Sling")
+            if "heimdall" in content and "gojek/heimdall" in content:
+                _add("Heimdall")
+            if "req" in content and "imroc/req" in content:
+                _add("Req")
+        except Exception:
+            pass
+
+    # Rust HTTP clients — Cargo.toml
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content = cargo.read_text().lower()
+            if "reqwest" in content:
+                _add("reqwest")
+            if "hyper" in content:
+                _add("hyper")
+            if "ureq" in content:
+                _add("ureq")
+            if "surf" in content:
+                _add("surf")
+            if "isahc" in content:
+                _add("isahc")
+            if "attohttpc" in content:
+                _add("attohttpc")
+        except Exception:
+            pass
+
+    # Java HTTP clients — pom.xml / build.gradle
+    for jpath in [project_path / "pom.xml", project_path / "build.gradle", project_path / "build.gradle.kts"]:
+        if jpath.exists():
+            try:
+                content = jpath.read_text().lower()
+                if "okhttp" in content:
+                    _add("OkHttp")
+                if "httpclient" in content and "apache" in content:
+                    _add("Apache HttpClient")
+                if "retrofit" in content:
+                    _add("Retrofit")
+                if "unirest" in content:
+                    _add("Unirest")
+                if "webclient" in content or "webflux" in content:
+                    _add("WebClient")
+                if "resttemplate" in content:
+                    _add("RestTemplate")
+                if "feign" in content:
+                    _add("Feign")
+            except Exception:
+                pass
+
+    return sorted(tools)
+
+
 def _collect_python_deps(project_path: Path) -> set[str]:
     """Collect Python dependency names from pyproject.toml and requirements.txt."""
     py_deps: set[str] = set()
