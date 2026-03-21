@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from atlas.connections import (
     _find_ai_patterns,
+    _find_ci_config_patterns,
     _find_docs_artifact_patterns,
     _find_health_gaps,
     _find_infra_patterns,
@@ -1568,3 +1569,189 @@ class TestFindDocsArtifactPatterns:
         conns = find_connections(projects)
         docs_types = {c.type for c in conns if "docs" in c.type}
         assert "shared_docs" in docs_types
+
+
+class TestFindCiConfigPatterns:
+    """Tests for _find_ci_config_patterns()."""
+
+    # --- Shared CI config ---
+
+    def test_shared_ci_config_two_projects(self):
+        projects = [
+            _proj("a", ci_config=["GitHub Actions", "pre-commit"]),
+            _proj("b", ci_config=["GitHub Actions", "PR template"]),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_ci_config"]
+        assert len(shared) >= 1
+        gh_shared = [c for c in shared if "GitHub Actions" in c.detail]
+        assert len(gh_shared) == 1
+        assert gh_shared[0].severity == "info"
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", ci_config=["GitHub Actions"]),
+            _proj("b", ci_config=["GitLab CI"]),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_ci_config"]
+        assert len(shared) == 0
+
+    def test_shared_sorted_by_count(self):
+        projects = [
+            _proj("a", ci_config=["GitHub Actions", "pre-commit"]),
+            _proj("b", ci_config=["GitHub Actions", "pre-commit"]),
+            _proj("c", ci_config=["GitHub Actions"]),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_ci_config"]
+        # GitHub Actions in 3 projects should come first
+        assert "3 projects" in shared[0].detail
+
+    # --- Dep update strategy divergence ---
+
+    def test_dep_update_divergence(self):
+        projects = [
+            _proj("a", ci_config=["Dependabot config"]),
+            _proj("b", ci_config=["Renovate config"]),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        div = [c for c in conns if c.type == "ci_config_divergence"]
+        assert len(div) == 1
+        assert "dep update" in div[0].detail.lower()
+        assert div[0].severity == "warning"
+
+    def test_no_divergence_same_strategy(self):
+        projects = [
+            _proj("a", ci_config=["Dependabot config"]),
+            _proj("b", ci_config=["Dependabot config"]),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        div = [c for c in conns if c.type == "ci_config_divergence"]
+        assert len(div) == 0
+
+    def test_no_divergence_no_dep_updates(self):
+        projects = [
+            _proj("a", ci_config=["GitHub Actions"]),
+            _proj("b", ci_config=["pre-commit"]),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        div = [c for c in conns if c.type == "ci_config_divergence"]
+        assert len(div) == 0
+
+    # --- PR template gap ---
+
+    def test_pr_template_gap(self):
+        projects = [
+            _proj("a", ci_config=[], infrastructure=["GitHub Actions"],
+                  source_files=15),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        gaps = [c for c in conns if c.type == "ci_config_gap"
+                and "PR template" in c.detail]
+        assert len(gaps) == 1
+        assert gaps[0].severity == "warning"
+
+    def test_no_pr_template_gap_when_present(self):
+        projects = [
+            _proj("a", ci_config=["PR template"],
+                  infrastructure=["GitHub Actions"], source_files=15),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        gaps = [c for c in conns if c.type == "ci_config_gap"
+                and "PR template" in c.detail]
+        assert len(gaps) == 0
+
+    def test_no_pr_template_gap_without_ci(self):
+        projects = [
+            _proj("a", ci_config=[], infrastructure=[], source_files=15),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        gaps = [c for c in conns if c.type == "ci_config_gap"
+                and "PR template" in c.detail]
+        assert len(gaps) == 0
+
+    def test_no_pr_template_gap_small_project(self):
+        projects = [
+            _proj("a", ci_config=[], infrastructure=["GitHub Actions"],
+                  source_files=8),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        gaps = [c for c in conns if c.type == "ci_config_gap"
+                and "PR template" in c.detail]
+        assert len(gaps) == 0
+
+    # --- CODEOWNERS gap ---
+
+    def test_codeowners_gap(self):
+        projects = [
+            _proj("a", ci_config=[], source_files=25),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        gaps = [c for c in conns if c.type == "ci_config_gap"
+                and "CODEOWNERS" in c.detail]
+        assert len(gaps) == 1
+        assert gaps[0].severity == "warning"
+
+    def test_no_codeowners_gap_when_present(self):
+        projects = [
+            _proj("a", ci_config=["CODEOWNERS"], source_files=25),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        gaps = [c for c in conns if c.type == "ci_config_gap"
+                and "CODEOWNERS" in c.detail]
+        assert len(gaps) == 0
+
+    def test_no_codeowners_gap_small_project(self):
+        projects = [
+            _proj("a", ci_config=[], source_files=15),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        gaps = [c for c in conns if c.type == "ci_config_gap"
+                and "CODEOWNERS" in c.detail]
+        assert len(gaps) == 0
+
+    # --- Pre-commit gap ---
+
+    def test_precommit_gap(self):
+        projects = [
+            _proj("a", ci_config=[], quality_tools=["Ruff", "mypy"],
+                  source_files=10),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        gaps = [c for c in conns if c.type == "ci_config_gap"
+                and "pre-commit" in c.detail]
+        assert len(gaps) == 1
+        assert gaps[0].severity == "warning"
+
+    def test_no_precommit_gap_when_present(self):
+        projects = [
+            _proj("a", ci_config=["pre-commit"], quality_tools=["Ruff"],
+                  source_files=10),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        gaps = [c for c in conns if c.type == "ci_config_gap"
+                and "pre-commit" in c.detail]
+        assert len(gaps) == 0
+
+    def test_no_precommit_gap_without_quality_tools(self):
+        projects = [
+            _proj("a", ci_config=[], quality_tools=[], source_files=10),
+        ]
+        conns = _find_ci_config_patterns(projects)
+        gaps = [c for c in conns if c.type == "ci_config_gap"
+                and "pre-commit" in c.detail]
+        assert len(gaps) == 0
+
+    # --- Integration ---
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", ci_config=["GitHub Actions", "pre-commit"],
+                  source_files=20),
+            _proj("b", ci_config=["GitHub Actions", "PR template"],
+                  source_files=20),
+        ]
+        conns = find_connections(projects)
+        ci_types = {c.type for c in conns if "ci_config" in c.type}
+        assert "shared_ci_config" in ci_types

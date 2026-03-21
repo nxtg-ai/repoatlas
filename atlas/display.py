@@ -58,6 +58,9 @@ CONNECTION_ICONS = {
     "shared_docs": "[green]\u2261[/green]",
     "docs_divergence": "[yellow]\u2260[/yellow]",
     "docs_gap": "[red]\u2717[/red]",
+    "shared_ci_config": "[cyan]\u2699[/cyan]",
+    "ci_config_divergence": "[yellow]\u21c4[/yellow]",
+    "ci_config_gap": "[red]\u25cb[/red]",
 }
 
 
@@ -362,6 +365,9 @@ def show_connections(connections: list[Connection]):
         "shared_docs": "Shared Documentation",
         "docs_divergence": "Documentation Divergence",
         "docs_gap": "Documentation Gaps",
+        "shared_ci_config": "Shared CI/CD Config",
+        "ci_config_divergence": "CI/CD Config Divergence",
+        "ci_config_gap": "CI/CD Config Gaps",
     }
 
     lines = []

@@ -212,6 +212,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "license_divergence": "docs",
         "docs_gap": "docs",
         "docs_divergence": "docs",
+        "ci_config_gap": "infra",
+        "ci_config_divergence": "infra",
     }
 
     for conn in connections:

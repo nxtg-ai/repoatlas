@@ -22,6 +22,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_package_manager_patterns(projects))
     connections.extend(_find_license_patterns(projects))
     connections.extend(_find_docs_artifact_patterns(projects))
+    connections.extend(_find_ci_config_patterns(projects))
     return connections
 
 
@@ -779,6 +780,92 @@ def _find_license_patterns(projects: list[Project]) -> list[Connection]:
             type="license_gap",
             detail=f"{len(unlicensed)} project(s) have no detected license — add a LICENSE file",
             projects=sorted(unlicensed),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_ci_config_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project CI/CD configuration patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared CI config items — same item in 2+ projects
+    config_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for item in p.tech_stack.ci_config:
+            config_to_projects[item].append(p.name)
+
+    for item, projs in sorted(config_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_ci_config",
+                detail=f"{item} in {len(projs)} projects — share config templates",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Dep update strategy divergence — Dependabot config vs Renovate config
+    dep_update_tools = {"Dependabot config", "Renovate config"}
+    dep_update_found: dict[str, set[str]] = {}
+    for p in projects:
+        for item in p.tech_stack.ci_config:
+            if item in dep_update_tools:
+                dep_update_found.setdefault(item, set()).add(p.name)
+
+    if len(dep_update_found) >= 2:
+        detail_parts = [f"{tool} ({', '.join(sorted(projs))})"
+                        for tool, projs in dep_update_found.items()]
+        all_projects = sorted({p for projs in dep_update_found.values() for p in projs})
+        connections.append(Connection(
+            type="ci_config_divergence",
+            detail=f"Multiple dep update strategies: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
+        ))
+
+    # PR template gap — projects with CI but no PR template
+    ci_systems = {"GitHub Actions", "GitLab CI", "Jenkins", "CircleCI"}
+    no_pr_template = [
+        p.name for p in projects
+        if any(i in ci_systems for i in p.tech_stack.infrastructure)
+        and "PR template" not in p.tech_stack.ci_config
+        and p.source_file_count > 10
+    ]
+    if no_pr_template:
+        connections.append(Connection(
+            type="ci_config_gap",
+            detail=f"{len(no_pr_template)} project(s) with CI but no PR template",
+            projects=sorted(no_pr_template),
+            severity="warning",
+        ))
+
+    # CODEOWNERS gap — larger projects without CODEOWNERS
+    no_codeowners = [
+        p.name for p in projects
+        if "CODEOWNERS" not in p.tech_stack.ci_config
+        and p.source_file_count > 20
+    ]
+    if no_codeowners:
+        connections.append(Connection(
+            type="ci_config_gap",
+            detail=f"{len(no_codeowners)} project(s) missing CODEOWNERS",
+            projects=sorted(no_codeowners),
+            severity="warning",
+        ))
+
+    # Pre-commit gap — projects with quality tools but no pre-commit hooks
+    no_precommit = [
+        p.name for p in projects
+        if p.tech_stack.quality_tools
+        and "pre-commit" not in p.tech_stack.ci_config
+        and p.source_file_count > 5
+    ]
+    if no_precommit:
+        connections.append(Connection(
+            type="ci_config_gap",
+            detail=f"{len(no_precommit)} project(s) have quality tools but no pre-commit hooks",
+            projects=sorted(no_precommit),
             severity="warning",
         ))
 

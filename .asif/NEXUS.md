@@ -55,8 +55,9 @@
 | N-42 | [Documentation Artifacts Intelligence](#n-42-documentation-artifacts-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-43 | [CI/CD Configuration Detection](#n-43-cicd-configuration-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-44 | [Filterable Project List](#n-44-filterable-project-list) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-45 | [CI/CD Configuration Intelligence](#n-45-cicd-configuration-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 41/44 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 42/45 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -90,7 +91,8 @@
 - Cross-project package manager intelligence (shared managers, JS/Python/Java divergence)
 - Cross-project license intelligence (shared licenses, copyleft/permissive divergence, license gaps)
 - Cross-project documentation intelligence (shared artifacts, docs coverage divergence, README/CHANGELOG/CONTRIBUTING gaps)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42
+- Cross-project CI/CD configuration intelligence (shared config, dep update strategy divergence, PR template/CODEOWNERS/pre-commit gaps)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -253,6 +255,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added 5 filter options to `atlas status`: `--grade` (filter by health grade A/B+/B/C/D/F), `--lang` (filter by language), `--has` (filter by any tech — searches all TechStack fields including frameworks, databases, infrastructure, security, quality, testing, package managers, docs artifacts, CI config), `--min-health` (minimum health %), `--max-health` (maximum health %). Filters compose (AND logic). When filters active, shows "Filtered: ..." header and creates a temporary Portfolio with only matching projects. Cross-project intelligence runs on filtered set. No match shows friendly message. Helper `_project_has_tech()` does case-insensitive search across all 11 TechStack list fields. 6 new CLI integration tests.
 **Shipped**: 2026-03-21. Total test count: 871 → 877. First interactive UX feature since N-16 (config).
+
+### N-45: CI/CD Configuration Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project CI/CD configuration pattern detection via `_find_ci_config_patterns()` in connections.py. Analyzes ci_config data from N-43 across the portfolio to detect: shared CI/CD configuration items (GitHub Actions/pre-commit across 2+ projects, info), dependency update strategy divergence (Dependabot config vs Renovate config across portfolio, warning), and CI/CD configuration gaps — PR template gap (projects with CI but no PR template, >10 source files, warning), CODEOWNERS gap (projects with >20 source files but no CODEOWNERS, warning), pre-commit gap (projects with quality tools but no pre-commit hooks, warning). New connection types (`shared_ci_config`, `ci_config_divergence`, `ci_config_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps to `infra` recommendation category. 17 CI/CD configuration pattern tests.
+**Shipped**: 2026-03-21. Total test count: 877 → 894. Completes N-43 detection→intelligence pipeline. 13th intelligence layer.
 
 ### N-43: CI/CD Configuration Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

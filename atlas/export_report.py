@@ -260,6 +260,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_docs": "Shared Documentation",
         "docs_divergence": "Documentation Divergence",
         "docs_gap": "Documentation Gaps",
+        "shared_ci_config": "Shared CI/CD Config",
+        "ci_config_divergence": "CI/CD Config Divergence",
+        "ci_config_gap": "CI/CD Config Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

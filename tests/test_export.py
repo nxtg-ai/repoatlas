@@ -313,6 +313,7 @@ class TestConnectionsSection:
                   quality_tools=["Ruff", "mypy"],
                   testing_frameworks=["pytest"],
                   docs_artifacts=["README", "CHANGELOG", "CONTRIBUTING"],
+                  ci_config=["PR template", "pre-commit"],
                   project_license="MIT")
         p.health.tests = 1.0
         report = build_markdown_report(_portfolio(p))
