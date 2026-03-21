@@ -16,6 +16,7 @@ class TechStack:
     ai_tools: list[str] = field(default_factory=list)
     quality_tools: list[str] = field(default_factory=list)
     testing_frameworks: list[str] = field(default_factory=list)
+    package_managers: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -112,6 +113,7 @@ class Project:
                 "ai_tools": self.tech_stack.ai_tools,
                 "quality_tools": self.tech_stack.quality_tools,
                 "testing_frameworks": self.tech_stack.testing_frameworks,
+                "package_managers": self.tech_stack.package_managers,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -153,6 +155,7 @@ class Project:
                 ai_tools=ts.get("ai_tools", []),
                 quality_tools=ts.get("quality_tools", []),
                 testing_frameworks=ts.get("testing_frameworks", []),
+                package_managers=ts.get("package_managers", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

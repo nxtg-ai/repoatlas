@@ -366,6 +366,10 @@ def show_project_card(project: Project):
         tf = ", ".join(project.tech_stack.testing_frameworks[:6])
         lines.append(f"  [bold]Testing:[/bold]    {tf}")
 
+    if project.tech_stack.package_managers:
+        pm = ", ".join(project.tech_stack.package_managers[:6])
+        lines.append(f"  [bold]Pkg Mgrs:[/bold]   {pm}")
+
     if project.git_info.branch:
         lines.append(f"  [bold]Branch:[/bold]    {project.git_info.branch}")
         lines.append(f"  [bold]Commits:[/bold]   {project.git_info.total_commits:,}")

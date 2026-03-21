@@ -714,3 +714,81 @@ def _detect_cloud_from_deps(project_path: Path, infra: list[str]) -> None:
 def _check_add(lst: list[str], content: str, keyword: str, name: str):
     if keyword in content and name not in lst:
         lst.append(name)
+
+
+def detect_package_managers(project_path: Path) -> list[str]:
+    """Detect package managers and build tools."""
+    managers: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            managers.append(name)
+
+    # Python
+    if (project_path / "poetry.lock").exists() or (project_path / "poetry.toml").exists():
+        _add("Poetry")
+    if (project_path / "pdm.lock").exists():
+        _add("PDM")
+    if (project_path / "uv.lock").exists():
+        _add("uv")
+    if (project_path / "Pipfile").exists() or (project_path / "Pipfile.lock").exists():
+        _add("Pipenv")
+    if (project_path / "setup.py").exists() or (project_path / "setup.cfg").exists():
+        _add("setuptools")
+    # pip via requirements.txt (only if no other Python manager found)
+    if (project_path / "requirements.txt").exists() and not (seen & {"Poetry", "PDM", "uv", "Pipenv"}):
+        _add("pip")
+    # pyproject.toml can indicate several managers
+    pyproject = project_path / "pyproject.toml"
+    if pyproject.exists():
+        content = pyproject.read_text(errors="ignore").lower()
+        if "[tool.poetry]" in content and "Poetry" not in seen:
+            _add("Poetry")
+        if "pdm" in content and "[tool.pdm]" in content and "PDM" not in seen:
+            _add("PDM")
+        if "[build-system]" in content and "hatchling" in content:
+            _add("Hatch")
+        if "[build-system]" in content and "flit" in content:
+            _add("Flit")
+
+    # JavaScript/TypeScript
+    if (project_path / "pnpm-lock.yaml").exists():
+        _add("pnpm")
+    elif (project_path / "yarn.lock").exists():
+        _add("Yarn")
+    elif (project_path / "bun.lockb").exists() or (project_path / "bun.lock").exists():
+        _add("Bun")
+    elif (project_path / "package-lock.json").exists():
+        _add("npm")
+    elif (project_path / "package.json").exists() and not (seen & {"pnpm", "Yarn", "Bun", "npm"}):
+        _add("npm")
+
+    # Rust
+    if (project_path / "Cargo.toml").exists():
+        _add("Cargo")
+
+    # Go
+    if (project_path / "go.mod").exists():
+        _add("Go Modules")
+
+    # Ruby
+    if (project_path / "Gemfile").exists():
+        _add("Bundler")
+
+    # Java/Kotlin
+    if (project_path / "pom.xml").exists():
+        _add("Maven")
+    if (project_path / "build.gradle").exists() or (project_path / "build.gradle.kts").exists():
+        _add("Gradle")
+
+    # .NET
+    if any(project_path.glob("*.csproj")) or any(project_path.glob("*.sln")):
+        _add("NuGet")
+
+    # PHP
+    if (project_path / "composer.json").exists():
+        _add("Composer")
+
+    return managers

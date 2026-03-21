@@ -13,6 +13,7 @@ from atlas.detector import (
     detect_frameworks,
     detect_key_deps,
     detect_languages,
+    detect_package_managers,
     walk_files,
 )
 
@@ -710,3 +711,193 @@ class TestCheckAdd:
         lst = ["FastAPI"]
         _check_add(lst, "fastapi==0.109", "fastapi", "FastAPI")
         assert lst == ["FastAPI"]
+
+
+# ---------------------------------------------------------------------------
+# detect_package_managers
+# ---------------------------------------------------------------------------
+class TestDetectPackageManagers:
+    def test_empty_project(self, tmp_path):
+        proj = tmp_path / "empty"
+        proj.mkdir()
+        assert detect_package_managers(proj) == []
+
+    def test_pip_from_requirements(self, tmp_path):
+        proj = tmp_path / "pip"
+        proj.mkdir()
+        (proj / "requirements.txt").write_text("fastapi>=0.109\n")
+        mgrs = detect_package_managers(proj)
+        assert "pip" in mgrs
+
+    def test_poetry_from_lock(self, tmp_path):
+        proj = tmp_path / "poetry"
+        proj.mkdir()
+        (proj / "poetry.lock").write_text("")
+        mgrs = detect_package_managers(proj)
+        assert "Poetry" in mgrs
+
+    def test_poetry_from_pyproject(self, tmp_path):
+        proj = tmp_path / "poetry2"
+        proj.mkdir()
+        (proj / "pyproject.toml").write_text("[tool.poetry]\nname = 'app'\n")
+        mgrs = detect_package_managers(proj)
+        assert "Poetry" in mgrs
+
+    def test_pdm_from_lock(self, tmp_path):
+        proj = tmp_path / "pdm"
+        proj.mkdir()
+        (proj / "pdm.lock").write_text("")
+        mgrs = detect_package_managers(proj)
+        assert "PDM" in mgrs
+
+    def test_uv_from_lock(self, tmp_path):
+        proj = tmp_path / "uv"
+        proj.mkdir()
+        (proj / "uv.lock").write_text("")
+        mgrs = detect_package_managers(proj)
+        assert "uv" in mgrs
+
+    def test_pipenv_from_pipfile(self, tmp_path):
+        proj = tmp_path / "pipenv"
+        proj.mkdir()
+        (proj / "Pipfile").write_text("[packages]\nflask = '*'\n")
+        mgrs = detect_package_managers(proj)
+        assert "Pipenv" in mgrs
+
+    def test_setuptools_from_setup_py(self, tmp_path):
+        proj = tmp_path / "st"
+        proj.mkdir()
+        (proj / "setup.py").write_text("from setuptools import setup\nsetup(name='app')\n")
+        mgrs = detect_package_managers(proj)
+        assert "setuptools" in mgrs
+
+    def test_hatch_from_pyproject(self, tmp_path):
+        proj = tmp_path / "hatch"
+        proj.mkdir()
+        (proj / "pyproject.toml").write_text(
+            '[build-system]\nrequires = ["hatchling"]\nbuild-backend = "hatchling.build"\n'
+        )
+        mgrs = detect_package_managers(proj)
+        assert "Hatch" in mgrs
+
+    def test_flit_from_pyproject(self, tmp_path):
+        proj = tmp_path / "flit"
+        proj.mkdir()
+        (proj / "pyproject.toml").write_text(
+            '[build-system]\nrequires = ["flit_core"]\nbuild-backend = "flit_core.buildapi"\n'
+        )
+        mgrs = detect_package_managers(proj)
+        assert "Flit" in mgrs
+
+    def test_npm_from_lockfile(self, tmp_path):
+        proj = tmp_path / "npm"
+        proj.mkdir()
+        (proj / "package-lock.json").write_text("{}")
+        mgrs = detect_package_managers(proj)
+        assert "npm" in mgrs
+
+    def test_yarn_from_lock(self, tmp_path):
+        proj = tmp_path / "yarn"
+        proj.mkdir()
+        (proj / "yarn.lock").write_text("")
+        mgrs = detect_package_managers(proj)
+        assert "Yarn" in mgrs
+
+    def test_pnpm_from_lock(self, tmp_path):
+        proj = tmp_path / "pnpm"
+        proj.mkdir()
+        (proj / "pnpm-lock.yaml").write_text("")
+        mgrs = detect_package_managers(proj)
+        assert "pnpm" in mgrs
+
+    def test_bun_from_lockb(self, tmp_path):
+        proj = tmp_path / "bun"
+        proj.mkdir()
+        (proj / "bun.lockb").write_text("")
+        mgrs = detect_package_managers(proj)
+        assert "Bun" in mgrs
+
+    def test_cargo(self, tmp_path):
+        proj = tmp_path / "rust"
+        proj.mkdir()
+        (proj / "Cargo.toml").write_text("[package]\nname = 'app'\n")
+        mgrs = detect_package_managers(proj)
+        assert "Cargo" in mgrs
+
+    def test_go_modules(self, tmp_path):
+        proj = tmp_path / "goapp"
+        proj.mkdir()
+        (proj / "go.mod").write_text("module example.com/app\ngo 1.21\n")
+        mgrs = detect_package_managers(proj)
+        assert "Go Modules" in mgrs
+
+    def test_bundler(self, tmp_path):
+        proj = tmp_path / "ruby"
+        proj.mkdir()
+        (proj / "Gemfile").write_text("source 'https://rubygems.org'\ngem 'rails'\n")
+        mgrs = detect_package_managers(proj)
+        assert "Bundler" in mgrs
+
+    def test_maven(self, tmp_path):
+        proj = tmp_path / "java"
+        proj.mkdir()
+        (proj / "pom.xml").write_text("<project></project>")
+        mgrs = detect_package_managers(proj)
+        assert "Maven" in mgrs
+
+    def test_gradle(self, tmp_path):
+        proj = tmp_path / "gradle"
+        proj.mkdir()
+        (proj / "build.gradle").write_text("apply plugin: 'java'\n")
+        mgrs = detect_package_managers(proj)
+        assert "Gradle" in mgrs
+
+    def test_gradle_kotlin(self, tmp_path):
+        proj = tmp_path / "kts"
+        proj.mkdir()
+        (proj / "build.gradle.kts").write_text("plugins { id(\"java\") }\n")
+        mgrs = detect_package_managers(proj)
+        assert "Gradle" in mgrs
+
+    def test_nuget(self, tmp_path):
+        proj = tmp_path / "dotnet"
+        proj.mkdir()
+        (proj / "App.csproj").write_text("<Project></Project>")
+        mgrs = detect_package_managers(proj)
+        assert "NuGet" in mgrs
+
+    def test_composer(self, tmp_path):
+        proj = tmp_path / "php"
+        proj.mkdir()
+        (proj / "composer.json").write_text('{"require": {"php": ">=8.1"}}')
+        mgrs = detect_package_managers(proj)
+        assert "Composer" in mgrs
+
+    def test_pip_not_added_when_poetry_present(self, tmp_path):
+        proj = tmp_path / "both"
+        proj.mkdir()
+        (proj / "poetry.lock").write_text("")
+        (proj / "requirements.txt").write_text("fastapi\n")
+        mgrs = detect_package_managers(proj)
+        assert "Poetry" in mgrs
+        assert "pip" not in mgrs
+
+    def test_multiple_ecosystems(self, tmp_path):
+        proj = tmp_path / "multi"
+        proj.mkdir()
+        (proj / "pyproject.toml").write_text("[tool.poetry]\nname = 'backend'\n")
+        (proj / "poetry.lock").write_text("")
+        (proj / "package.json").write_text("{}")
+        (proj / "yarn.lock").write_text("")
+        mgrs = detect_package_managers(proj)
+        assert "Poetry" in mgrs
+        assert "Yarn" in mgrs
+
+    def test_no_duplicates(self, tmp_path):
+        proj = tmp_path / "nodup"
+        proj.mkdir()
+        (proj / "poetry.lock").write_text("")
+        (proj / "poetry.toml").write_text("")
+        (proj / "pyproject.toml").write_text("[tool.poetry]\nname = 'app'\n")
+        mgrs = detect_package_managers(proj)
+        assert mgrs.count("Poetry") == 1

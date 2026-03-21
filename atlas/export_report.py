@@ -156,6 +156,8 @@ def _project_details(projects: list[Project]) -> list[str]:
             lines.append(f"- **Quality**: {', '.join(p.tech_stack.quality_tools[:8])}")
         if p.tech_stack.testing_frameworks:
             lines.append(f"- **Testing**: {', '.join(p.tech_stack.testing_frameworks[:8])}")
+        if p.tech_stack.package_managers:
+            lines.append(f"- **Pkg Managers**: {', '.join(p.tech_stack.package_managers[:8])}")
 
         if p.git_info.branch:
             lines.append(f"- **Git**: {p.git_info.branch} · {p.git_info.total_commits:,} commits")

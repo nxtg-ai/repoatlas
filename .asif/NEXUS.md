@@ -44,8 +44,9 @@
 | N-31 | [Enhanced Database Detection](#n-31-enhanced-database-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 | N-32 | [Database Intelligence](#n-32-database-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-33 | [Database Summary Panel](#n-33-database-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-34 | [Package Manager Detection](#n-34-package-manager-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 30/33 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 31/34 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -60,7 +61,8 @@
 - Code quality tooling: Ruff, Flake8, Pylint, ESLint, Biome, Black, Prettier, mypy, Pyright, TypeScript, golangci-lint, Clippy
 - Testing frameworks: pytest, Jest, Vitest, Mocha, Cypress, Playwright, go test, cargo test, tox, nox, Hypothesis, AVA, Testing Library
 - Database & data stores: PostgreSQL, MySQL, SQLite, MongoDB, Redis, Elasticsearch, Neo4j, Cassandra, InfluxDB, DynamoDB, Firestore, Supabase, PlanetScale, CockroachDB, ChromaDB, Pinecone, Qdrant, Weaviate, Kafka, RabbitMQ, Memcached
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31
+- Package managers & build tools: pip, Poetry, PDM, uv, Pipenv, setuptools, Hatch, Flit, npm, Yarn, pnpm, Bun, Cargo, Go Modules, Bundler, Maven, Gradle, NuGet, Composer
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -221,6 +223,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Enhanced `atlas doctor` recommendations engine to leverage all detection data from N-17/N-19/N-24/N-25. Per-project: security (no tooling, missing dep scanning, missing secret scanning), quality (no tooling, missing linting, missing type checking), infrastructure (no CI/CD). Cross-project: maps security_gap/security_divergence, quality_gap/quality_divergence, infra_gap/infra_divergence connections to prioritized recommendations. 23 new recommendation tests.
 **Shipped**: 2026-03-13. Total test count: 583 → 606. Surfaces all detection+intelligence data through actionable `atlas doctor` output.
+
+### N-34: Package Manager Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_package_managers()` in detector.py. Detects package managers and build tools across ecosystems: Python (pip, Poetry, PDM, uv, Pipenv, setuptools, Hatch, Flit), JavaScript/TypeScript (npm, Yarn, pnpm, Bun), Rust (Cargo), Go (Go Modules), Ruby (Bundler), Java/Kotlin (Maven, Gradle), .NET (NuGet), PHP (Composer). Detects via lockfiles, config files, and pyproject.toml build-system declarations. Smart deduplication — pip not added when Poetry/PDM/uv/Pipenv present. Added `package_managers` field to TechStack model. Shows in `atlas inspect` and markdown export. 25 package manager tests.
+**Shipped**: 2026-03-21. Total test count: 711 → 736. 8th detection category.
 
 ### N-33: Database Summary Panel
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
