@@ -33,6 +33,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_state_management_patterns(projects))
     connections.extend(_find_css_framework_patterns(projects))
     connections.extend(_find_bundler_patterns(projects))
+    connections.extend(_find_orm_patterns(projects))
     return connections
 
 
@@ -1662,6 +1663,91 @@ def _find_bundler_patterns(projects: list[Project]) -> list[Connection]:
                 type="bundler_gap",
                 detail=f"{len(no_bundler)} JS/TS project(s) have no bundler configured",
                 projects=sorted(no_bundler),
+                severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_orm_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project ORM/database client patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared ORM tools — same tool in 2+ projects
+    orm_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for orm in p.tech_stack.orm_tools:
+            orm_to_projects[orm].append(p.name)
+
+    for orm, projs in sorted(orm_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_orm",
+                detail=f"{orm} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # ORM divergence — projects using different data access paradigms
+    full_orm = {"SQLAlchemy", "Django ORM", "Peewee", "Tortoise ORM", "SQLModel",
+                "Pony ORM", "TypeORM", "Sequelize", "Prisma", "Drizzle", "MikroORM",
+                "Mongoose", "Bookshelf", "Objection.js", "Kysely", "MongoEngine",
+                "GORM", "ent", "Diesel", "SeaORM", "Hibernate", "MyBatis", "jOOQ",
+                "Spring Data JPA"}
+    raw_client = {"asyncpg", "psycopg2", "psycopg", "node-postgres", "pg",
+                  "better-sqlite3", "ioredis", "redis-py", "aioredis",
+                  "PyMongo", "Motor", "MongoDB Driver", "databases",
+                  "pgx", "sqlx (Go)", "sqlx (Rust)", "Rusqlite", "sqlc",
+                  "Bun (Go)", "JDBI"}
+    migration_tool = {"Alembic"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "ORM": {}, "raw client": {}, "migration": {},
+    }
+    cat_sets = [
+        ("ORM", full_orm),
+        ("raw client", raw_client),
+        ("migration", migration_tool),
+    ]
+    for p in projects:
+        for orm in p.tech_stack.orm_tools:
+            for cat_name, cat_set in cat_sets:
+                if orm in cat_set:
+                    cat_found[cat_name].setdefault(orm, set()).add(p.name)
+
+    # Only flag ORM vs raw client divergence (migration is fine alongside either)
+    orm_projects = cat_found["ORM"]
+    raw_projects = cat_found["raw client"]
+    if orm_projects and raw_projects:
+        parts = []
+        all_projs: set[str] = set()
+        orm_names = ", ".join(sorted(orm_projects.keys())[:4])
+        parts.append(f"ORM ({orm_names})")
+        for ps in orm_projects.values():
+            all_projs.update(ps)
+        raw_names = ", ".join(sorted(raw_projects.keys())[:4])
+        parts.append(f"raw client ({raw_names})")
+        for ps in raw_projects.values():
+            all_projs.update(ps)
+        connections.append(Connection(
+            type="orm_divergence",
+            detail=f"Mixed data access strategies: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # ORM gap — projects with databases but no ORM/client detected
+    has_orm = {p.name for p in projects if p.tech_stack.orm_tools}
+    if has_orm:
+        no_orm = [p.name for p in projects
+                  if not p.tech_stack.orm_tools
+                  and p.tech_stack.databases
+                  and p.source_file_count > 10]
+        if no_orm:
+            connections.append(Connection(
+                type="orm_gap",
+                detail=f"{len(no_orm)} project(s) use databases but have no ORM/client library detected",
+                projects=sorted(no_orm),
                 severity="warning",
             ))
 

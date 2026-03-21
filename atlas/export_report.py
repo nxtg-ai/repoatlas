@@ -452,6 +452,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_bundler": "Shared Bundlers",
         "bundler_divergence": "Bundler Divergence",
         "bundler_gap": "Bundler Gaps",
+        "shared_orm": "Shared ORM/DB Clients",
+        "orm_divergence": "ORM Strategy Divergence",
+        "orm_gap": "ORM/DB Client Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

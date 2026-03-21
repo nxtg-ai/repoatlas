@@ -87,8 +87,9 @@
 | N-74 | [Bundler Intelligence](#n-74-bundler-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-75 | [Export Connection Summary Stats](#n-75-export-connection-summary-stats) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-76 | [ORM & Database Client Detection](#n-76-orm--database-client-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-77 | [ORM Intelligence](#n-77-orm-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 73/76 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 74/77 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -144,7 +145,8 @@
 - Cross-project state management intelligence (shared libraries, flux/proxy/atomic/machine paradigm divergence, state management gaps for frontend projects)
 - Cross-project CSS/styling intelligence (shared frameworks, utility-first/CSS-in-JS/component library paradigm divergence, CSS gaps for frontend projects)
 - Cross-project bundler intelligence (shared bundlers, modern/fast vs traditional vs library generation divergence, bundler gaps for JS/TS projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74
+- Cross-project ORM intelligence (shared ORM/DB clients, ORM vs raw client paradigm divergence, ORM gaps for projects with databases)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -452,6 +454,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: Detects ORM frameworks and database client libraries across all supported languages. Python: SQLAlchemy, SQLModel, Django ORM, Peewee, Tortoise ORM, Pony ORM, asyncpg, psycopg2/psycopg, PyMongo, Motor, MongoEngine, redis-py, aioredis, databases, Alembic. JavaScript/TypeScript: Prisma, TypeORM, Sequelize, Drizzle, Knex, Mongoose, Bookshelf, Objection.js, MikroORM, Kysely, better-sqlite3, node-postgres, ioredis, MongoDB Driver. Go: GORM, sqlx, ent, pgx, sqlc, Bun. Rust: Diesel, sqlx, SeaORM, Rusqlite. Java: Hibernate, MyBatis, jOOQ, Spring Data JPA, JDBI. Detects from config files (prisma/schema.prisma, ormconfig.*, drizzle.config.*, knexfile.*, mikro-orm.config.*), pyproject.toml, requirements.txt, package.json, go.mod, Cargo.toml, build.gradle, pom.xml. New TechStack field: orm_tools. 36 tests.
 **Shipped**: 2026-03-21. Total test count: 1375 → 1411. 22nd detection feature.
+
+### N-77: ORM Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project ORM and database client intelligence. Shared ORM detection (same tool in 2+ projects), ORM strategy divergence (ORM frameworks vs raw database clients — flags when portfolio mixes paradigms), ORM gap detection (projects with databases but no ORM/client library detected, min 10 source files). Connection types: shared_orm (info), orm_divergence (warning), orm_gap (warning). Added to CONNECTION_CATEGORIES as "orm" category (23rd). 11 tests.
+**Shipped**: 2026-03-21. Total test count: 1411 → 1422. 24th intelligence feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

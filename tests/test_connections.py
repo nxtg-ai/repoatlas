@@ -3285,3 +3285,107 @@ class TestFindBundlerPatterns:
         conns = find_connections(projects)
         bnd_types = {c.type for c in conns if "bundler" in c.type}
         assert "shared_bundler" in bnd_types
+
+
+class TestFindOrmPatterns:
+    def test_no_orm_tools(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        orm_types = {c.type for c in conns if "orm" in c.type}
+        assert len(orm_types) == 0
+
+    def test_shared_orm_detected(self):
+        projects = [
+            _proj("a", orm_tools=["SQLAlchemy"]),
+            _proj("b", orm_tools=["SQLAlchemy"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_orm"]
+        assert len(shared) == 1
+        assert "SQLAlchemy" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_shared_orm_needs_two_projects(self):
+        projects = [
+            _proj("a", orm_tools=["SQLAlchemy"]),
+            _proj("b", orm_tools=["Prisma"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_orm"]
+        assert len(shared) == 0
+
+    def test_orm_divergence_orm_vs_raw(self):
+        projects = [
+            _proj("a", orm_tools=["SQLAlchemy"]),
+            _proj("b", orm_tools=["asyncpg"]),
+        ]
+        conns = find_connections(projects)
+        divs = [c for c in conns if c.type == "orm_divergence"]
+        assert len(divs) == 1
+        assert "ORM" in divs[0].detail
+        assert "raw client" in divs[0].detail
+        assert divs[0].severity == "warning"
+
+    def test_no_divergence_same_paradigm(self):
+        projects = [
+            _proj("a", orm_tools=["SQLAlchemy"]),
+            _proj("b", orm_tools=["Prisma"]),
+        ]
+        conns = find_connections(projects)
+        divs = [c for c in conns if c.type == "orm_divergence"]
+        assert len(divs) == 0
+
+    def test_no_divergence_raw_only(self):
+        projects = [
+            _proj("a", orm_tools=["asyncpg"]),
+            _proj("b", orm_tools=["node-postgres"]),
+        ]
+        conns = find_connections(projects)
+        divs = [c for c in conns if c.type == "orm_divergence"]
+        assert len(divs) == 0
+
+    def test_orm_gap_with_databases(self):
+        projects = [
+            _proj("a", orm_tools=["SQLAlchemy"], databases=["PostgreSQL"]),
+            _proj("b", databases=["PostgreSQL"], source_files=20),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "orm_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+
+    def test_no_orm_gap_without_databases(self):
+        projects = [
+            _proj("a", orm_tools=["SQLAlchemy"], databases=["PostgreSQL"]),
+            _proj("b", source_files=20),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "orm_gap"]
+        assert len(gaps) == 0
+
+    def test_no_orm_gap_small_project(self):
+        projects = [
+            _proj("a", orm_tools=["SQLAlchemy"], databases=["PostgreSQL"]),
+            _proj("b", databases=["Redis"], source_files=5),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "orm_gap"]
+        assert len(gaps) == 0
+
+    def test_multiple_shared_orms(self):
+        projects = [
+            _proj("a", orm_tools=["SQLAlchemy", "Alembic"]),
+            _proj("b", orm_tools=["SQLAlchemy", "Alembic"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_orm"]
+        assert len(shared) == 2
+
+    def test_integration_with_find_connections_orm(self):
+        projects = [
+            _proj("a", orm_tools=["Prisma"]),
+            _proj("b", orm_tools=["Prisma", "Mongoose"]),
+        ]
+        conns = find_connections(projects)
+        orm_types = {c.type for c in conns if "orm" in c.type}
+        assert "shared_orm" in orm_types
