@@ -506,6 +506,45 @@ class TestConnections:
         result = runner.invoke(app, ["connections", "--project", "nonexistent"])
         assert result.exit_code == 0
 
+    def test_connections_summary(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--summary"])
+        assert result.exit_code == 0
+        assert "Connection Summary" in result.output
+        assert "total connections" in result.output
+
+    def test_connections_summary_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--summary", "--format", "json"])
+        assert result.exit_code == 0
+        import json
+        data = json.loads(result.output)
+        assert "total" in data
+        assert "categories" in data
+
+    def test_connections_summary_with_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--summary", "--severity", "warning"])
+        assert result.exit_code == 0
+
 
 # ===========================================================================
 # atlas search

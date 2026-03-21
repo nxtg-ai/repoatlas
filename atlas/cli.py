@@ -364,6 +364,7 @@ def connections(
     severity: Optional[str] = typer.Option(None, "--severity", "-s", help="Filter by severity (info, warning, critical)"),
     project: Optional[str] = typer.Option(None, "--project", "-p", help="Filter connections involving a specific project"),
     format: Optional[str] = typer.Option(None, help="Output format: json or csv for structured output"),
+    summary: bool = typer.Option(False, "--summary", help="Show compact category summary table"),
 ):
     """Show cross-project intelligence."""
     portfolio = _load_portfolio()
@@ -417,6 +418,52 @@ def connections(
         if not (format and format.lower() in ("json", "csv")):
             console.print()
             console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (project: {project})[/dim]")
+
+    if summary:
+        from collections import Counter
+        cat_counts: dict[str, Counter[str]] = {}
+        reverse_map: dict[str, str] = {}
+        for cat_name, types in CONNECTION_CATEGORIES.items():
+            for t in types:
+                reverse_map[t] = cat_name
+        for c in conns:
+            cat = reverse_map.get(c.type, "other")
+            if cat not in cat_counts:
+                cat_counts[cat] = Counter()
+            cat_counts[cat][c.severity] += 1
+        if format and format.lower() == "json":
+            import json as json_mod
+            data = {
+                "total": len(conns),
+                "categories": {
+                    cat: {"total": sum(sevs.values()), **dict(sevs)}
+                    for cat, sevs in sorted(cat_counts.items())
+                },
+            }
+            print(json_mod.dumps(data, indent=2))
+            return
+        from rich.table import Table
+        from rich import box
+        table = Table(title="Connection Summary", box=box.SIMPLE)
+        table.add_column("Category", style="cyan")
+        table.add_column("Total", justify="right")
+        table.add_column("Critical", justify="right", style="red")
+        table.add_column("Warning", justify="right", style="yellow")
+        table.add_column("Info", justify="right", style="cyan")
+        for cat in sorted(cat_counts):
+            sevs = cat_counts[cat]
+            total = sum(sevs.values())
+            table.add_row(
+                cat,
+                str(total),
+                str(sevs.get("critical", 0)) if sevs.get("critical") else "",
+                str(sevs.get("warning", 0)) if sevs.get("warning") else "",
+                str(sevs.get("info", 0)) if sevs.get("info") else "",
+            )
+        console.print()
+        console.print(table)
+        console.print(f"\n  [dim]{len(conns)} total connections across {len(cat_counts)} categories[/dim]\n")
+        return
 
     if format and format.lower() == "json":
         import json as json_mod
