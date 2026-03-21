@@ -4889,3 +4889,66 @@ class TestFindWebSocketPatterns:
         conns = find_connections(projects)
         ws_types = {c.type for c in conns if "websocket" in c.type}
         assert "shared_websocket_lib" in ws_types
+
+
+class TestFindGraphqlPatterns:
+    def test_shared_graphql_lib(self):
+        projects = [
+            _proj("a", graphql_libs=["Apollo Server", "graphql-js"]),
+            _proj("b", graphql_libs=["Apollo Server"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_graphql_lib"]
+        assert any("Apollo Server" in c.detail for c in shared)
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", graphql_libs=["Apollo Server"]),
+            _proj("b", graphql_libs=["GraphQL Yoga"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_graphql_lib"]
+        assert len(shared) == 0
+
+    def test_divergence_server_vs_client(self):
+        projects = [
+            _proj("a", graphql_libs=["Apollo Server"]),
+            _proj("b", graphql_libs=["Apollo Client"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "graphql_divergence"]
+        assert len(div) == 1
+        assert "server_first" in div[0].detail
+        assert "client_first" in div[0].detail
+
+    def test_no_divergence_same_category(self):
+        projects = [
+            _proj("a", graphql_libs=["Apollo Server"]),
+            _proj("b", graphql_libs=["GraphQL Yoga"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "graphql_divergence"]
+        assert len(div) == 0
+
+    def test_empty_graphql(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        gql = [c for c in conns if "graphql" in c.type]
+        assert len(gql) == 0
+
+    def test_cap_at_10(self):
+        projects = [
+            _proj(f"p{i}", graphql_libs=["Apollo Server"]) for i in range(20)
+        ]
+        from atlas.connections import _find_graphql_patterns
+        conns = _find_graphql_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", graphql_libs=["Apollo Server", "Apollo Client"]),
+            _proj("b", graphql_libs=["Apollo Server", "URQL"]),
+        ]
+        conns = find_connections(projects)
+        gql_types = {c.type for c in conns if "graphql" in c.type}
+        assert "shared_graphql_lib" in gql_types

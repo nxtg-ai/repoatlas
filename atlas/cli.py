@@ -356,6 +356,7 @@ CONNECTION_CATEGORIES = {
     "serialization": {"shared_serialization_format", "serialization_divergence"},
     "di": {"shared_di_framework", "di_divergence"},
     "websocket": {"shared_websocket_lib", "websocket_divergence"},
+    "graphql": {"shared_graphql_lib", "graphql_divergence"},
 }
 
 

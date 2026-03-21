@@ -141,8 +141,9 @@
 | N-128 | [Connections Summary Mode](#n-128-connections-summary-mode) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-129 | [GraphQL Library Detection](#n-129-graphql-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-130 | [Doctor Priority Filter](#n-130-doctor-priority-filter) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-131 | [GraphQL Intelligence](#n-131-graphql-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 127/130 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 128/131 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -234,7 +235,8 @@
 - Cross-project serialization format intelligence (shared serialization formats, binary vs text-based paradigm divergence)
 - Cross-project DI framework intelligence (shared DI frameworks, container-based vs implicit paradigm divergence)
 - Cross-project WebSocket intelligence (shared WebSocket libs, managed vs self-hosted paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127
+- Cross-project GraphQL intelligence (shared GraphQL libs, server-first vs client-first paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -671,6 +673,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-131: GraphQL Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project GraphQL intelligence: shared GraphQL libs (shared_graphql_lib), server-first vs client-first paradigm divergence (graphql_divergence). No gap type (GraphQL is architectural preference). New CONNECTION_CATEGORIES entry "graphql" (41 total). Updated display type_labels, icons, stats category mapping, export type_labels, recommendations mapping. 7 tests.
+**Shipped**: 2026-03-21. Total test count: 2019 → 2026. 42nd intelligence feature.
 
 ### N-130: Doctor Priority Filter
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
