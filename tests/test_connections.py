@@ -18,6 +18,7 @@ from atlas.connections import (
     _find_runtime_version_patterns,
     _find_build_tool_patterns,
     _find_api_spec_patterns,
+    _find_monitoring_patterns,
     _find_version_mismatches,
     find_connections,
 )
@@ -28,7 +29,8 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           infrastructure=None, security_tools=None, quality_tools=None,
           ai_tools=None, testing_frameworks=None, package_managers=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
-          build_tools=None, api_specs=None, project_license="",
+          build_tools=None, api_specs=None, monitoring_tools=None,
+          project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -49,6 +51,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             runtime_versions=runtime_versions or {},
             build_tools=build_tools or [],
             api_specs=api_specs or [],
+            monitoring_tools=monitoring_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -2197,3 +2200,165 @@ class TestFindApiSpecPatterns:
         api_types = {c.type for c in conns if "api_spec" in c.type}
         assert "shared_api_spec" in api_types
         assert "api_spec_divergence" in api_types
+
+
+# ---------------------------------------------------------------------------
+# _find_monitoring_patterns (N-56)
+# ---------------------------------------------------------------------------
+class TestFindMonitoringPatterns:
+    # --- Shared monitoring tools ---
+
+    def test_shared_monitoring_tool(self):
+        projects = [
+            _proj("a", monitoring_tools=["Sentry", "Datadog"]),
+            _proj("b", monitoring_tools=["Sentry"]),
+        ]
+        conns = _find_monitoring_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_monitoring"]
+        assert len(shared) == 1
+        assert "Sentry" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_shared_multiple_tools(self):
+        projects = [
+            _proj("a", monitoring_tools=["Sentry", "Datadog"]),
+            _proj("b", monitoring_tools=["Sentry", "Datadog"]),
+        ]
+        conns = _find_monitoring_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_monitoring"]
+        assert len(shared) == 2
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", monitoring_tools=["Sentry"]),
+            _proj("b", monitoring_tools=["Datadog"]),
+        ]
+        conns = _find_monitoring_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_monitoring"]
+        assert len(shared) == 0
+
+    def test_shared_needs_two_projects(self):
+        projects = [_proj("a", monitoring_tools=["Sentry"])]
+        conns = _find_monitoring_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_monitoring"]
+        assert len(shared) == 0
+
+    # --- Error tracking divergence ---
+
+    def test_error_tracker_divergence(self):
+        projects = [
+            _proj("a", monitoring_tools=["Sentry"]),
+            _proj("b", monitoring_tools=["Bugsnag"]),
+        ]
+        conns = _find_monitoring_patterns(projects)
+        div = [c for c in conns if c.type == "monitoring_divergence"
+               and "error tracker" in c.detail.lower()]
+        assert len(div) == 1
+        assert "Sentry" in div[0].detail
+        assert "Bugsnag" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_no_error_tracker_divergence_same_tool(self):
+        projects = [
+            _proj("a", monitoring_tools=["Sentry"]),
+            _proj("b", monitoring_tools=["Sentry"]),
+        ]
+        conns = _find_monitoring_patterns(projects)
+        div = [c for c in conns if c.type == "monitoring_divergence"
+               and "error tracker" in c.detail.lower()]
+        assert len(div) == 0
+
+    # --- APM divergence ---
+
+    def test_apm_divergence(self):
+        projects = [
+            _proj("a", monitoring_tools=["Datadog"]),
+            _proj("b", monitoring_tools=["New Relic"]),
+        ]
+        conns = _find_monitoring_patterns(projects)
+        div = [c for c in conns if c.type == "monitoring_divergence"
+               and "APM" in c.detail]
+        assert len(div) == 1
+        assert "Datadog" in div[0].detail
+        assert "New Relic" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_no_apm_divergence_same_tool(self):
+        projects = [
+            _proj("a", monitoring_tools=["Datadog"]),
+            _proj("b", monitoring_tools=["Datadog"]),
+        ]
+        conns = _find_monitoring_patterns(projects)
+        div = [c for c in conns if c.type == "monitoring_divergence"
+               and "APM" in c.detail]
+        assert len(div) == 0
+
+    # --- Monitoring gap ---
+
+    def test_monitoring_gap(self):
+        projects = [
+            _proj("a", monitoring_tools=["Sentry"]),
+            _proj("b", monitoring_tools=[], source_files=15),
+        ]
+        conns = _find_monitoring_patterns(projects)
+        gaps = [c for c in conns if c.type == "monitoring_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "warning"
+
+    def test_no_gap_when_all_have_monitoring(self):
+        projects = [
+            _proj("a", monitoring_tools=["Sentry"]),
+            _proj("b", monitoring_tools=["Datadog"]),
+        ]
+        conns = _find_monitoring_patterns(projects)
+        gaps = [c for c in conns if c.type == "monitoring_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_when_none_have_monitoring(self):
+        projects = [
+            _proj("a", monitoring_tools=[]),
+            _proj("b", monitoring_tools=[]),
+        ]
+        conns = _find_monitoring_patterns(projects)
+        gaps = [c for c in conns if c.type == "monitoring_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", monitoring_tools=["Sentry"]),
+            _proj("b", monitoring_tools=[], source_files=5),
+        ]
+        conns = _find_monitoring_patterns(projects)
+        gaps = [c for c in conns if c.type == "monitoring_gap"]
+        assert len(gaps) == 0
+
+    # --- Edge cases ---
+
+    def test_empty_projects(self):
+        conns = _find_monitoring_patterns([])
+        assert conns == []
+
+    def test_no_tools_no_connections(self):
+        projects = [
+            _proj("a", monitoring_tools=[]),
+            _proj("b", monitoring_tools=[]),
+        ]
+        conns = _find_monitoring_patterns(projects)
+        assert len(conns) == 0
+
+    def test_limit_10(self):
+        tools = [f"Tool{i}" for i in range(20)]
+        projects = [_proj("a", monitoring_tools=tools), _proj("b", monitoring_tools=tools)]
+        conns = _find_monitoring_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", monitoring_tools=["Sentry", "Datadog"]),
+            _proj("b", monitoring_tools=["Sentry", "New Relic"]),
+        ]
+        conns = find_connections(projects)
+        mon_types = {c.type for c in conns if "monitoring" in c.type}
+        assert "shared_monitoring" in mon_types
+        assert "monitoring_divergence" in mon_types

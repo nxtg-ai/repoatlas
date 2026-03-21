@@ -325,6 +325,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_api_spec": "Shared API Specs",
         "api_spec_divergence": "API Spec Divergence",
         "api_spec_gap": "API Spec Gaps",
+        "shared_monitoring": "Shared Monitoring Tools",
+        "monitoring_divergence": "Monitoring Divergence",
+        "monitoring_gap": "Monitoring Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

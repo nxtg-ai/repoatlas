@@ -83,6 +83,9 @@ CONNECTION_ICONS = {
     "shared_api_spec": "[cyan]\u2194[/cyan]",
     "api_spec_divergence": "[yellow]\u21ae[/yellow]",
     "api_spec_gap": "[red]\u2298[/red]",
+    "shared_monitoring": "[green]\u2302[/green]",
+    "monitoring_divergence": "[yellow]\u2300[/yellow]",
+    "monitoring_gap": "[red]\u2301[/red]",
 }
 
 
@@ -462,6 +465,9 @@ def show_connections(connections: list[Connection]):
         "shared_api_spec": "Shared API Specs",
         "api_spec_divergence": "API Spec Divergence",
         "api_spec_gap": "API Spec Gaps",
+        "shared_monitoring": "Shared Monitoring Tools",
+        "monitoring_divergence": "Monitoring Divergence",
+        "monitoring_gap": "Monitoring Gaps",
     }
 
     lines = []

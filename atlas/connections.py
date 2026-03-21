@@ -26,6 +26,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_runtime_version_patterns(projects))
     connections.extend(_find_build_tool_patterns(projects))
     connections.extend(_find_api_spec_patterns(projects))
+    connections.extend(_find_monitoring_patterns(projects))
     return connections
 
 
@@ -1127,6 +1128,76 @@ def _find_api_spec_patterns(projects: list[Project]) -> list[Connection]:
                 type="api_spec_gap",
                 detail=f"{len(no_api)} project(s) with web frameworks but no API spec",
                 projects=sorted(no_api),
+                severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_monitoring_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project monitoring & observability patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared monitoring tools — same tool in 2+ projects
+    tool_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for tool in p.tech_stack.monitoring_tools:
+            tool_to_projects[tool].append(p.name)
+
+    for tool, projs in sorted(tool_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_monitoring",
+                detail=f"{tool} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Error tracking divergence — multiple error trackers across portfolio
+    error_trackers = {"Sentry", "Bugsnag", "Rollbar", "Elastic APM"}
+    et_found: dict[str, set[str]] = {}
+    for p in projects:
+        for tool in p.tech_stack.monitoring_tools:
+            if tool in error_trackers:
+                et_found.setdefault(tool, set()).add(p.name)
+    if len(et_found) >= 2:
+        detail_parts = [f"{t} ({', '.join(sorted(ps))})" for t, ps in et_found.items()]
+        all_projs = sorted({p for ps in et_found.values() for p in ps})
+        connections.append(Connection(
+            type="monitoring_divergence",
+            detail=f"Multiple error trackers: {', '.join(detail_parts)} — standardize",
+            projects=all_projs,
+            severity="warning",
+        ))
+
+    # APM divergence — multiple APM tools
+    apm_tools = {"Datadog", "New Relic", "Elastic APM", "Honeycomb"}
+    apm_found: dict[str, set[str]] = {}
+    for p in projects:
+        for tool in p.tech_stack.monitoring_tools:
+            if tool in apm_tools:
+                apm_found.setdefault(tool, set()).add(p.name)
+    if len(apm_found) >= 2:
+        detail_parts = [f"{t} ({', '.join(sorted(ps))})" for t, ps in apm_found.items()]
+        all_projs = sorted({p for ps in apm_found.values() for p in ps})
+        connections.append(Connection(
+            type="monitoring_divergence",
+            detail=f"Multiple APM tools: {', '.join(detail_parts)} — standardize",
+            projects=all_projs,
+            severity="warning",
+        ))
+
+    # Monitoring gap — projects with source files but no monitoring when others have it
+    has_monitoring = {p.name for p in projects if p.tech_stack.monitoring_tools}
+    if has_monitoring:
+        no_monitoring = [p.name for p in projects
+                         if not p.tech_stack.monitoring_tools
+                         and p.source_file_count > 10]
+        if no_monitoring:
+            connections.append(Connection(
+                type="monitoring_gap",
+                detail=f"{len(no_monitoring)} project(s) have no monitoring/observability tooling",
+                projects=sorted(no_monitoring),
                 severity="warning",
             ))
 

@@ -66,8 +66,9 @@
 | N-53 | [API Specification Intelligence](#n-53-api-specification-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-54 | [Health Trend Sparklines](#n-54-health-trend-sparklines) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-55 | [Monitoring & Observability Detection](#n-55-monitoring--observability-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-56 | [Monitoring & Observability Intelligence](#n-56-monitoring--observability-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 52/55 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 53/56 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -109,7 +110,8 @@
 - Cross-project runtime version intelligence (shared versions, version divergence, pinning gaps)
 - Cross-project build tool intelligence (shared tools, Python/Java divergence, automation gaps)
 - Cross-project API specification intelligence (shared specs, REST/GraphQL/RPC paradigm divergence, API spec gaps)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53
+- Cross-project monitoring intelligence (shared tools, error tracker divergence, APM divergence, monitoring gaps)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -305,6 +307,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_monitoring_tools()` in detector.py. Detects monitoring, observability, error tracking, and logging tools from Python deps (sentry-sdk, ddtrace, newrelic, opentelemetry, prometheus-client, elastic-apm, bugsnag, rollbar, honeycomb, loguru, structlog), JS deps (@sentry/node, @sentry/browser, @sentry/react, @sentry/nextjs, dd-trace, newrelic, @opentelemetry/api, prom-client, @bugsnag/js, rollbar, @honeycombio/opentelemetry-node, pino, winston, @logtail/node, logrocket), Go deps (sentry-go, opentelemetry, prometheus, datadog), Rust deps (sentry, opentelemetry, tracing, prometheus), and config files (sentry.properties, .sentryclirc, newrelic.yml, datadog.yaml, prometheus.yml, otel-collector-config.yaml). Added `monitoring_tools` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py), markdown/JSON/CSV export. `_project_has_tech()` searches monitoring_tools. 26 detection tests.
 **Shipped**: 2026-03-21. Total test count: 1032 → 1058. 15th detection category.
+
+### N-56: Monitoring & Observability Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project monitoring pattern detection via `_find_monitoring_patterns()` in connections.py. Analyzes monitoring_tools data from N-55 across the portfolio to detect: shared monitoring tools (Sentry/Datadog across 2+ projects, info), error tracker divergence (Sentry vs Bugsnag vs Rollbar vs Elastic APM across portfolio, warning), APM divergence (Datadog vs New Relic vs Elastic APM vs Honeycomb across portfolio, warning), and monitoring gaps (projects with 10+ source files but no monitoring/observability tooling, warning). New connection types (`shared_monitoring`, `monitoring_divergence`, `monitoring_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps monitoring_gap and monitoring_divergence to `infra` recommendation categories. 16 monitoring pattern tests.
+**Shipped**: 2026-03-21. Total test count: 1058 → 1074. Completes N-55 detection→intelligence pipeline. All 16 detection→intelligence pipelines complete.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
