@@ -12,7 +12,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskPr
 from atlas.config import get_value, load_config, set_value, valid_keys
 from atlas.connections import find_connections
 from atlas.display import console, show_comparison, show_connections, show_project_card, show_scan_complete, show_status
-from atlas.export_report import build_markdown_report
+from atlas.export_report import build_json_report, build_markdown_report
 from atlas.history import build_scan_entry, compute_trends, load_history, save_scan
 from atlas.license_manager import activate as activate_license, get_status as get_license_status
 from atlas.models import Portfolio
@@ -529,26 +529,15 @@ def export(
     portfolio = _load_portfolio()
 
     if format == "json":
-        import json
-        data = {
-            "name": portfolio.name,
-            "scanned": portfolio.last_scan,
-            "summary": {
-                "projects": len(portfolio.projects),
-                "test_files": portfolio.total_tests,
-                "loc": portfolio.total_loc,
-                "health_grade": portfolio.avg_grade,
-                "health_percent": int(portfolio.avg_health * 100),
-            },
-            "projects": [p.to_dict() for p in portfolio.projects],
-        }
-        content = json.dumps(data, indent=2)
+        content = build_json_report(portfolio)
     else:
         content = build_markdown_report(portfolio)
 
     if output:
         Path(output).write_text(content)
         console.print(f"  [green]\u2713[/green] Exported to [bold]{output}[/bold]")
+    elif format == "json":
+        print(content)
     else:
         console.print(content)
 

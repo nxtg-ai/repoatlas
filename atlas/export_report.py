@@ -1,10 +1,12 @@
-"""Rich markdown export — portfolio report generation."""
+"""Portfolio report generation — markdown and JSON formats."""
 from __future__ import annotations
 
+import json as json_mod
 from collections import Counter
 
 from atlas.connections import find_connections
 from atlas.models import Portfolio, Project
+from atlas.recommendations import generate_recommendations
 
 
 def build_markdown_report(portfolio: Portfolio) -> str:
@@ -248,3 +250,135 @@ def _connections_section(conns: list) -> list[str]:
         lines.append("")
 
     return lines
+
+
+def build_json_report(portfolio: Portfolio) -> str:
+    """Build a comprehensive JSON portfolio report."""
+    projects = portfolio.projects
+    conns = find_connections(projects) if len(projects) > 1 else []
+    recs = generate_recommendations(portfolio)
+
+    data: dict = {
+        "name": portfolio.name,
+        "scanned": portfolio.last_scan,
+        "summary": {
+            "projects": len(projects),
+            "test_files": portfolio.total_tests,
+            "loc": portfolio.total_loc,
+            "health_grade": portfolio.avg_grade,
+            "health_percent": int(portfolio.avg_health * 100),
+        },
+        "portfolio_summary": _json_portfolio_summary(projects),
+        "projects": [_json_project(p) for p in projects],
+        "connections": [
+            {
+                "type": c.type,
+                "detail": c.detail,
+                "projects": c.projects,
+                "severity": c.severity,
+            }
+            for c in conns
+        ],
+        "recommendations": [
+            {
+                "priority": r.priority,
+                "category": r.category,
+                "message": r.message,
+                "projects": r.projects,
+            }
+            for r in recs
+        ],
+    }
+
+    return json_mod.dumps(data, indent=2)
+
+
+def _json_project(p: Project) -> dict:
+    """Build a single project dict for JSON export."""
+    d = p.to_dict()
+    d["license"] = p.license
+    return d
+
+
+def _json_portfolio_summary(projects: list[Project]) -> dict:
+    """Build portfolio-level aggregate stats for JSON export."""
+    if not projects:
+        return {}
+
+    n = len(projects)
+
+    # Languages
+    lang_counter: Counter[str] = Counter()
+    for p in projects:
+        for lang in p.tech_stack.primary_languages:
+            lang_counter[lang] += 1
+
+    # Frameworks
+    fw_counter: Counter[str] = Counter()
+    for p in projects:
+        for fw in p.tech_stack.frameworks:
+            if fw != "Docker":
+                fw_counter[fw] += 1
+
+    # Infrastructure
+    ci_systems = {"GitHub Actions", "GitLab CI", "Jenkins", "CircleCI"}
+    has_ci = sum(1 for p in projects if any(i in p.tech_stack.infrastructure for i in ci_systems))
+    has_docker = sum(1 for p in projects if "Docker" in p.tech_stack.infrastructure)
+
+    # Security
+    has_security = sum(1 for p in projects if p.tech_stack.security_tools)
+
+    # Quality
+    has_quality = sum(1 for p in projects if p.tech_stack.quality_tools)
+
+    # Testing
+    tf_counter: Counter[str] = Counter()
+    for p in projects:
+        for tf in p.tech_stack.testing_frameworks:
+            tf_counter[tf] += 1
+    has_testing = sum(1 for p in projects if p.tech_stack.testing_frameworks)
+
+    # Databases
+    db_counter: Counter[str] = Counter()
+    for p in projects:
+        for db in p.tech_stack.databases:
+            db_counter[db] += 1
+    has_db = sum(1 for p in projects if p.tech_stack.databases)
+
+    # Package managers
+    pm_counter: Counter[str] = Counter()
+    for p in projects:
+        for pm in p.tech_stack.package_managers:
+            pm_counter[pm] += 1
+    has_pm = sum(1 for p in projects if p.tech_stack.package_managers)
+
+    # AI/ML
+    ai_counter: Counter[str] = Counter()
+    for p in projects:
+        for tool in p.tech_stack.ai_tools:
+            ai_counter[tool] += 1
+    has_ai = sum(1 for p in projects if p.tech_stack.ai_tools)
+
+    # Licenses
+    lic_counter: Counter[str] = Counter()
+    for p in projects:
+        if p.license:
+            lic_counter[p.license] += 1
+    has_license = sum(1 for p in projects if p.license)
+
+    return {
+        "total_projects": n,
+        "languages": dict(lang_counter.most_common(10)),
+        "frameworks": dict(fw_counter.most_common(10)),
+        "infrastructure": {
+            "ci_cd": f"{has_ci}/{n}",
+            "docker": f"{has_docker}/{n}",
+        },
+        "security": f"{has_security}/{n}",
+        "quality": f"{has_quality}/{n}",
+        "testing": {"coverage": f"{has_testing}/{n}", "frameworks": dict(tf_counter.most_common(10))},
+        "databases": {"coverage": f"{has_db}/{n}", "databases": dict(db_counter.most_common(10))},
+        "package_managers": {"coverage": f"{has_pm}/{n}", "managers": dict(pm_counter.most_common(10))},
+        "ai_ml": {"coverage": f"{has_ai}/{n}", "tools": dict(ai_counter.most_common(10))},
+        "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
+    }

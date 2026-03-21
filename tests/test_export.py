@@ -1,7 +1,9 @@
-"""Tests for rich markdown export."""
+"""Tests for portfolio export (markdown + JSON)."""
 from __future__ import annotations
 
-from atlas.export_report import build_markdown_report
+import json
+
+from atlas.export_report import build_json_report, build_markdown_report
 from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
 
@@ -321,3 +323,138 @@ class TestEmptyPortfolio:
         ))
         assert "# Empty — Portfolio Report" in report
         assert "**Projects**: 0" in report
+
+
+class TestJsonReport:
+    def test_basic_structure(self):
+        data = json.loads(build_json_report(_portfolio(_proj("app1"))))
+        assert data["name"] == "Test Portfolio"
+        assert data["scanned"] == "2026-03-13T12:00:00"
+        assert "summary" in data
+        assert "portfolio_summary" in data
+        assert "projects" in data
+        assert "connections" in data
+        assert "recommendations" in data
+
+    def test_summary_stats(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("a", loc=1000), _proj("b", loc=2000)
+        )))
+        assert data["summary"]["projects"] == 2
+        assert data["summary"]["loc"] == 3000
+
+    def test_projects_included(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("alpha"), _proj("beta")
+        )))
+        names = [p["name"] for p in data["projects"]]
+        assert "alpha" in names
+        assert "beta" in names
+
+    def test_project_has_license(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("app", project_license="MIT")
+        )))
+        assert data["projects"][0]["license"] == "MIT"
+
+    def test_connections_present(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("a", frameworks=["FastAPI"], source_files=20),
+            _proj("b", frameworks=["FastAPI"], source_files=20),
+        )))
+        # Should have at least shared_framework connection
+        assert isinstance(data["connections"], list)
+
+    def test_connection_fields(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("a", frameworks=["FastAPI"], source_files=20,
+                  infrastructure=["GitHub Actions"],
+                  security_tools=["Dependabot", "Gitleaks"],
+                  quality_tools=["Ruff", "mypy"],
+                  testing_frameworks=["pytest"],
+                  project_license="MIT"),
+            _proj("b", frameworks=["FastAPI"], source_files=20,
+                  infrastructure=["GitHub Actions"],
+                  security_tools=["Dependabot", "Gitleaks"],
+                  quality_tools=["Ruff", "mypy"],
+                  testing_frameworks=["pytest"],
+                  project_license="MIT"),
+        )))
+        if data["connections"]:
+            conn = data["connections"][0]
+            assert "type" in conn
+            assert "detail" in conn
+            assert "projects" in conn
+            assert "severity" in conn
+
+    def test_recommendations_present(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("a", source_files=20),
+        )))
+        assert isinstance(data["recommendations"], list)
+
+    def test_recommendation_fields(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("a", source_files=20),
+        )))
+        if data["recommendations"]:
+            rec = data["recommendations"][0]
+            assert "priority" in rec
+            assert "category" in rec
+            assert "message" in rec
+            assert "projects" in rec
+
+    def test_portfolio_summary_languages(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("a", languages={"Python": 10}),
+            _proj("b", languages={"Python": 5, "TypeScript": 8}),
+        )))
+        ps = data["portfolio_summary"]
+        assert ps["languages"]["Python"] == 2
+
+    def test_portfolio_summary_infra(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("a", infrastructure=["GitHub Actions", "Docker"]),
+            _proj("b", infrastructure=["Docker"]),
+        )))
+        ps = data["portfolio_summary"]
+        assert ps["infrastructure"]["ci_cd"] == "1/2"
+        assert ps["infrastructure"]["docker"] == "2/2"
+
+    def test_portfolio_summary_licenses(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="MIT"),
+            _proj("c", project_license=""),
+        )))
+        ps = data["portfolio_summary"]
+        assert ps["licenses"]["coverage"] == "2/3"
+        assert ps["licenses"]["licenses"]["MIT"] == 2
+
+    def test_portfolio_summary_testing(self):
+        data = json.loads(build_json_report(_portfolio(
+            _proj("a", testing_frameworks=["pytest"]),
+            _proj("b", testing_frameworks=["pytest", "Jest"]),
+        )))
+        ps = data["portfolio_summary"]
+        assert ps["testing"]["coverage"] == "2/2"
+        assert ps["testing"]["frameworks"]["pytest"] == 2
+
+    def test_empty_portfolio(self):
+        data = json.loads(build_json_report(Portfolio(
+            name="Empty", projects=[], last_scan="2026-03-21"
+        )))
+        assert data["summary"]["projects"] == 0
+        assert data["portfolio_summary"] == {}
+        assert data["connections"] == []
+
+    def test_valid_json(self):
+        result = build_json_report(_portfolio(
+            _proj("a", frameworks=["FastAPI"], databases=["PostgreSQL"],
+                  testing_frameworks=["pytest"], project_license="MIT"),
+            _proj("b", frameworks=["Django"], databases=["MySQL"],
+                  testing_frameworks=["pytest"], project_license="Apache-2.0"),
+        ))
+        # Should be parseable JSON
+        data = json.loads(result)
+        assert isinstance(data, dict)

@@ -50,8 +50,9 @@
 | N-37 | [License Detection](#n-37-license-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-38 | [License Intelligence](#n-38-license-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-39 | [License Summary Panel](#n-39-license-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-40 | [Enhanced JSON Export](#n-40-enhanced-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 36/39 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 37/40 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -96,7 +97,8 @@
 - Database adoption in portfolio summary panel and markdown export
 - Package manager adoption in portfolio summary panel and markdown export
 - License distribution in portfolio summary panel and markdown export
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39
+- Comprehensive JSON export with connections, recommendations, and portfolio aggregates
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -238,6 +240,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project package manager pattern detection via `_find_package_manager_patterns()` in connections.py. Detects: shared package managers (Poetry/npm across 2+ projects), JS package manager divergence (npm vs Yarn vs pnpm vs Bun), Python package manager divergence (pip vs Poetry vs PDM vs uv vs Pipenv), Java build tool divergence (Maven vs Gradle). New connection types (`shared_pkg_manager`, `pkg_manager_divergence`) displayed in `atlas connections`, markdown export, and `atlas doctor`. 13 package manager pattern tests.
 **Shipped**: 2026-03-21. Total test count: 736 → 749. Completes N-34 detection→intelligence pipeline. All 7 detection→intelligence pipelines complete.
+
+### N-40: Enhanced JSON Export
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Comprehensive JSON export via `build_json_report()` in export_report.py. Replaces the basic inline JSON generation in cli.py. Now includes: portfolio summary aggregates (languages, frameworks, infra, security, quality, testing, databases, package managers, AI/ML, licenses — all as structured data), cross-project connections (type, detail, projects, severity), and doctor recommendations (priority, category, message, projects). Per-project data includes license field. Uses raw `print()` for JSON stdout to avoid Rich markup corruption. 14 new JSON export tests.
+**Shipped**: 2026-03-21. Total test count: 799 → 813. JSON export now at full parity with markdown export.
 
 ### N-39: License Summary Panel
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
