@@ -143,6 +143,7 @@ Atlas finds patterns across your repos that no single-repo tool can see:
 | `atlas scan` | Re-scan all projects |
 | `atlas status` | Portfolio dashboard |
 | `atlas inspect <name>` | Deep-dive on one project |
+| `atlas compare <a> <b>` | Side-by-side project comparison |
 | `atlas remove <name>` | Remove a project |
 | `atlas connections` | Cross-project patterns |
 | `atlas doctor` | Diagnose issues and suggest fixes |

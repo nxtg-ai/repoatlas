@@ -10,7 +10,7 @@ import typer
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 
 from atlas.connections import find_connections
-from atlas.display import console, show_connections, show_project_card, show_scan_complete, show_status
+from atlas.display import console, show_comparison, show_connections, show_project_card, show_scan_complete, show_status
 from atlas.history import build_scan_entry, compute_trends, load_history, save_scan
 from atlas.license_manager import activate as activate_license, get_status as get_license_status
 from atlas.models import Portfolio
@@ -425,6 +425,34 @@ def inspect(name: str = typer.Argument(help="Project name to inspect")):
         raise typer.Exit(1)
 
     show_project_card(project)
+
+
+@app.command()
+def compare(
+    project_a: str = typer.Argument(help="First project name"),
+    project_b: str = typer.Argument(help="Second project name"),
+):
+    """Compare two projects side by side."""
+    portfolio = _load_portfolio()
+    available = ", ".join(p.name for p in portfolio.projects)
+
+    a = portfolio.find_project(project_a)
+    if not a:
+        console.print(f"[red]Project not found: {project_a}[/red]")
+        console.print(f"[dim]Available: {available}[/dim]")
+        raise typer.Exit(1)
+
+    b = portfolio.find_project(project_b)
+    if not b:
+        console.print(f"[red]Project not found: {project_b}[/red]")
+        console.print(f"[dim]Available: {available}[/dim]")
+        raise typer.Exit(1)
+
+    if a.name == b.name:
+        console.print("[yellow]Cannot compare a project with itself.[/yellow]")
+        raise typer.Exit(1)
+
+    show_comparison(a, b)
 
 
 @app.command(name="batch-add")

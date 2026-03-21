@@ -369,6 +369,69 @@ class TestInspect:
 
 
 # ===========================================================================
+# atlas compare
+# ===========================================================================
+
+
+class TestCompare:
+    def _add_two_projects(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        da = tmp_path / "proj-a"
+        db = tmp_path / "proj-b"
+        da.mkdir()
+        db.mkdir()
+        proj_a = _make_project("proj-a", str(da))
+        # Give proj-b different health
+        hs_b = HealthScore(tests=0.5, git_hygiene=0.6, documentation=0.4, structure=0.5)
+        hs_b.compute()
+        proj_b = Project(
+            name="proj-b", path=str(db),
+            tech_stack=TechStack(languages={"TypeScript": 20}, frameworks=["React"]),
+            git_info=GitInfo(branch="main", total_commits=30, has_remote=True),
+            health=hs_b, test_file_count=2, source_file_count=15, total_file_count=20, loc=800,
+        )
+        call_count = {"n": 0}
+        def mock_scan(path):
+            call_count["n"] += 1
+            if "proj-a" in str(path):
+                return proj_a
+            return proj_b
+        with patch("atlas.cli.scan_project", side_effect=mock_scan):
+            runner.invoke(app, ["add", str(da)])
+            runner.invoke(app, ["add", str(db)])
+
+    def test_compare_two_projects(self, portfolio_dir, tmp_path):
+        self._add_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["compare", "proj-a", "proj-b"])
+        assert result.exit_code == 0
+        assert "proj-a" in result.output
+        assert "proj-b" in result.output
+        assert "Comparison" in result.output
+
+    def test_compare_not_found(self, portfolio_dir, tmp_path):
+        self._add_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["compare", "proj-a", "nonexistent"])
+        assert result.exit_code == 1
+        assert "not found" in result.output
+
+    def test_compare_same_project(self, portfolio_dir, tmp_path):
+        self._add_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["compare", "proj-a", "proj-a"])
+        assert result.exit_code == 1
+        assert "itself" in result.output
+
+    def test_compare_shows_insights(self, portfolio_dir, tmp_path):
+        self._add_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["compare", "proj-a", "proj-b"])
+        assert result.exit_code == 0
+        assert "Insights" in result.output
+
+    def test_compare_no_portfolio(self, portfolio_dir):
+        result = runner.invoke(app, ["compare", "a", "b"])
+        assert result.exit_code == 1
+
+
+# ===========================================================================
 # atlas remove
 # ===========================================================================
 

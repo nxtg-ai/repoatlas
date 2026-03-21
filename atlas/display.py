@@ -230,6 +230,168 @@ def show_scan_complete(portfolio: Portfolio, duration_s: float):
     console.print()
 
 
+def show_comparison(a: Project, b: Project):
+    """Display a side-by-side comparison of two projects."""
+    # Header
+    color_a = HEALTH_COLORS.get(a.health.grade, "white")
+    color_b = HEALTH_COLORS.get(b.health.grade, "white")
+
+    table = Table(
+        box=box.ROUNDED,
+        border_style="cyan",
+        header_style="bold cyan",
+        title="[bold white] Project Comparison [/bold white]",
+        show_lines=True,
+        expand=True,
+    )
+    table.add_column("", style="bold", min_width=14)
+    table.add_column(a.name, justify="center", min_width=20)
+    table.add_column(b.name, justify="center", min_width=20)
+    table.add_column("Delta", justify="center", min_width=12)
+
+    # Health
+    delta_h = a.health.percent - b.health.percent
+    delta_str = _delta_str(delta_h, suffix="%")
+    table.add_row(
+        "Health",
+        f"[{color_a}]{a.health.grade} ({a.health.percent}%)[/{color_a}]",
+        f"[{color_b}]{b.health.grade} ({b.health.percent}%)[/{color_b}]",
+        delta_str,
+    )
+
+    # Health dimensions
+    for label, dim_a, dim_b in [
+        ("Tests", a.health.tests, b.health.tests),
+        ("Git Hygiene", a.health.git_hygiene, b.health.git_hygiene),
+        ("Documentation", a.health.documentation, b.health.documentation),
+        ("Structure", a.health.structure, b.health.structure),
+    ]:
+        pct_a = int(dim_a * 100)
+        pct_b = int(dim_b * 100)
+        d = pct_a - pct_b
+        table.add_row(
+            f"  {label}",
+            f"{_mini_bar(dim_a, 10)}  {pct_a}%",
+            f"{_mini_bar(dim_b, 10)}  {pct_b}%",
+            _delta_str(d, suffix="%"),
+        )
+
+    # Metrics
+    table.add_row(
+        "Test Files",
+        f"{a.test_file_count:,}",
+        f"{b.test_file_count:,}",
+        _delta_str(a.test_file_count - b.test_file_count),
+    )
+    table.add_row(
+        "Source Files",
+        f"{a.source_file_count:,}",
+        f"{b.source_file_count:,}",
+        _delta_str(a.source_file_count - b.source_file_count),
+    )
+    table.add_row(
+        "LOC",
+        f"{a.loc:,}",
+        f"{b.loc:,}",
+        _delta_str(a.loc - b.loc),
+    )
+    table.add_row(
+        "Commits",
+        f"{a.git_info.total_commits:,}",
+        f"{b.git_info.total_commits:,}",
+        _delta_str(a.git_info.total_commits - b.git_info.total_commits),
+    )
+
+    # Tech stack
+    table.add_row(
+        "Stack",
+        a.tech_stack.summary,
+        b.tech_stack.summary,
+        "",
+    )
+
+    # Shared frameworks
+    fw_a = set(a.tech_stack.frameworks)
+    fw_b = set(b.tech_stack.frameworks)
+    shared_fw = fw_a & fw_b
+    only_a_fw = fw_a - fw_b
+    only_b_fw = fw_b - fw_a
+    if shared_fw:
+        table.add_row("Shared FW", ", ".join(sorted(shared_fw)), "", "")
+    if only_a_fw or only_b_fw:
+        table.add_row(
+            "Unique FW",
+            ", ".join(sorted(only_a_fw)) if only_a_fw else "[dim]-[/dim]",
+            ", ".join(sorted(only_b_fw)) if only_b_fw else "[dim]-[/dim]",
+            "",
+        )
+
+    # Shared deps
+    deps_a = set(a.tech_stack.key_deps.keys())
+    deps_b = set(b.tech_stack.key_deps.keys())
+    shared_deps = deps_a & deps_b
+    if shared_deps:
+        table.add_row("Shared Deps", f"{len(shared_deps)}", f"{len(shared_deps)}", "")
+
+    console.print()
+    console.print(table)
+
+    # Insights
+    console.print()
+    console.print("  [bold]Insights[/bold]")
+    console.print()
+
+    if a.health.overall > b.health.overall + 0.05:
+        winner, loser = a, b
+    elif b.health.overall > a.health.overall + 0.05:
+        winner, loser = b, a
+    else:
+        winner = None
+
+    if winner:
+        console.print(f"  [green]\u25cf[/green] [bold]{winner.name}[/bold] is healthier overall")
+        # Find which dimensions the loser could improve
+        dims = [
+            ("tests", winner.health.tests, loser.health.tests, "test coverage"),
+            ("git_hygiene", winner.health.git_hygiene, loser.health.git_hygiene, "git hygiene"),
+            ("documentation", winner.health.documentation, loser.health.documentation, "documentation"),
+            ("structure", winner.health.structure, loser.health.structure, "project structure"),
+        ]
+        for _, w_val, l_val, label in dims:
+            gap = w_val - l_val
+            if gap > 0.1:
+                console.print(
+                    f"  [yellow]\u25b6[/yellow] {loser.name} could improve {label} "
+                    f"(gap: {int(gap * 100)}%)"
+                )
+    else:
+        console.print("  [green]\u25cf[/green] Both projects have similar health")
+
+    if shared_deps:
+        # Check for version mismatches in shared deps
+        mismatches = []
+        for dep in shared_deps:
+            v_a = a.tech_stack.key_deps[dep]
+            v_b = b.tech_stack.key_deps[dep]
+            if v_a != v_b:
+                mismatches.append(f"{dep} ({v_a} vs {v_b})")
+        if mismatches:
+            console.print(f"  [yellow]\u26a0[/yellow] Version mismatches: {', '.join(mismatches[:3])}")
+
+    console.print()
+
+
+def _delta_str(delta: int | float, suffix: str = "") -> str:
+    """Format a delta value with color and sign."""
+    if delta == 0:
+        return "[dim]=[/dim]"
+    sign = "+" if delta > 0 else ""
+    color = "green" if delta > 0 else "red"
+    if isinstance(delta, float):
+        return f"[{color}]{sign}{delta:.1f}{suffix}[/{color}]"
+    return f"[{color}]{sign}{delta}{suffix}[/{color}]"
+
+
 def _health_icon(score: float) -> str:
     if score >= 0.76:
         return "[green]\u25cf[/green]"
