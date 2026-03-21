@@ -486,6 +486,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_i18n": "Shared i18n Tools",
         "i18n_divergence": "i18n Strategy Divergence",
         "i18n_gap": "i18n Gaps",
+        "shared_validation": "Shared Validation Tools",
+        "validation_divergence": "Validation Strategy Divergence",
+        "validation_gap": "Validation Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

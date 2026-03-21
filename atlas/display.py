@@ -110,6 +110,9 @@ CONNECTION_ICONS = {
     "shared_i18n": "[green]\u2302[/green]",
     "i18n_divergence": "[yellow]\u2302[/yellow]",
     "i18n_gap": "[red]\u2302[/red]",
+    "shared_validation": "[green]\u2713[/green]",
+    "validation_divergence": "[yellow]\u2713[/yellow]",
+    "validation_gap": "[red]\u2713[/red]",
 }
 
 
@@ -610,6 +613,9 @@ def show_connections(connections: list[Connection]):
         "shared_i18n": "Shared i18n Tools",
         "i18n_divergence": "i18n Strategy Divergence",
         "i18n_gap": "i18n Gaps",
+        "shared_validation": "Shared Validation Tools",
+        "validation_divergence": "Validation Strategy Divergence",
+        "validation_gap": "Validation Gaps",
     }
 
     lines = []
@@ -672,6 +678,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_bundler": "bundler", "bundler_divergence": "bundler", "bundler_gap": "bundler",
         "shared_orm": "orm", "orm_divergence": "orm", "orm_gap": "orm",
         "shared_i18n": "i18n", "i18n_divergence": "i18n", "i18n_gap": "i18n",
+        "shared_validation": "validation", "validation_divergence": "validation", "validation_gap": "validation",
     }
 
     for conn in connections:

@@ -93,8 +93,9 @@
 | N-80 | [i18n Intelligence](#n-80-i18n-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-81 | [Project Search Command](#n-81-project-search-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-82 | [Validation & Schema Library Detection](#n-82-validation--schema-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-83 | [Validation Intelligence](#n-83-validation-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 79/82 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 80/83 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -154,7 +155,8 @@
 - Cross-project bundler intelligence (shared bundlers, modern/fast vs traditional vs library generation divergence, bundler gaps for JS/TS projects)
 - Cross-project ORM intelligence (shared ORM/DB clients, ORM vs raw client paradigm divergence, ORM gaps for projects with databases)
 - Cross-project i18n intelligence (shared i18n tools, ICU/message format vs key-based vs extraction-based divergence, i18n gaps for web projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80
+- Cross-project validation intelligence (shared validation tools, schema-first vs model/decorator-based vs form validation divergence, validation gaps for API/backend projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -494,6 +496,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: Detects validation and schema libraries across 5 ecosystems via `detect_validation_tools()` in detector.py. Python: Pydantic, marshmallow, Cerberus, attrs, cattrs, Voluptuous, schema, jsonschema, Colander, Schematics. JS/TS: Zod, Yup, Joi, class-validator, class-transformer, Ajv, Superstruct, Valibot, io-ts, TypeBox, Vest, myZod, Effect Schema, ArkType. Go: go-playground/validator, ozzo-validation. Rust: validator, garde. Java: Hibernate Validator, Jakarta Validation. Full pipeline: models.py field, scanner.py import/call, display.py project card + portfolio summary, export_report.py markdown/JSON/CSV, cli.py search integration. 30 tests.
 **Shipped**: 2026-03-21. Total test count: 1465 → 1495. 24th detection feature.
+
+### N-83: Validation Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project validation pattern detection via `_find_validation_patterns()` in connections.py. Analyzes validation_tools data from N-82 across the portfolio to detect: shared validation tools (Pydantic/Zod across 2+ projects, info), validation strategy divergence (schema-first vs model/decorator-based vs form validation, warning), and validation gaps (API/backend projects with 10+ source files using API frameworks but no validation library, critical). New connection types (`shared_validation`, `validation_divergence`, `validation_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps validation_gap and validation_divergence to `quality` recommendation category. 25th CONNECTION_CATEGORIES entry. 10 tests.
+**Shipped**: 2026-03-21. Total test count: 1495 → 1505. 26th intelligence feature. Completes N-82 detection→intelligence pipeline.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

@@ -23,6 +23,7 @@ from atlas.connections import (
     _find_messaging_patterns,
     _find_deploy_target_patterns,
     _find_version_mismatches,
+    _find_validation_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -3486,3 +3487,101 @@ class TestFindI18nPatterns:
         conns = find_connections(projects)
         i18n_types = {c.type for c in conns if "i18n" in c.type}
         assert "shared_i18n" in i18n_types
+
+
+# ---------------------------------------------------------------------------
+# _find_validation_patterns
+# ---------------------------------------------------------------------------
+class TestFindValidationPatterns:
+    def test_no_validation_no_connections(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = _find_validation_patterns(projects)
+        assert conns == []
+
+    def test_shared_validation(self):
+        projects = [
+            _proj("a", validation_tools=["Pydantic"]),
+            _proj("b", validation_tools=["Pydantic"]),
+        ]
+        conns = _find_validation_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_validation"]
+        assert len(shared) == 1
+        assert "Pydantic" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_no_shared_when_different(self):
+        projects = [
+            _proj("a", validation_tools=["Zod"]),
+            _proj("b", validation_tools=["Yup"]),
+        ]
+        conns = _find_validation_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_validation"]
+        assert len(shared) == 0
+
+    def test_validation_divergence_schema_vs_model(self):
+        projects = [
+            _proj("a", validation_tools=["Zod"]),
+            _proj("b", validation_tools=["Pydantic"]),
+        ]
+        conns = _find_validation_patterns(projects)
+        div = [c for c in conns if c.type == "validation_divergence"]
+        assert len(div) == 1
+        assert div[0].severity == "warning"
+        assert "schema-first" in div[0].detail
+        assert "model/decorator-based" in div[0].detail
+
+    def test_no_divergence_same_category(self):
+        projects = [
+            _proj("a", validation_tools=["Zod"]),
+            _proj("b", validation_tools=["Yup"]),
+        ]
+        conns = _find_validation_patterns(projects)
+        div = [c for c in conns if c.type == "validation_divergence"]
+        assert len(div) == 0
+
+    def test_validation_gap_api_project_no_validation(self):
+        projects = [
+            _proj("a", validation_tools=["Pydantic"], frameworks=["FastAPI"], source_files=20),
+            _proj("b", validation_tools=[], frameworks=["Flask"], source_files=20),
+        ]
+        conns = _find_validation_patterns(projects)
+        gaps = [c for c in conns if c.type == "validation_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "critical"
+
+    def test_no_gap_when_no_api_framework(self):
+        projects = [
+            _proj("a", validation_tools=["Zod"]),
+            _proj("b", validation_tools=[], frameworks=[], source_files=20),
+        ]
+        conns = _find_validation_patterns(projects)
+        gaps = [c for c in conns if c.type == "validation_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_when_small_project(self):
+        projects = [
+            _proj("a", validation_tools=["Pydantic"], frameworks=["FastAPI"], source_files=20),
+            _proj("b", validation_tools=[], frameworks=["FastAPI"], source_files=5),
+        ]
+        conns = _find_validation_patterns(projects)
+        gaps = [c for c in conns if c.type == "validation_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_when_no_projects_have_validation(self):
+        projects = [
+            _proj("a", validation_tools=[], frameworks=["FastAPI"], source_files=20),
+            _proj("b", validation_tools=[], frameworks=["Flask"], source_files=20),
+        ]
+        conns = _find_validation_patterns(projects)
+        gaps = [c for c in conns if c.type == "validation_gap"]
+        assert len(gaps) == 0
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", validation_tools=["Pydantic"]),
+            _proj("b", validation_tools=["Pydantic", "Zod"]),
+        ]
+        conns = find_connections(projects)
+        val_types = {c.type for c in conns if "validation" in c.type}
+        assert "shared_validation" in val_types

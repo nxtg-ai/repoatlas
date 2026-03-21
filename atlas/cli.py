@@ -289,6 +289,7 @@ CONNECTION_CATEGORIES = {
     "bundler": {"shared_bundler", "bundler_divergence", "bundler_gap"},
     "orm": {"shared_orm", "orm_divergence", "orm_gap"},
     "i18n": {"shared_i18n", "i18n_divergence", "i18n_gap"},
+    "validation": {"shared_validation", "validation_divergence", "validation_gap"},
 }
 
 
