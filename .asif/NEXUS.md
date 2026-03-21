@@ -102,8 +102,9 @@
 | N-89 | [Container Orchestration Intelligence](#n-89-container-orchestration-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-90 | [Cloud Provider & SDK Detection](#n-90-cloud-provider--sdk-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-91 | [Cloud Provider Intelligence](#n-91-cloud-provider-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-92 | [Top Projects & Version Commands](#n-92-top-projects--version-commands) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 88/91 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 89/92 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -200,7 +201,9 @@
 - Project search: `atlas search <term>` finds projects by name, language, framework, or technology. Shows matches with health grade and tech summary
 - Batch remove: `atlas batch-remove` prunes stale projects whose directories no longer exist on disk. Lists removed projects with paths, auto-saves portfolio
 - Rename project: `atlas rename <old> <new>` renames a project in the portfolio. Prevents name collisions
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87
+- Top projects command: `atlas top --by health|loc|tests|commits -n 5` shows top N projects ranked by metric
+- Version command: `atlas version` shows installed version
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -557,6 +560,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project cloud provider intelligence: shared cloud providers (shared_cloud), hyperscaler vs edge/PaaS strategy divergence (cloud_divergence), multi-hyperscaler complexity warnings, cloud gaps for deployed projects (cloud_gap). New CONNECTION_CATEGORIES entry "cloud". 10 tests.
 **Shipped**: 2026-03-21. Total test count: 1597 → 1606. 29th intelligence feature.
+
+### N-92: Top Projects & Version Commands
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Two new CLI commands. `atlas top --by health|loc|tests|commits -n 5` shows top N projects ranked by metric with grade colors and tech summaries. `atlas version` shows installed package version. 5 tests.
+**Shipped**: 2026-03-21. Total test count: 1606 → 1611. 27th experience feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

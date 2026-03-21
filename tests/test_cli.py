@@ -1433,3 +1433,59 @@ class TestBatchRemove:
         # Verify it's gone
         result2 = runner.invoke(app, ["status"])
         assert "proj" not in result2.output or "No projects" in result2.output
+
+
+# ---------------------------------------------------------------------------
+# top command
+# ---------------------------------------------------------------------------
+class TestTop:
+    def test_top_default(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        (d / ".git").mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["top"])
+        assert result.exit_code == 0
+        assert "Top" in result.output
+        assert "proj" in result.output
+
+    def test_top_by_loc(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        (d / ".git").mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["top", "--by", "loc"])
+        assert result.exit_code == 0
+        assert "LOC" in result.output
+
+    def test_top_invalid_metric(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        (d / ".git").mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["top", "--by", "invalid"])
+        assert result.exit_code == 1
+
+    def test_top_no_projects(self, portfolio_dir):
+        runner.invoke(app, ["init"])
+        result = runner.invoke(app, ["top"])
+        assert "No projects" in result.output
+
+
+# ---------------------------------------------------------------------------
+# version command
+# ---------------------------------------------------------------------------
+class TestVersion:
+    def test_version_shows_output(self, portfolio_dir):
+        result = runner.invoke(app, ["version"])
+        assert result.exit_code == 0
+        assert "atlas" in result.output

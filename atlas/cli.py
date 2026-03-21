@@ -993,6 +993,62 @@ def generate_badges(portfolio: Portfolio) -> list[str]:
 
 
 @app.command()
+def top(
+    n: int = typer.Option(5, "--limit", "-n", help="Number of projects to show"),
+    by: str = typer.Option("health", help="Sort by: health, loc, tests, commits"),
+):
+    """Show top projects by a metric."""
+    portfolio = _load_portfolio()
+
+    if not portfolio.projects:
+        console.print("[yellow]No projects in portfolio.[/yellow]")
+        return
+
+    sort_keys = {
+        "health": lambda p: p.health.overall,
+        "loc": lambda p: p.loc,
+        "tests": lambda p: p.test_file_count,
+        "commits": lambda p: p.git_info.total_commits,
+    }
+
+    if by not in sort_keys:
+        valid = ", ".join(sorted(sort_keys))
+        console.print(f"[red]Unknown metric '{by}'. Valid: {valid}[/red]")
+        raise typer.Exit(1)
+
+    projects = sorted(portfolio.projects, key=sort_keys[by], reverse=True)[:n]
+
+    console.print()
+    console.print(f"  [bold]Top {len(projects)} by {by}[/bold]")
+    console.print()
+
+    for i, p in enumerate(projects, 1):
+        grade_color = {"A": "green", "B+": "green", "B": "cyan", "C": "yellow", "D": "red", "F": "bold red"}.get(p.health.grade, "white")
+        if by == "health":
+            metric = f"[{grade_color}]{p.health.grade} ({p.health.percent}%)[/{grade_color}]"
+        elif by == "loc":
+            metric = f"{p.loc:,} LOC"
+        elif by == "tests":
+            metric = f"{p.test_file_count:,} test files"
+        else:
+            metric = f"{p.git_info.total_commits:,} commits"
+        console.print(f"  {i:>2}. [bold]{p.name}[/bold]  {metric}  [dim]{p.tech_stack.summary}[/dim]")
+
+    console.print()
+
+
+@app.command()
+def version():
+    """Show the installed atlas version."""
+    try:
+        from importlib.metadata import version as pkg_version
+        ver = pkg_version("atlas-portfolio")
+    except Exception:
+        ver = "dev"
+    console.print(f"atlas {ver}")
+
+
+@app.command()
 def reset():
     """Reset the portfolio (delete all data)."""
     if DEFAULT_PORTFOLIO_FILE.exists():
