@@ -647,11 +647,20 @@ def batch_add(
 
 @app.command()
 def export(
-    format: str = typer.Option("markdown", help="Export format: markdown, json, csv"),
-    output: Optional[str] = typer.Option(None, "-o", help="Output file path"),
+    format: Optional[str] = typer.Option(None, help="Export format: markdown, json, csv (auto-detected from -o extension)"),
+    output: Optional[str] = typer.Option(None, "-o", help="Output file path (.md/.json/.csv auto-detects format)"),
 ):
     """Export portfolio report."""
     portfolio = _load_portfolio()
+
+    # Auto-detect format from output file extension
+    ext_map = {".json": "json", ".csv": "csv", ".md": "markdown"}
+    if format is None:
+        if output:
+            ext = Path(output).suffix.lower()
+            format = ext_map.get(ext, "markdown")
+        else:
+            format = "markdown"
 
     if format == "json":
         content = build_json_report(portfolio)
@@ -662,7 +671,7 @@ def export(
 
     if output:
         Path(output).write_text(content)
-        console.print(f"  [green]\u2713[/green] Exported to [bold]{output}[/bold]")
+        console.print(f"  [green]\u2713[/green] Exported to [bold]{output}[/bold] ({format})")
     elif format in ("json", "csv"):
         print(content)
     else:

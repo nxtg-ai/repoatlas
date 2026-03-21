@@ -76,8 +76,9 @@
 | N-63 | [Connection Statistics Panel](#n-63-connection-statistics-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-64 | [Deployment Target Detection](#n-64-deployment-target-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-65 | [Deployment Target Intelligence](#n-65-deployment-target-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-66 | [Export Format Auto-Detection](#n-66-export-format-auto-detection) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 62/65 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 63/66 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -148,7 +149,8 @@
 - Markdown badge generation: shields.io badges for portfolio README (health grade, project count, test files, LOC, primary language)
 - Connection category filtering: `atlas connections --type security` to filter cross-project intelligence by category (19 categories)
 - Connection statistics panel: summary of total connections, severity breakdown (critical/warning/info), top categories by count
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63
+- Export format auto-detection: `atlas export -o report.json` auto-detects format from file extension (.md/.json/.csv)
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -375,6 +377,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project deployment target intelligence — detects shared deploy targets, platform strategy divergence (serverless/edge vs container PaaS vs IaC serverless), and deploy gaps for web projects with frameworks but no deploy target configured (>5 source files). Adds `_find_deploy_target_patterns()` to connections.py (shared_deploy, deploy_divergence, deploy_gap). Updates display.py icons/labels, export_report.py type_labels, recommendations.py type_to_category, cli.py CONNECTION_CATEGORIES (19 categories). 17 connection tests.
 **Shipped**: 2026-03-21. Total test count: 1222 → 1239. 20th intelligence category.
+
+### N-66: Export Format Auto-Detection
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: `atlas export -o report.json` auto-detects format from file extension (.md → markdown, .json → json, .csv → csv). No `--format` flag needed when using `-o`. Unknown extensions default to markdown. Explicit `--format` overrides auto-detection. Output confirmation message now shows detected format. 7 tests.
+**Shipped**: 2026-03-21. Total test count: 1239 → 1246. 19th experience feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

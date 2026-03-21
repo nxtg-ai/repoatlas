@@ -636,6 +636,62 @@ class TestExport:
         assert "Name" in content
         assert "proj" in content
 
+    def test_auto_detect_json(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        out = tmp_path / "report.json"
+        result = runner.invoke(app, ["export", "-o", str(out)])
+        assert result.exit_code == 0
+        assert out.exists()
+        data = json.loads(out.read_text())
+        assert data["name"] == "Export Test"
+
+    def test_auto_detect_csv(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        out = tmp_path / "report.csv"
+        result = runner.invoke(app, ["export", "-o", str(out)])
+        assert result.exit_code == 0
+        assert out.exists()
+        content = out.read_text()
+        assert "Name" in content
+        assert "proj" in content
+
+    def test_auto_detect_md(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        out = tmp_path / "report.md"
+        result = runner.invoke(app, ["export", "-o", str(out)])
+        assert result.exit_code == 0
+        assert out.exists()
+        assert "Portfolio Report" in out.read_text()
+
+    def test_auto_detect_unknown_ext_defaults_markdown(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        out = tmp_path / "report.txt"
+        result = runner.invoke(app, ["export", "-o", str(out)])
+        assert result.exit_code == 0
+        assert out.exists()
+        assert "Portfolio Report" in out.read_text()
+
+    def test_explicit_format_overrides_extension(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        out = tmp_path / "report.md"
+        result = runner.invoke(app, ["export", "--format", "json", "-o", str(out)])
+        assert result.exit_code == 0
+        assert out.exists()
+        data = json.loads(out.read_text())
+        assert "name" in data
+
+    def test_no_output_no_format_defaults_markdown(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["export"])
+        assert result.exit_code == 0
+        assert "Portfolio Report" in result.output
+
+    def test_output_shows_format_in_message(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        out = tmp_path / "report.json"
+        result = runner.invoke(app, ["export", "-o", str(out)])
+        assert "(json)" in result.output
+
 
 # ===========================================================================
 # atlas config
