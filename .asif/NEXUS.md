@@ -19,9 +19,9 @@
 | N-06 | [PyPI Publishing](#n-06-pypi-publishing) | DISTRIBUTION | DECIDED | P0 | 2026-03-13 |
 | N-07 | [README + GIF Demo](#n-07-readme-gif-demo) | DISTRIBUTION | SHIPPED | P1 | 2026-03-13 |
 | N-08 | [Show HN Launch](#n-08-show-hn-launch) | DISTRIBUTION | DECIDED | P1 | 2026-03-13 |
-| N-09 | [Pro Tier / Monetization](#n-09-pro-tier-monetization) | DISTRIBUTION | IDEA | P2 | — |
+| N-09 | [Pro Tier / Monetization](#n-09-pro-tier-monetization) | DISTRIBUTION | DECIDED | P2 | 2026-03-13 |
 
-**Summary**: 6/9 SHIPPED | 2 DECIDED | 1 IDEA | 0 BUILDING
+**Summary**: 6/9 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -96,9 +96,10 @@
 **Next step**: Asif reviews launch copy in `launch/`, publishes to PyPI, then executes checklist.
 
 ### N-09: Pro Tier / Monetization
-**Pillar**: DISTRIBUTION | **Status**: IDEA | **Priority**: P2
+**Pillar**: DISTRIBUTION | **Status**: DECIDED | **Priority**: P2
 **What**: Open Core model. Free (single repo) + Pro $49 one-time (cross-project intelligence, portfolio dashboard).
-**Next step**: Define feature gate. Polar.sh or Lemon Squeezy for payment.
+**Infrastructure shipped**: `license_manager.py` (key validation, activation, feature gates), `atlas license` + `atlas activate` CLI commands, 27 tests covering key validation, activation/deactivation, status, edge cases (corrupt JSON, missing files, bad checksums). Gates NOT enforced — all features remain free. Enforcement is a product decision for Asif.
+**Next step**: Asif decides payment provider (Polar.sh vs Lemon Squeezy), pricing, and when to enforce gates.
 
 ---
 

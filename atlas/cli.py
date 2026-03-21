@@ -12,6 +12,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskPr
 
 from atlas.connections import find_connections
 from atlas.display import console, show_connections, show_project_card, show_scan_complete, show_status
+from atlas.license_manager import activate as activate_license, deactivate, get_status as get_license_status
 from atlas.models import Portfolio
 from atlas.scanner import scan_project
 
@@ -341,6 +342,38 @@ def support():
     console.print("    [green]\u2713[/green] Early access to new features")
     console.print("    [green]\u2713[/green] The good feeling of funding open source")
     console.print()
+
+
+@app.command()
+def license():
+    """Show current license status."""
+    status = get_license_status()
+    console.print()
+    console.print(f"  [bold]Tier:[/bold] {status['tier']}")
+    console.print(f"  [bold]Project limit:[/bold] {status['project_limit']}")
+    console.print(f"  [bold]Cross-project intelligence:[/bold] {'Yes' if status['cross_project'] else 'Pro only'}")
+    console.print(f"  [bold]Export:[/bold] {'Yes' if status['export'] else 'Pro only'}")
+    console.print(f"  [bold]Batch add:[/bold] {'Yes' if status['batch_add'] else 'Pro only'}")
+    console.print()
+    if status["tier"] == "Free":
+        console.print("  [dim]Activate Pro: atlas activate <key>[/dim]")
+        console.print()
+
+
+@app.command()
+def activate(key: str = typer.Argument(help="Pro license key (ATLAS-XXXX-XXXX-XXXX-XXXX)")):
+    """Activate a Pro license."""
+    if activate_license(key):
+        console.print()
+        console.print("  [green]\u2713[/green] [bold]Pro license activated![/bold]")
+        console.print("  Unlimited projects, cross-project intelligence, export, batch-add.")
+        console.print()
+    else:
+        console.print()
+        console.print("  [red]\u2717[/red] Invalid license key.")
+        console.print("  [dim]Format: ATLAS-XXXX-XXXX-XXXX-XXXX[/dim]")
+        console.print()
+        raise typer.Exit(1)
 
 
 @app.command()
