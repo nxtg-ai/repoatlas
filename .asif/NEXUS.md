@@ -31,8 +31,9 @@
 | N-18 | [Infrastructure Intelligence](#n-18-infrastructure-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-19 | [Security Posture Detection](#n-19-security-posture-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 | N-20 | [Portfolio Summary Panel](#n-20-portfolio-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
+| N-21 | [AI/ML Tooling Detection](#n-21-aiml-tooling-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 17/20 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 18/21 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -43,7 +44,8 @@
 - File-level analysis, dependency parsing, framework identification
 - Infrastructure & deployment: Docker, K8s, Terraform, cloud providers, serverless
 - Security posture: Dependabot, Renovate, Snyk, CodeQL, Bandit, Gitleaks, Trivy, SECURITY.md
-- **Shipped**: N-01, N-17, N-19
+- AI/ML tooling: Anthropic, OpenAI, LangChain, LlamaIndex, Transformers, PyTorch, TensorFlow, Vercel AI SDK, MLflow, W&B, DVC, Jupyter
+- **Shipped**: N-01, N-17, N-19, N-21
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -155,6 +157,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_infrastructure()` in detector.py. Detects Docker/Compose, Kubernetes/Helm, Terraform/Pulumi/CDK, CI/CD (GitHub Actions/GitLab CI/Jenkins/CircleCI), serverless (Vercel/Netlify/Cloudflare Workers/Fly.io/Render), and cloud providers (AWS/GCP/Azure from SDK deps). Added `infrastructure` field to TechStack model. Shows in `atlas inspect`. 28 infrastructure tests.
 **Shipped**: 2026-03-13. Total test count: 367 → 395. README "What It Detects" table expanded.
+
+### N-21: AI/ML Tooling Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_ai_tools()` in detector.py. Detects AI/ML frameworks and tools across Python (Anthropic, OpenAI, LangChain, LlamaIndex, Transformers, PyTorch, TensorFlow, scikit-learn, MLflow, W&B, ChromaDB, Pinecone, Sentence Transformers) and JavaScript (@anthropic-ai/sdk, openai, LangChain, Vercel AI SDK, Hugging Face). Also detects Jupyter notebooks (.ipynb), ML infrastructure (MLproject, wandb/, DVC). Added `ai_tools` field to TechStack model. Shows in `atlas inspect` and portfolio summary panel. 32 AI tools tests.
+**Shipped**: 2026-03-13. Total test count: 451 → 483. README "What It Detects" table expanded. Directly serves North Star ("AI Engineering Teams").
 
 ### N-20: Portfolio Summary Panel
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1

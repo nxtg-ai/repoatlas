@@ -187,6 +187,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         sec_parts.append(f"Secret scanning {has_secret_scan}/{n}")
     lines.append(f"  [bold]Security:[/bold]     {' · '.join(sec_parts)}")
 
+    # AI/ML adoption
+    has_ai = sum(1 for p in projects if p.tech_stack.ai_tools)
+    if has_ai:
+        ai_counter: Counter[str] = Counter()
+        for p in projects:
+            for tool in p.tech_stack.ai_tools:
+                ai_counter[tool] += 1
+        top_ai = ai_counter.most_common(4)
+        ai_parts = [f"{tool} ({count})" for tool, count in top_ai]
+        lines.append(f"  [bold]AI/ML:[/bold]        {has_ai}/{n} projects · {', '.join(ai_parts)}")
+
     content = "\n".join(lines)
     console.print(Panel(
         content,
@@ -268,6 +279,10 @@ def show_project_card(project: Project):
     if project.tech_stack.security_tools:
         sec = ", ".join(project.tech_stack.security_tools[:6])
         lines.append(f"  [bold]Security:[/bold]   {sec}")
+
+    if project.tech_stack.ai_tools:
+        ai = ", ".join(project.tech_stack.ai_tools[:6])
+        lines.append(f"  [bold]AI/ML:[/bold]      {ai}")
 
     if project.git_info.branch:
         lines.append(f"  [bold]Branch:[/bold]    {project.git_info.branch}")

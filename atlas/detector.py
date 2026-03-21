@@ -269,6 +269,76 @@ def detect_infrastructure(project_path: Path) -> list[str]:
     return infra
 
 
+def detect_ai_tools(project_path: Path) -> list[str]:
+    """Detect AI/ML frameworks, tools, and patterns."""
+    tools: list[str] = []
+
+    # Python AI/ML deps
+    for cfg in ("pyproject.toml", "requirements.txt", "requirements-dev.txt"):
+        path = project_path / cfg
+        if path.exists():
+            content = path.read_text(errors="ignore").lower()
+            _check_add(tools, content, "anthropic", "Anthropic SDK")
+            _check_add(tools, content, "openai", "OpenAI SDK")
+            _check_add(tools, content, "langchain", "LangChain")
+            _check_add(tools, content, "llama-index", "LlamaIndex")
+            _check_add(tools, content, "transformers", "Transformers")
+            _check_add(tools, content, "torch", "PyTorch")
+            _check_add(tools, content, "tensorflow", "TensorFlow")
+            _check_add(tools, content, "scikit-learn", "scikit-learn")
+            _check_add(tools, content, "mlflow", "MLflow")
+            _check_add(tools, content, "wandb", "Weights & Biases")
+            _check_add(tools, content, "huggingface", "Hugging Face")
+            _check_add(tools, content, "sentence-transformers", "Sentence Transformers")
+            _check_add(tools, content, "chromadb", "ChromaDB")
+            _check_add(tools, content, "pinecone", "Pinecone")
+
+    # JavaScript AI deps
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text())
+            all_deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
+            js_ai = {
+                "@anthropic-ai/sdk": "Anthropic SDK",
+                "openai": "OpenAI SDK",
+                "langchain": "LangChain",
+                "@langchain/core": "LangChain",
+                "llamaindex": "LlamaIndex",
+                "@huggingface/inference": "Hugging Face",
+                "ai": "Vercel AI SDK",
+                "@ai-sdk/anthropic": "Vercel AI SDK",
+                "@ai-sdk/openai": "Vercel AI SDK",
+            }
+            for dep, name in js_ai.items():
+                if dep in all_deps and name not in tools:
+                    tools.append(name)
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    # Jupyter notebooks
+    has_notebooks = False
+    try:
+        for f in walk_files(project_path):
+            if f.suffix == ".ipynb":
+                has_notebooks = True
+                break
+    except OSError:
+        pass
+    if has_notebooks:
+        tools.append("Jupyter")
+
+    # ML infrastructure files
+    if (project_path / "MLproject").exists():
+        _check_add(tools, "mlflow", "mlflow", "MLflow")
+    if (project_path / "wandb").is_dir():
+        _check_add(tools, "wandb", "wandb", "Weights & Biases")
+    if (project_path / "dvc.yaml").exists() or (project_path / ".dvc").is_dir():
+        tools.append("DVC")
+
+    return tools
+
+
 def detect_security_tools(project_path: Path) -> list[str]:
     """Detect security tooling and practices."""
     tools: list[str] = []

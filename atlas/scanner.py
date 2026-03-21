@@ -8,6 +8,7 @@ from atlas.detector import (
     count_files,
     count_loc,
     count_test_files,
+    detect_ai_tools,
     detect_databases,
     detect_frameworks,
     detect_infrastructure,
@@ -30,6 +31,7 @@ def scan_project(project_path: Path) -> Project:
     key_deps = detect_key_deps(path)
     infrastructure = detect_infrastructure(path)
     security_tools = detect_security_tools(path)
+    ai_tools = detect_ai_tools(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -42,6 +44,7 @@ def scan_project(project_path: Path) -> Project:
         key_deps=key_deps,
         infrastructure=infrastructure,
         security_tools=security_tools,
+        ai_tools=ai_tools,
     )
 
     project = Project(
