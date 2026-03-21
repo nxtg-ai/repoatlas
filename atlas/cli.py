@@ -411,6 +411,7 @@ CONNECTION_CATEGORIES = {
     "websocket": {"shared_websocket_lib", "websocket_divergence"},
     "graphql": {"shared_graphql_lib", "graphql_divergence"},
     "streaming": {"shared_event_streaming", "event_streaming_divergence"},
+    "payments": {"shared_payment_tool", "payment_divergence"},
 }
 
 

@@ -149,8 +149,9 @@
 | N-136 | [Status CSV Export](#n-136-status-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-137 | [Compare CSV Export](#n-137-compare-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-138 | [Date & Time Library Detection](#n-138-date--time-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-139 | [Payment & Billing Intelligence](#n-139-payment--billing-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 135/138 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 136/139 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -247,7 +248,8 @@
 - Cross-project WebSocket intelligence (shared WebSocket libs, managed vs self-hosted paradigm divergence)
 - Cross-project GraphQL intelligence (shared GraphQL libs, server-first vs client-first paradigm divergence)
 - Cross-project event streaming intelligence (shared streaming tools, kafka-based vs amqp-based vs cloud-managed paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134
+- Cross-project payment intelligence (shared payment tools, traditional vs merchant-of-record paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -687,6 +689,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-139: Payment & Billing Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project payment intelligence. Detects shared payment tools (shared_payment_tool, info) and paradigm divergence — traditional (Stripe, PayPal, etc.) vs merchant-of-record (Paddle, Lemon Squeezy, etc.) (payment_divergence, warning). Added connection types, display icons/labels, CLI category "payments", export labels, recommendation mapping. 7 tests.
+**Shipped**: 2026-03-21. Total test count: 2115 → 2122. 44th intelligence feature.
 
 ### N-138: Date & Time Library Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

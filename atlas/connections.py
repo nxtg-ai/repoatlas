@@ -53,6 +53,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_websocket_patterns(projects))
     connections.extend(_find_graphql_patterns(projects))
     connections.extend(_find_event_streaming_patterns(projects))
+    connections.extend(_find_payment_patterns(projects))
     return connections
 
 
@@ -3089,6 +3090,59 @@ def _find_event_streaming_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="event_streaming_divergence",
             detail=f"Mixed streaming approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_payment_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project payment and billing patterns."""
+    connections: list[Connection] = []
+
+    # Shared payment tools — same tool used by 2+ projects
+    tool_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for tool in p.tech_stack.payment_tools:
+            tool_to_projects[tool].append(p.name)
+
+    for tool, projs in sorted(tool_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_payment_tool",
+                detail=f"{tool} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Payment divergence — traditional vs merchant-of-record
+    traditional = {"Stripe", "PayPal", "Braintree", "Square", "Adyen", "Razorpay",
+                   "Mollie", "GoCardless", "Paystack", "Flutterwave", "Coinbase Commerce"}
+    merchant_of_record = {"Paddle", "Lemon Squeezy", "Chargebee", "Recurly"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "traditional": {}, "merchant_of_record": {},
+    }
+    cat_sets = [("traditional", traditional), ("merchant_of_record", merchant_of_record)]
+    for p in projects:
+        for tool in p.tech_stack.payment_tools:
+            for cat_name, cat_set in cat_sets:
+                if tool in cat_set:
+                    cat_found[cat_name].setdefault(tool, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="payment_divergence",
+            detail=f"Mixed payment approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

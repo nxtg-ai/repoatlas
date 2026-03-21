@@ -5029,3 +5029,71 @@ class TestFindEventStreamingPatterns:
         conns = find_connections(projects)
         es_types = {c.type for c in conns if "streaming" in c.type}
         assert "shared_event_streaming" in es_types
+
+
+class TestFindPaymentPatterns:
+    def test_shared_payment_tool(self):
+        from atlas.connections import _find_payment_patterns
+        projects = [
+            _proj("a", payment_tools=["Stripe"]),
+            _proj("b", payment_tools=["Stripe", "PayPal"]),
+        ]
+        conns = _find_payment_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_payment_tool"]
+        assert len(shared) == 1
+        assert "Stripe" in shared[0].detail
+
+    def test_no_shared_unique(self):
+        from atlas.connections import _find_payment_patterns
+        projects = [
+            _proj("a", payment_tools=["Stripe"]),
+            _proj("b", payment_tools=["PayPal"]),
+        ]
+        conns = _find_payment_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_payment_tool"]
+        assert len(shared) == 0
+
+    def test_divergence_traditional_vs_mor(self):
+        from atlas.connections import _find_payment_patterns
+        projects = [
+            _proj("a", payment_tools=["Stripe"]),
+            _proj("b", payment_tools=["Paddle"]),
+        ]
+        conns = _find_payment_patterns(projects)
+        div = [c for c in conns if c.type == "payment_divergence"]
+        assert len(div) == 1
+        assert "traditional" in div[0].detail
+        assert "merchant_of_record" in div[0].detail
+
+    def test_no_divergence_same_category(self):
+        from atlas.connections import _find_payment_patterns
+        projects = [
+            _proj("a", payment_tools=["Stripe"]),
+            _proj("b", payment_tools=["PayPal"]),
+        ]
+        conns = _find_payment_patterns(projects)
+        div = [c for c in conns if c.type == "payment_divergence"]
+        assert len(div) == 0
+
+    def test_empty(self):
+        from atlas.connections import _find_payment_patterns
+        projects = [_proj("a"), _proj("b")]
+        assert _find_payment_patterns(projects) == []
+
+    def test_cap_at_10(self):
+        from atlas.connections import _find_payment_patterns
+        projects = [_proj(f"p{i}", payment_tools=[f"Tool{i}"]) for i in range(20)]
+        # Add shared tools to get many connections
+        for p in projects:
+            p.tech_stack.payment_tools.append("Stripe")
+        conns = _find_payment_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", payment_tools=["Stripe", "Paddle"]),
+            _proj("b", payment_tools=["Stripe", "PayPal"]),
+        ]
+        conns = find_connections(projects)
+        pay_types = {c.type for c in conns if "payment" in c.type}
+        assert "shared_payment_tool" in pay_types

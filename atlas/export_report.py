@@ -790,6 +790,8 @@ def _connections_section(conns: list) -> list[str]:
         "graphql_divergence": "GraphQL Approach Divergence",
         "shared_event_streaming": "Shared Event Streaming",
         "event_streaming_divergence": "Streaming Approach Divergence",
+        "shared_payment_tool": "Shared Payment Tool",
+        "payment_divergence": "Payment Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
