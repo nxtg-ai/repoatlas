@@ -24,6 +24,7 @@ from atlas.connections import (
     _find_deploy_target_patterns,
     _find_version_mismatches,
     _find_validation_patterns,
+    _find_logging_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -3586,3 +3587,101 @@ class TestFindValidationPatterns:
         conns = find_connections(projects)
         val_types = {c.type for c in conns if "validation" in c.type}
         assert "shared_validation" in val_types
+
+
+# ---------------------------------------------------------------------------
+# _find_logging_patterns
+# ---------------------------------------------------------------------------
+class TestFindLoggingPatterns:
+    def test_no_logging_no_connections(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = _find_logging_patterns(projects)
+        assert conns == []
+
+    def test_shared_logging(self):
+        projects = [
+            _proj("a", logging_tools=["Loguru"]),
+            _proj("b", logging_tools=["Loguru"]),
+        ]
+        conns = _find_logging_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_logging"]
+        assert len(shared) == 1
+        assert "Loguru" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_no_shared_when_different(self):
+        projects = [
+            _proj("a", logging_tools=["Winston"]),
+            _proj("b", logging_tools=["Pino"]),
+        ]
+        conns = _find_logging_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_logging"]
+        assert len(shared) == 0
+
+    def test_logging_divergence_structured_vs_traditional(self):
+        projects = [
+            _proj("a", logging_tools=["structlog"]),
+            _proj("b", logging_tools=["Winston"]),
+        ]
+        conns = _find_logging_patterns(projects)
+        div = [c for c in conns if c.type == "logging_divergence"]
+        assert len(div) == 1
+        assert div[0].severity == "warning"
+        assert "structured" in div[0].detail
+        assert "traditional" in div[0].detail
+
+    def test_no_divergence_same_category(self):
+        projects = [
+            _proj("a", logging_tools=["structlog"]),
+            _proj("b", logging_tools=["Pino"]),
+        ]
+        conns = _find_logging_patterns(projects)
+        div = [c for c in conns if c.type == "logging_divergence"]
+        assert len(div) == 0
+
+    def test_logging_gap_backend_no_logging(self):
+        projects = [
+            _proj("a", logging_tools=["Loguru"], frameworks=["FastAPI"], source_files=20),
+            _proj("b", logging_tools=[], frameworks=["Flask"], source_files=20),
+        ]
+        conns = _find_logging_patterns(projects)
+        gaps = [c for c in conns if c.type == "logging_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "warning"
+
+    def test_no_gap_when_no_backend_framework(self):
+        projects = [
+            _proj("a", logging_tools=["Pino"]),
+            _proj("b", logging_tools=[], frameworks=[], source_files=20),
+        ]
+        conns = _find_logging_patterns(projects)
+        gaps = [c for c in conns if c.type == "logging_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_when_small_project(self):
+        projects = [
+            _proj("a", logging_tools=["Winston"], frameworks=["Express"], source_files=20),
+            _proj("b", logging_tools=[], frameworks=["Express"], source_files=5),
+        ]
+        conns = _find_logging_patterns(projects)
+        gaps = [c for c in conns if c.type == "logging_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_when_no_projects_have_logging(self):
+        projects = [
+            _proj("a", logging_tools=[], frameworks=["FastAPI"], source_files=20),
+            _proj("b", logging_tools=[], frameworks=["Flask"], source_files=20),
+        ]
+        conns = _find_logging_patterns(projects)
+        gaps = [c for c in conns if c.type == "logging_gap"]
+        assert len(gaps) == 0
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", logging_tools=["Loguru"]),
+            _proj("b", logging_tools=["Loguru", "structlog"]),
+        ]
+        conns = find_connections(projects)
+        log_types = {c.type for c in conns if "logging" in c.type}
+        assert "shared_logging" in log_types

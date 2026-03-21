@@ -96,8 +96,9 @@
 | N-83 | [Validation Intelligence](#n-83-validation-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-84 | [Batch Remove Stale Projects](#n-84-batch-remove-stale-projects) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-85 | [Logging Framework Detection](#n-85-logging-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-86 | [Logging Intelligence](#n-86-logging-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 82/85 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 83/86 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -159,7 +160,8 @@
 - Cross-project ORM intelligence (shared ORM/DB clients, ORM vs raw client paradigm divergence, ORM gaps for projects with databases)
 - Cross-project i18n intelligence (shared i18n tools, ICU/message format vs key-based vs extraction-based divergence, i18n gaps for web projects)
 - Cross-project validation intelligence (shared validation tools, schema-first vs model/decorator-based vs form validation divergence, validation gaps for API/backend projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83
+- Cross-project logging intelligence (shared logging tools, structured vs traditional logging divergence, logging gaps for backend projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -515,6 +517,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: Detects logging and structured logging frameworks across 5 ecosystems via `detect_logging_tools()` in detector.py. Python: Loguru, structlog, python-json-logger, coloredlogs, Rich (logging), Logbook, Eliot, Twiggy. JS/TS: Winston, Pino, Bunyan, log4js, loglevel, Signale, Consola, Roarr, tslog, Winston Rotate, Morgan, debug. Go: Zap, Logrus, zerolog, slog. Rust: tracing, env_logger, log4rs, fern, slog. Java: Logback, Log4j, SLF4J. Full pipeline: models.py field, scanner.py import/call, display.py project card + portfolio summary, export_report.py markdown/JSON/CSV, cli.py search integration. 21 tests.
 **Shipped**: 2026-03-21. Total test count: 1509 → 1530. 25th detection feature.
+
+### N-86: Logging Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project logging pattern detection via `_find_logging_patterns()` in connections.py. Analyzes logging_tools data from N-85 across the portfolio to detect: shared logging tools (Loguru/Winston across 2+ projects, info), logging strategy divergence (structured logging like structlog/Pino/zerolog vs traditional logging like Winston/Log4j/Logrus, warning), and logging gaps (backend projects with 10+ source files using API frameworks but no logging framework, warning). New connection types (`shared_logging`, `logging_divergence`, `logging_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps logging_gap and logging_divergence to `infra` recommendation category. 26th CONNECTION_CATEGORIES entry. 10 tests.
+**Shipped**: 2026-03-21. Total test count: 1530 → 1540. 27th intelligence feature. Completes N-85 detection→intelligence pipeline.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

@@ -36,6 +36,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_orm_patterns(projects))
     connections.extend(_find_i18n_patterns(projects))
     connections.extend(_find_validation_patterns(projects))
+    connections.extend(_find_logging_patterns(projects))
     return connections
 
 
@@ -1905,6 +1906,83 @@ def _find_validation_patterns(projects: list[Project]) -> list[Connection]:
                 detail=f"{len(no_val)} API/backend project(s) have no validation library detected",
                 projects=sorted(no_val),
                 severity="critical",
+            ))
+
+    return connections[:10]
+
+
+def _find_logging_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect shared logging tools, paradigm divergence, and logging gaps."""
+    connections: list[Connection] = []
+
+    # Shared logging tools — same tool in 2+ projects
+    log_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for tool in p.tech_stack.logging_tools:
+            log_to_projects[tool].append(p.name)
+
+    for tool, projs in sorted(log_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_logging",
+                detail=f"{tool} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Logging divergence — structured vs traditional vs HTTP-request logging
+    structured = {"structlog", "Pino", "Bunyan", "zerolog", "Zap", "Loguru",
+                  "python-json-logger", "tracing (Rust)", "Roarr", "tslog"}
+    traditional = {"Winston", "log4js", "loglevel", "Logback", "Log4j", "SLF4J",
+                   "Logrus", "env_logger", "log4rs", "Logbook", "Signale", "Consola",
+                   "fern", "slog (Rust)", "Eliot", "Twiggy", "coloredlogs",
+                   "logging-tree", "Rich (logging)", "debug"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "structured": {}, "traditional": {},
+    }
+    cat_sets = [
+        ("structured", structured),
+        ("traditional", traditional),
+    ]
+    for p in projects:
+        for tool in p.tech_stack.logging_tools:
+            for cat_name, cat_set in cat_sets:
+                if tool in cat_set:
+                    cat_found[cat_name].setdefault(tool, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="logging_divergence",
+            detail=f"Mixed logging strategies: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # Logging gap — backend projects with no logging detected
+    has_log = {p.name for p in projects if p.tech_stack.logging_tools}
+    if has_log:
+        backend_frameworks = {"FastAPI", "Flask", "Django", "Express", "Koa", "Hapi",
+                              "NestJS", "Rails", "Spring Boot", "Gin", "Echo", "Actix",
+                              "Rocket", "Axum"}
+        no_log = [p.name for p in projects
+                  if not p.tech_stack.logging_tools
+                  and any(fw in backend_frameworks for fw in p.tech_stack.frameworks)
+                  and p.source_file_count > 10]
+        if no_log:
+            connections.append(Connection(
+                type="logging_gap",
+                detail=f"{len(no_log)} backend project(s) have no logging framework detected",
+                projects=sorted(no_log),
+                severity="warning",
             ))
 
     return connections[:10]
