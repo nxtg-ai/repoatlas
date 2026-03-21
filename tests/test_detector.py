@@ -23,6 +23,7 @@ from atlas.detector import (
     detect_monitoring_tools,
     detect_auth_tools,
     detect_messaging_tools,
+    detect_deploy_targets,
     walk_files,
 )
 
@@ -2187,3 +2188,178 @@ class TestDetectMessagingTools:
         }))
         result = detect_messaging_tools(tmp_path)
         assert "Nodemailer" in result
+
+
+class TestDetectDeployTargets:
+    def test_empty_project(self, tmp_path):
+        result = detect_deploy_targets(tmp_path)
+        assert result == []
+
+    def test_vercel_json(self, tmp_path):
+        (tmp_path / "vercel.json").write_text("{}")
+        result = detect_deploy_targets(tmp_path)
+        assert "Vercel" in result
+
+    def test_vercel_dir(self, tmp_path):
+        (tmp_path / ".vercel").mkdir()
+        result = detect_deploy_targets(tmp_path)
+        assert "Vercel" in result
+
+    def test_netlify_toml(self, tmp_path):
+        (tmp_path / "netlify.toml").write_text("[build]\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "Netlify" in result
+
+    def test_netlify_redirects(self, tmp_path):
+        (tmp_path / "_redirects").write_text("/ /index.html 200\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "Netlify" in result
+
+    def test_fly_toml(self, tmp_path):
+        (tmp_path / "fly.toml").write_text('app = "myapp"\n')
+        result = detect_deploy_targets(tmp_path)
+        assert "Fly.io" in result
+
+    def test_railway_json(self, tmp_path):
+        (tmp_path / "railway.json").write_text("{}")
+        result = detect_deploy_targets(tmp_path)
+        assert "Railway" in result
+
+    def test_railway_toml(self, tmp_path):
+        (tmp_path / "railway.toml").write_text("[deploy]\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "Railway" in result
+
+    def test_render_yaml(self, tmp_path):
+        (tmp_path / "render.yaml").write_text("services:\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "Render" in result
+
+    def test_heroku_procfile(self, tmp_path):
+        (tmp_path / "Procfile").write_text("web: gunicorn app:app\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "Heroku" in result
+
+    def test_firebase_json(self, tmp_path):
+        (tmp_path / "firebase.json").write_text('{"hosting": {}}')
+        result = detect_deploy_targets(tmp_path)
+        assert "Firebase Hosting" in result
+
+    def test_aws_amplify_yml(self, tmp_path):
+        (tmp_path / "amplify.yml").write_text("version: 1\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "AWS Amplify" in result
+
+    def test_aws_amplify_dir(self, tmp_path):
+        (tmp_path / "amplify").mkdir()
+        result = detect_deploy_targets(tmp_path)
+        assert "AWS Amplify" in result
+
+    def test_serverless_yml(self, tmp_path):
+        (tmp_path / "serverless.yml").write_text("service: myapp\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "Serverless Framework" in result
+
+    def test_serverless_yaml(self, tmp_path):
+        (tmp_path / "serverless.yaml").write_text("service: myapp\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "Serverless Framework" in result
+
+    def test_google_app_engine(self, tmp_path):
+        (tmp_path / "app.yaml").write_text("runtime: python39\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "Google App Engine" in result
+
+    def test_app_yaml_without_runtime(self, tmp_path):
+        (tmp_path / "app.yaml").write_text("name: myapp\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "Google App Engine" not in result
+
+    def test_digitalocean_do_dir(self, tmp_path):
+        (tmp_path / ".do").mkdir()
+        result = detect_deploy_targets(tmp_path)
+        assert "DigitalOcean App Platform" in result
+
+    def test_digitalocean_app_yaml(self, tmp_path):
+        (tmp_path / "do-app.yaml").write_text("name: myapp\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "DigitalOcean App Platform" in result
+
+    def test_cloudflare_wrangler_toml(self, tmp_path):
+        (tmp_path / "wrangler.toml").write_text('name = "worker"\n')
+        result = detect_deploy_targets(tmp_path)
+        assert "Cloudflare Workers" in result
+
+    def test_cloudflare_wrangler_jsonc(self, tmp_path):
+        (tmp_path / "wrangler.jsonc").write_text("{}")
+        result = detect_deploy_targets(tmp_path)
+        assert "Cloudflare Workers" in result
+
+    def test_github_pages_workflow(self, tmp_path):
+        wf_dir = tmp_path / ".github" / "workflows"
+        wf_dir.mkdir(parents=True)
+        (wf_dir / "deploy.yml").write_text("name: Deploy\njobs:\n  deploy:\n    uses: actions/deploy-pages\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "GitHub Pages" in result
+
+    def test_vercel_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@vercel/node": "^3.0"}
+        }))
+        result = detect_deploy_targets(tmp_path)
+        assert "Vercel" in result
+
+    def test_netlify_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"netlify-cli": "^17.0"}
+        }))
+        result = detect_deploy_targets(tmp_path)
+        assert "Netlify" in result
+
+    def test_wrangler_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"wrangler": "^3.0"}
+        }))
+        result = detect_deploy_targets(tmp_path)
+        assert "Cloudflare Workers" in result
+
+    def test_gh_pages_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"gh-pages": "^6.0"}
+        }))
+        result = detect_deploy_targets(tmp_path)
+        assert "GitHub Pages" in result
+
+    def test_firebase_tools_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"firebase-tools": "^13.0"}
+        }))
+        result = detect_deploy_targets(tmp_path)
+        assert "Firebase Hosting" in result
+
+    def test_multiple_targets(self, tmp_path):
+        (tmp_path / "vercel.json").write_text("{}")
+        (tmp_path / "Procfile").write_text("web: node server.js\n")
+        result = detect_deploy_targets(tmp_path)
+        assert "Vercel" in result
+        assert "Heroku" in result
+
+    def test_result_sorted(self, tmp_path):
+        (tmp_path / "vercel.json").write_text("{}")
+        (tmp_path / "fly.toml").write_text('app = "x"\n')
+        (tmp_path / "Procfile").write_text("web: node\n")
+        result = detect_deploy_targets(tmp_path)
+        assert result == sorted(result)
+
+    def test_no_duplicates_from_config_and_deps(self, tmp_path):
+        (tmp_path / "vercel.json").write_text("{}")
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"vercel": "^33.0"}
+        }))
+        result = detect_deploy_targets(tmp_path)
+        assert result.count("Vercel") == 1
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        result = detect_deploy_targets(tmp_path)
+        assert result == []

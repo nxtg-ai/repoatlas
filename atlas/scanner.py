@@ -27,6 +27,7 @@ from atlas.detector import (
     detect_monitoring_tools,
     detect_auth_tools,
     detect_messaging_tools,
+    detect_deploy_targets,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -56,6 +57,7 @@ def scan_project(project_path: Path) -> Project:
     monitoring_tools = detect_monitoring_tools(path)
     auth_tools = detect_auth_tools(path)
     messaging_tools = detect_messaging_tools(path)
+    deploy_targets = detect_deploy_targets(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -80,6 +82,7 @@ def scan_project(project_path: Path) -> Project:
         monitoring_tools=monitoring_tools,
         auth_tools=auth_tools,
         messaging_tools=messaging_tools,
+        deploy_targets=deploy_targets,
     )
 
     project = Project(

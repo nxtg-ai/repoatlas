@@ -407,6 +407,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         msg_parts = [f"{mt} ({count})" for mt, count in top_msg]
         lines.append(f"  [bold]Messaging:[/bold]    {has_msg}/{n} projects \u00b7 {', '.join(msg_parts)}")
 
+    # Deploy targets
+    has_deploy = sum(1 for p in projects if p.tech_stack.deploy_targets)
+    if has_deploy:
+        dt_counter: Counter[str] = Counter()
+        for p in projects:
+            for dt in p.tech_stack.deploy_targets:
+                dt_counter[dt] += 1
+        top_dt = dt_counter.most_common(6)
+        dt_parts = [f"{dt} ({count})" for dt, count in top_dt]
+        lines.append(f"  [bold]Deploy:[/bold]       {has_deploy}/{n} projects \u00b7 {', '.join(dt_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -672,6 +683,10 @@ def show_project_card(project: Project):
     if project.tech_stack.messaging_tools:
         msg = ", ".join(project.tech_stack.messaging_tools[:8])
         lines.append(f"  [bold]Messaging:[/bold] {msg}")
+
+    if project.tech_stack.deploy_targets:
+        dt = ", ".join(project.tech_stack.deploy_targets[:8])
+        lines.append(f"  [bold]Deploy:[/bold]     {dt}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

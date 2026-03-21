@@ -1614,3 +1614,102 @@ def detect_messaging_tools(project_path: Path) -> list[str]:
         _check_add(tools, content, "slack-morphism", "Slack")
 
     return sorted(tools)
+
+
+def detect_deploy_targets(project_path: Path) -> list[str]:
+    """Detect deployment platforms and hosting targets."""
+    targets: list[str] = []
+
+    def _add(name: str) -> None:
+        if name not in targets:
+            targets.append(name)
+
+    # Vercel
+    if (project_path / "vercel.json").exists() or (project_path / ".vercel").is_dir():
+        _add("Vercel")
+
+    # Netlify
+    if (project_path / "netlify.toml").exists() or (project_path / "_redirects").exists():
+        _add("Netlify")
+
+    # Fly.io
+    if (project_path / "fly.toml").exists():
+        _add("Fly.io")
+
+    # Railway
+    if (project_path / "railway.json").exists() or (project_path / "railway.toml").exists():
+        _add("Railway")
+
+    # Render
+    if (project_path / "render.yaml").exists():
+        _add("Render")
+
+    # Heroku
+    if (project_path / "Procfile").exists():
+        _add("Heroku")
+
+    # Firebase Hosting
+    if (project_path / "firebase.json").exists():
+        _add("Firebase Hosting")
+
+    # AWS Amplify
+    if (project_path / "amplify.yml").exists() or (project_path / "amplify").is_dir():
+        _add("AWS Amplify")
+
+    # Serverless Framework
+    if (project_path / "serverless.yml").exists() or (project_path / "serverless.yaml").exists():
+        _add("Serverless Framework")
+
+    # Google App Engine
+    app_yaml = project_path / "app.yaml"
+    if app_yaml.exists():
+        try:
+            content = app_yaml.read_text(errors="ignore")
+            if "runtime:" in content:
+                _add("Google App Engine")
+        except OSError:
+            pass
+
+    # DigitalOcean App Platform
+    if (project_path / ".do").is_dir() or (project_path / "do-app.yaml").exists():
+        _add("DigitalOcean App Platform")
+
+    # Cloudflare Workers
+    if (project_path / "wrangler.toml").exists() or (project_path / "wrangler.jsonc").exists():
+        _add("Cloudflare Workers")
+
+    # GitHub Pages
+    gh_workflows = project_path / ".github" / "workflows"
+    if gh_workflows.is_dir():
+        try:
+            for wf in gh_workflows.iterdir():
+                if wf.suffix in (".yml", ".yaml"):
+                    content = wf.read_text(errors="ignore").lower()
+                    if "pages" in content and ("deploy" in content or "gh-pages" in content):
+                        _add("GitHub Pages")
+                        break
+        except OSError:
+            pass
+
+    # Package.json deploy hints
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text(errors="ignore"))
+            scripts = data.get("scripts", {})
+            all_scripts = " ".join(str(v) for v in scripts.values()).lower()
+            deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
+            if "@vercel/node" in deps or "vercel" in deps:
+                _add("Vercel")
+            if "netlify-cli" in deps or "@netlify/functions" in deps:
+                _add("Netlify")
+            if "wrangler" in deps:
+                _add("Cloudflare Workers")
+            if "firebase-tools" in deps:
+                _add("Firebase Hosting")
+            if "gh-pages" in deps or "gh-pages" in all_scripts:
+                _add("GitHub Pages")
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    return sorted(targets)

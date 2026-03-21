@@ -74,8 +74,9 @@
 | N-61 | [Messaging & Notification Detection](#n-61-messaging--notification-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-62 | [Messaging & Notification Intelligence](#n-62-messaging--notification-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-63 | [Connection Statistics Panel](#n-63-connection-statistics-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-64 | [Deployment Target Detection](#n-64-deployment-target-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 60/63 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 61/64 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -100,7 +101,8 @@
 - Monitoring & observability: Sentry, Datadog, New Relic, OpenTelemetry, Prometheus, Bugsnag, Rollbar, Honeycomb, Loguru, structlog, Winston, Pino, LogRocket, Logtail, tracing (Rust), Elastic APM
 - Authentication & authorization: NextAuth.js, Auth.js, Passport.js, Clerk, Auth0, Firebase Auth, Supabase Auth, Lucia, Keycloak, Flask-Login, django-allauth, FastAPI-Users, Authlib, PyJWT, golang-jwt, Casbin
 - Messaging & notifications: SendGrid, Twilio, Slack SDK, Nodemailer, Resend, Pusher, Socket.IO, BullMQ, Celery, Novu, Postmark, Firebase Cloud Messaging, Gomail, Lettre
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61
+- Deployment targets: Vercel, Netlify, Fly.io, Railway, Render, Heroku, Firebase Hosting, AWS Amplify, Serverless Framework, Google App Engine, DigitalOcean App Platform, Cloudflare Workers, GitHub Pages
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -361,6 +363,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Summary statistics panel shown after `atlas connections` output. Displays total connection count, severity breakdown (critical/warning/info with color coding), and top 5 categories by count with "+N more" overflow. Adds `_show_connection_stats()` to display.py, called automatically from `show_connections()`. 14 tests covering all severity types, category counting, sorting, edge cases.
 **Shipped**: 2026-03-21. Total test count: 1177 → 1191. 18th experience feature.
+
+### N-64: Deployment Target Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects deployment platforms from config files and package deps. Supports 13 platforms: Vercel (vercel.json/.vercel/@vercel/node), Netlify (netlify.toml/_redirects/netlify-cli/@netlify/functions), Fly.io (fly.toml), Railway (railway.json/railway.toml), Render (render.yaml), Heroku (Procfile), Firebase Hosting (firebase.json/firebase-tools), AWS Amplify (amplify.yml/amplify/), Serverless Framework (serverless.yml), Google App Engine (app.yaml with runtime:), DigitalOcean App Platform (.do/do-app.yaml), Cloudflare Workers (wrangler.toml/wrangler), GitHub Pages (workflow detection/gh-pages dep). Adds `deploy_targets` field to TechStack. Updates models.py, detector.py, scanner.py, display.py (project card + portfolio summary), export_report.py (CSV + markdown + JSON), cli.py. 31 tests.
+**Shipped**: 2026-03-21. Total test count: 1191 → 1222. 18th detection category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
