@@ -28,6 +28,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_api_spec_patterns(projects))
     connections.extend(_find_monitoring_patterns(projects))
     connections.extend(_find_auth_patterns(projects))
+    connections.extend(_find_messaging_patterns(projects))
     return connections
 
 
@@ -1278,6 +1279,79 @@ def _find_auth_patterns(projects: list[Project]) -> list[Connection]:
                 type="auth_gap",
                 detail=f"{len(no_auth)} web project(s) have no authentication tooling",
                 projects=sorted(no_auth),
+                severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_messaging_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project messaging & notification patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared messaging tools — same tool in 2+ projects
+    tool_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for tool in p.tech_stack.messaging_tools:
+            tool_to_projects[tool].append(p.name)
+
+    for tool, projs in sorted(tool_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_messaging",
+                detail=f"{tool} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Email provider divergence — multiple transactional email services
+    email_providers = {"SendGrid", "Postmark", "Mailgun", "Resend", "Nodemailer", "Gomail", "Lettre"}
+    ep_found: dict[str, set[str]] = {}
+    for p in projects:
+        for tool in p.tech_stack.messaging_tools:
+            if tool in email_providers:
+                ep_found.setdefault(tool, set()).add(p.name)
+    if len(ep_found) >= 2:
+        detail_parts = [f"{t} ({', '.join(sorted(ps))})" for t, ps in ep_found.items()]
+        all_projs = sorted({p for ps in ep_found.values() for p in ps})
+        connections.append(Connection(
+            type="messaging_divergence",
+            detail=f"Multiple email providers: {', '.join(detail_parts)} — standardize",
+            projects=all_projs,
+            severity="warning",
+        ))
+
+    # Real-time divergence — multiple real-time/push services
+    realtime_tools = {"Socket.IO", "Pusher", "Firebase Cloud Messaging", "Web Push", "Novu"}
+    rt_found: dict[str, set[str]] = {}
+    for p in projects:
+        for tool in p.tech_stack.messaging_tools:
+            if tool in realtime_tools:
+                rt_found.setdefault(tool, set()).add(p.name)
+    if len(rt_found) >= 2:
+        detail_parts = [f"{t} ({', '.join(sorted(ps))})" for t, ps in rt_found.items()]
+        all_projs = sorted({p for ps in rt_found.values() for p in ps})
+        connections.append(Connection(
+            type="messaging_divergence",
+            detail=f"Multiple real-time/push services: {', '.join(detail_parts)} — standardize",
+            projects=all_projs,
+            severity="info",
+        ))
+
+    # Messaging gap — web projects with no messaging when others have it
+    web_frameworks = {"FastAPI", "Django", "Flask", "Express", "Next.js", "Nuxt",
+                      "Rails", "Spring Boot", "Actix", "Axum", "Gin", "Echo", "Fiber"}
+    has_messaging = {p.name for p in projects if p.tech_stack.messaging_tools}
+    if has_messaging:
+        no_messaging = [p.name for p in projects
+                        if not p.tech_stack.messaging_tools
+                        and any(fw in web_frameworks for fw in p.tech_stack.frameworks)
+                        and p.source_file_count > 10]
+        if no_messaging:
+            connections.append(Connection(
+                type="messaging_gap",
+                detail=f"{len(no_messaging)} web project(s) have no messaging/notification tooling",
+                projects=sorted(no_messaging),
                 severity="warning",
             ))
 

@@ -275,12 +275,13 @@ CONNECTION_CATEGORIES = {
     "api": {"shared_api_spec", "api_spec_divergence", "api_spec_gap"},
     "monitoring": {"shared_monitoring", "monitoring_divergence", "monitoring_gap"},
     "auth": {"shared_auth", "auth_divergence", "auth_gap"},
+    "messaging": {"shared_messaging", "messaging_divergence", "messaging_gap"},
 }
 
 
 @app.command()
 def connections(
-    type_filter: Optional[str] = typer.Option(None, "--type", "-t", help="Filter by category: deps, health, infra, security, quality, ai, testing, database, packages, license, docs, ci, runtime, build, api, monitoring, auth"),
+    type_filter: Optional[str] = typer.Option(None, "--type", "-t", help="Filter by category: deps, health, infra, security, quality, ai, testing, database, packages, license, docs, ci, runtime, build, api, monitoring, auth, messaging"),
 ):
     """Show cross-project intelligence."""
     portfolio = _load_portfolio()

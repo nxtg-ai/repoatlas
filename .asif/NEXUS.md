@@ -72,8 +72,9 @@
 | N-59 | [Authentication Intelligence](#n-59-authentication-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-60 | [Connection Category Filtering](#n-60-connection-category-filtering) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-61 | [Messaging & Notification Detection](#n-61-messaging--notification-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-62 | [Messaging & Notification Intelligence](#n-62-messaging--notification-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 58/61 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 59/62 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -119,7 +120,8 @@
 - Cross-project API specification intelligence (shared specs, REST/GraphQL/RPC paradigm divergence, API spec gaps)
 - Cross-project monitoring intelligence (shared tools, error tracker divergence, APM divergence, monitoring gaps)
 - Cross-project authentication intelligence (shared auth tools, auth provider divergence, session-vs-token strategy divergence, auth gaps for web projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59
+- Cross-project messaging intelligence (shared messaging tools, email provider divergence, real-time/push divergence, messaging gaps for web projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -139,7 +141,7 @@
 - CSV export: `atlas export --format csv` for spreadsheet-friendly portfolio data
 - Health trend sparklines: Unicode mini-charts in `atlas status` showing per-project health history
 - Markdown badge generation: shields.io badges for portfolio README (health grade, project count, test files, LOC, primary language)
-- Connection category filtering: `atlas connections --type security` to filter cross-project intelligence by category (17 categories)
+- Connection category filtering: `atlas connections --type security` to filter cross-project intelligence by category (18 categories)
 - **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60
 
 ### DISTRIBUTION — "Get it into hands"
@@ -347,6 +349,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_messaging_tools()` in detector.py. Detects email, SMS, push notification, real-time messaging, and task queue tools across ecosystems: Python (SendGrid, Twilio, Slack SDK/Bolt, Postmark, Mailgun, Resend, Socket.IO, Pusher, Firebase Cloud Messaging, Web Push, Celery), JavaScript/TypeScript (SendGrid, Nodemailer, Resend, Twilio, Slack Web API/Bolt, Pusher, Socket.IO, Firebase Admin, BullMQ, Bull, Novu, Postmark, Web Push), Go (Gomail, Slack, Twilio), Rust (Lettre, Slack). Added `messaging_tools` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py), markdown/JSON/CSV export. `_project_has_tech()` searches messaging_tools. 23 detection tests.
 **Shipped**: 2026-03-21. Total test count: 1138 → 1161. 17th detection category.
+
+### N-62: Messaging & Notification Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project messaging intelligence — detects shared messaging tools, email provider divergence (SendGrid/Postmark/Mailgun/Resend/Nodemailer/Gomail/Lettre), real-time/push divergence (Socket.IO/Pusher/Firebase Cloud Messaging/Web Push/Novu), and messaging gaps for web projects with frameworks but no messaging (>10 source files). Adds `_find_messaging_patterns()` to connections.py (shared_messaging, messaging_divergence, messaging_gap). Updates display.py icons/labels, export_report.py type_labels, recommendations.py type_to_category, cli.py CONNECTION_CATEGORIES. 17 connection tests.
+**Shipped**: 2026-03-21. Total test count: 1161 → 1177. 19th intelligence category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

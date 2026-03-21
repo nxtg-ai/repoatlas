@@ -20,6 +20,7 @@ from atlas.connections import (
     _find_api_spec_patterns,
     _find_monitoring_patterns,
     _find_auth_patterns,
+    _find_messaging_patterns,
     _find_version_mismatches,
     find_connections,
 )
@@ -31,7 +32,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           ai_tools=None, testing_frameworks=None, package_managers=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
-          auth_tools=None, project_license="",
+          auth_tools=None, messaging_tools=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -54,6 +55,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             api_specs=api_specs or [],
             monitoring_tools=monitoring_tools or [],
             auth_tools=auth_tools or [],
+            messaging_tools=messaging_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -2534,3 +2536,163 @@ class TestFindAuthPatterns:
         auth_types = {c.type for c in conns if "auth" in c.type}
         assert "shared_auth" in auth_types
         assert "auth_divergence" in auth_types
+
+
+# ---------------------------------------------------------------------------
+# _find_messaging_patterns
+# ---------------------------------------------------------------------------
+class TestFindMessagingPatterns:
+    # --- Shared messaging tools ---
+
+    def test_shared_messaging_tool(self):
+        projects = [
+            _proj("a", messaging_tools=["SendGrid", "Twilio"]),
+            _proj("b", messaging_tools=["SendGrid"]),
+        ]
+        conns = _find_messaging_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_messaging"]
+        assert len(shared) == 1
+        assert "SendGrid" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_shared_multiple_tools(self):
+        projects = [
+            _proj("a", messaging_tools=["SendGrid", "Slack"]),
+            _proj("b", messaging_tools=["SendGrid", "Slack"]),
+        ]
+        conns = _find_messaging_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_messaging"]
+        assert len(shared) == 2
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", messaging_tools=["SendGrid"]),
+            _proj("b", messaging_tools=["Twilio"]),
+        ]
+        conns = _find_messaging_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_messaging"]
+        assert len(shared) == 0
+
+    def test_shared_needs_two_projects(self):
+        projects = [_proj("a", messaging_tools=["SendGrid"])]
+        conns = _find_messaging_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_messaging"]
+        assert len(shared) == 0
+
+    # --- Email provider divergence ---
+
+    def test_email_provider_divergence(self):
+        projects = [
+            _proj("a", messaging_tools=["SendGrid"]),
+            _proj("b", messaging_tools=["Resend"]),
+        ]
+        conns = _find_messaging_patterns(projects)
+        div = [c for c in conns if c.type == "messaging_divergence"
+               and "email" in c.detail.lower()]
+        assert len(div) == 1
+        assert "SendGrid" in div[0].detail
+        assert "Resend" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_no_email_divergence_same_provider(self):
+        projects = [
+            _proj("a", messaging_tools=["SendGrid"]),
+            _proj("b", messaging_tools=["SendGrid"]),
+        ]
+        conns = _find_messaging_patterns(projects)
+        div = [c for c in conns if c.type == "messaging_divergence"
+               and "email" in c.detail.lower()]
+        assert len(div) == 0
+
+    # --- Real-time divergence ---
+
+    def test_realtime_divergence(self):
+        projects = [
+            _proj("a", messaging_tools=["Socket.IO"]),
+            _proj("b", messaging_tools=["Pusher"]),
+        ]
+        conns = _find_messaging_patterns(projects)
+        div = [c for c in conns if c.type == "messaging_divergence"
+               and "real-time" in c.detail.lower()]
+        assert len(div) == 1
+        assert div[0].severity == "info"
+
+    def test_no_realtime_divergence_same_tool(self):
+        projects = [
+            _proj("a", messaging_tools=["Socket.IO"]),
+            _proj("b", messaging_tools=["Socket.IO"]),
+        ]
+        conns = _find_messaging_patterns(projects)
+        div = [c for c in conns if c.type == "messaging_divergence"
+               and "real-time" in c.detail.lower()]
+        assert len(div) == 0
+
+    # --- Messaging gap ---
+
+    def test_messaging_gap(self):
+        projects = [
+            _proj("a", messaging_tools=["SendGrid"], frameworks=["FastAPI"]),
+            _proj("b", messaging_tools=[], frameworks=["Django"], source_files=15),
+        ]
+        conns = _find_messaging_patterns(projects)
+        gaps = [c for c in conns if c.type == "messaging_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "warning"
+
+    def test_no_gap_when_all_have_messaging(self):
+        projects = [
+            _proj("a", messaging_tools=["SendGrid"], frameworks=["FastAPI"]),
+            _proj("b", messaging_tools=["Twilio"], frameworks=["Django"]),
+        ]
+        conns = _find_messaging_patterns(projects)
+        gaps = [c for c in conns if c.type == "messaging_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_when_no_web_frameworks(self):
+        projects = [
+            _proj("a", messaging_tools=["SendGrid"]),
+            _proj("b", messaging_tools=[], frameworks=[], source_files=15),
+        ]
+        conns = _find_messaging_patterns(projects)
+        gaps = [c for c in conns if c.type == "messaging_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", messaging_tools=["SendGrid"], frameworks=["FastAPI"]),
+            _proj("b", messaging_tools=[], frameworks=["Flask"], source_files=5),
+        ]
+        conns = _find_messaging_patterns(projects)
+        gaps = [c for c in conns if c.type == "messaging_gap"]
+        assert len(gaps) == 0
+
+    # --- Edge cases ---
+
+    def test_empty_projects(self):
+        conns = _find_messaging_patterns([])
+        assert conns == []
+
+    def test_no_tools_no_connections(self):
+        projects = [
+            _proj("a", messaging_tools=[]),
+            _proj("b", messaging_tools=[]),
+        ]
+        conns = _find_messaging_patterns(projects)
+        assert len(conns) == 0
+
+    def test_limit_10(self):
+        tools = [f"MsgTool{i}" for i in range(20)]
+        projects = [_proj("a", messaging_tools=tools), _proj("b", messaging_tools=tools)]
+        conns = _find_messaging_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", messaging_tools=["SendGrid", "Socket.IO"]),
+            _proj("b", messaging_tools=["SendGrid", "Pusher"]),
+        ]
+        conns = find_connections(projects)
+        msg_types = {c.type for c in conns if "messaging" in c.type}
+        assert "shared_messaging" in msg_types
+        assert "messaging_divergence" in msg_types
