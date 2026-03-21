@@ -119,6 +119,82 @@ def show_status(portfolio: Portfolio):
 
     console.print(table)
 
+    # Portfolio summary panel (if 2+ projects)
+    if len(portfolio.projects) >= 2:
+        _show_portfolio_summary(portfolio)
+
+
+def _show_portfolio_summary(portfolio: Portfolio):
+    """Show aggregate portfolio insights below the project table."""
+    from collections import Counter
+
+    projects = portfolio.projects
+    lines: list[str] = []
+
+    # Language distribution
+    lang_counter: Counter[str] = Counter()
+    for p in projects:
+        for lang in p.tech_stack.primary_languages:
+            lang_counter[lang] += 1
+    if lang_counter:
+        top_langs = lang_counter.most_common(6)
+        lang_parts = [f"{lang} ({count})" for lang, count in top_langs]
+        lines.append(f"  [bold]Languages:[/bold]    {', '.join(lang_parts)}")
+
+    # Framework adoption
+    fw_counter: Counter[str] = Counter()
+    for p in projects:
+        for fw in p.tech_stack.frameworks:
+            if fw != "Docker":
+                fw_counter[fw] += 1
+    if fw_counter:
+        top_fws = fw_counter.most_common(6)
+        fw_parts = [f"{fw} ({count})" for fw, count in top_fws]
+        lines.append(f"  [bold]Frameworks:[/bold]   {', '.join(fw_parts)}")
+
+    # Infrastructure coverage
+    n = len(projects)
+    has_ci = sum(1 for p in projects if any(
+        i in p.tech_stack.infrastructure
+        for i in ("GitHub Actions", "GitLab CI", "Jenkins", "CircleCI")
+    ))
+    has_docker = sum(1 for p in projects if "Docker" in p.tech_stack.infrastructure)
+    has_cloud = sum(1 for p in projects if any(
+        i in p.tech_stack.infrastructure for i in ("AWS", "GCP", "Azure")
+    ))
+    infra_parts = []
+    infra_parts.append(f"CI/CD {has_ci}/{n}")
+    infra_parts.append(f"Docker {has_docker}/{n}")
+    if has_cloud:
+        infra_parts.append(f"Cloud {has_cloud}/{n}")
+    lines.append(f"  [bold]Infra:[/bold]        {' · '.join(infra_parts)}")
+
+    # Security posture
+    has_any_security = sum(1 for p in projects if p.tech_stack.security_tools)
+    has_dep_scanning = sum(1 for p in projects if any(
+        t in p.tech_stack.security_tools
+        for t in ("Dependabot", "Renovate", "Snyk")
+    ))
+    has_secret_scan = sum(1 for p in projects if any(
+        t in p.tech_stack.security_tools
+        for t in ("Gitleaks", "detect-secrets", "SOPS")
+    ))
+    sec_parts = []
+    sec_parts.append(f"Any tooling {has_any_security}/{n}")
+    if has_dep_scanning:
+        sec_parts.append(f"Dep scanning {has_dep_scanning}/{n}")
+    if has_secret_scan:
+        sec_parts.append(f"Secret scanning {has_secret_scan}/{n}")
+    lines.append(f"  [bold]Security:[/bold]     {' · '.join(sec_parts)}")
+
+    content = "\n".join(lines)
+    console.print(Panel(
+        content,
+        title="[bold white] Portfolio Summary [/bold white]",
+        border_style="dim cyan",
+        padding=(1, 2),
+    ))
+
 
 def show_connections(connections: list[Connection]):
     """Display cross-project intelligence."""

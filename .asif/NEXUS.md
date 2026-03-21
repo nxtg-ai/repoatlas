@@ -30,8 +30,9 @@
 | N-17 | [Infrastructure Detection](#n-17-infrastructure-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 | N-18 | [Infrastructure Intelligence](#n-18-infrastructure-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-19 | [Security Posture Detection](#n-19-security-posture-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
+| N-20 | [Portfolio Summary Panel](#n-20-portfolio-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 16/19 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 17/20 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -56,7 +57,8 @@
 - Fast scanning (31s for 8 projects, 1.2M LOC)
 - Scan history & health trends over time
 - Persistent TOML configuration
-- **Shipped**: N-04, N-13, N-16
+- Portfolio summary panel: language distribution, framework adoption, infra coverage, security posture
+- **Shipped**: N-04, N-13, N-16, N-20
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -153,6 +155,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_infrastructure()` in detector.py. Detects Docker/Compose, Kubernetes/Helm, Terraform/Pulumi/CDK, CI/CD (GitHub Actions/GitLab CI/Jenkins/CircleCI), serverless (Vercel/Netlify/Cloudflare Workers/Fly.io/Render), and cloud providers (AWS/GCP/Azure from SDK deps). Added `infrastructure` field to TechStack model. Shows in `atlas inspect`. 28 infrastructure tests.
 **Shipped**: 2026-03-13. Total test count: 367 → 395. README "What It Detects" table expanded.
+
+### N-20: Portfolio Summary Panel
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Aggregate portfolio insights panel added to `atlas status` dashboard (shown for 2+ projects). Displays language distribution with project counts, framework adoption (excluding Docker), infrastructure coverage (CI/CD, Docker, Cloud as X/N ratios), and security posture overview (tooling coverage, dep scanning, secret scanning). Uses Rich Panel rendering. 15 display tests.
+**Shipped**: 2026-03-13. Total test count: 436 → 451. Surfaces N-17/N-19 detection data in the main dashboard.
 
 ### N-19: Security Posture Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
