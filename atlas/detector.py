@@ -269,6 +269,67 @@ def detect_infrastructure(project_path: Path) -> list[str]:
     return infra
 
 
+def detect_security_tools(project_path: Path) -> list[str]:
+    """Detect security tooling and practices."""
+    tools: list[str] = []
+
+    # Security policy
+    if (project_path / "SECURITY.md").exists():
+        tools.append("SECURITY.md")
+
+    # Dependency scanning / updates
+    if (project_path / ".github" / "dependabot.yml").exists():
+        tools.append("Dependabot")
+    if (project_path / "renovate.json").exists() or (project_path / ".renovaterc").exists():
+        tools.append("Renovate")
+    if (project_path / ".snyk").exists():
+        tools.append("Snyk")
+
+    # Secret scanning
+    if (project_path / ".gitleaks.toml").exists():
+        tools.append("Gitleaks")
+    if (project_path / ".sops.yaml").exists():
+        tools.append("SOPS")
+
+    # Pre-commit hooks (security-relevant)
+    pre_commit = project_path / ".pre-commit-config.yaml"
+    if pre_commit.exists():
+        content = pre_commit.read_text(errors="ignore").lower()
+        _check_add(tools, content, "detect-secrets", "detect-secrets")
+        _check_add(tools, content, "gitleaks", "Gitleaks")
+        _check_add(tools, content, "bandit", "Bandit")
+
+    # Python security tools in deps
+    for cfg in ("pyproject.toml", "requirements.txt", "requirements-dev.txt"):
+        path = project_path / cfg
+        if path.exists():
+            content = path.read_text(errors="ignore").lower()
+            _check_add(tools, content, "bandit", "Bandit")
+            _check_add(tools, content, "safety", "Safety")
+            _check_add(tools, content, "pip-audit", "pip-audit")
+
+    # CodeQL — config dir or workflow reference
+    if (project_path / ".github" / "codeql").is_dir():
+        tools.append("CodeQL")
+    gh_workflows = project_path / ".github" / "workflows"
+    if gh_workflows.is_dir() and "CodeQL" not in tools:
+        try:
+            for wf in gh_workflows.iterdir():
+                if wf.suffix in (".yml", ".yaml"):
+                    wf_content = wf.read_text(errors="ignore").lower()
+                    if "codeql" in wf_content:
+                        tools.append("CodeQL")
+                        break
+        except OSError:
+            pass
+
+    # Trivy
+    if (project_path / "trivy.yaml").exists() or (project_path / ".trivy.yaml").exists():
+        tools.append("Trivy")
+
+    return tools
+
+
 def _detect_cloud_from_deps(project_path: Path, infra: list[str]) -> None:
     """Detect cloud providers from dependency files."""
     search_files = ("pyproject.toml", "requirements.txt", "package.json")

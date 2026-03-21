@@ -13,6 +13,7 @@ from atlas.detector import (
     detect_infrastructure,
     detect_key_deps,
     detect_languages,
+    detect_security_tools,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -28,6 +29,7 @@ def scan_project(project_path: Path) -> Project:
     databases = detect_databases(path)
     key_deps = detect_key_deps(path)
     infrastructure = detect_infrastructure(path)
+    security_tools = detect_security_tools(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -39,6 +41,7 @@ def scan_project(project_path: Path) -> Project:
         databases=databases,
         key_deps=key_deps,
         infrastructure=infrastructure,
+        security_tools=security_tools,
     )
 
     project = Project(

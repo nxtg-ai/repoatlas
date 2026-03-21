@@ -29,8 +29,9 @@
 | N-16 | [Configuration File](#n-16-configuration-file) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 | N-17 | [Infrastructure Detection](#n-17-infrastructure-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 | N-18 | [Infrastructure Intelligence](#n-18-infrastructure-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
+| N-19 | [Security Posture Detection](#n-19-security-posture-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 15/18 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 16/19 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -40,7 +41,8 @@
 - Automatic tech stack detection across Python/TS/Rust/Go/Java
 - File-level analysis, dependency parsing, framework identification
 - Infrastructure & deployment: Docker, K8s, Terraform, cloud providers, serverless
-- **Shipped**: N-01, N-17
+- Security posture: Dependabot, Renovate, Snyk, CodeQL, Bandit, Gitleaks, Trivy, SECURITY.md
+- **Shipped**: N-01, N-17, N-19
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -151,6 +153,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_infrastructure()` in detector.py. Detects Docker/Compose, Kubernetes/Helm, Terraform/Pulumi/CDK, CI/CD (GitHub Actions/GitLab CI/Jenkins/CircleCI), serverless (Vercel/Netlify/Cloudflare Workers/Fly.io/Render), and cloud providers (AWS/GCP/Azure from SDK deps). Added `infrastructure` field to TechStack model. Shows in `atlas inspect`. 28 infrastructure tests.
 **Shipped**: 2026-03-13. Total test count: 367 → 395. README "What It Detects" table expanded.
+
+### N-19: Security Posture Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_security_tools()` in detector.py. Detects security tooling across projects: dependency scanning (Dependabot, Renovate, Snyk), secret scanning (Gitleaks, SOPS, detect-secrets), Python SAST (Bandit, Safety, pip-audit), code analysis (CodeQL, Trivy), and security policy (SECURITY.md). Reads pre-commit configs for security hooks. Added `security_tools` field to TechStack model. Shows in `atlas inspect`. 26 security tests.
+**Shipped**: 2026-03-13. Total test count: 410 → 436. README "What It Detects" table expanded.
 
 ### N-18: Infrastructure Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

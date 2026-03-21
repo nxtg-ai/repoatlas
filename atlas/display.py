@@ -189,6 +189,10 @@ def show_project_card(project: Project):
         infra = ", ".join(project.tech_stack.infrastructure[:6])
         lines.append(f"  [bold]Infra:[/bold]      {infra}")
 
+    if project.tech_stack.security_tools:
+        sec = ", ".join(project.tech_stack.security_tools[:6])
+        lines.append(f"  [bold]Security:[/bold]   {sec}")
+
     if project.git_info.branch:
         lines.append(f"  [bold]Branch:[/bold]    {project.git_info.branch}")
         lines.append(f"  [bold]Commits:[/bold]   {project.git_info.total_commits:,}")
