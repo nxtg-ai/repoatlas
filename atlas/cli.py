@@ -398,7 +398,7 @@ def connections(
 
 @app.command()
 def doctor(
-    format: Optional[str] = typer.Option(None, help="Output format: json for structured output"),
+    format: Optional[str] = typer.Option(None, help="Output format: json or csv for structured output"),
 ):
     """Diagnose portfolio health and suggest fixes."""
     portfolio = _load_portfolio()
@@ -432,6 +432,17 @@ def doctor(
             cat_counts_j[rec.category] = cat_counts_j.get(rec.category, 0) + 1
         data["categories"] = cat_counts_j
         print(json_mod.dumps(data, indent=2))
+        return
+
+    if format and format.lower() == "csv":
+        import csv
+        import io
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(["Priority", "Category", "Message", "Projects"])
+        for rec in recs:
+            writer.writerow([rec.priority, rec.category, rec.message, "; ".join(rec.projects)])
+        print(buf.getvalue(), end="")
         return
 
     console.print()
