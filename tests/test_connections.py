@@ -5098,3 +5098,70 @@ class TestFindPaymentPatterns:
         conns = find_connections(projects)
         pay_types = {c.type for c in conns if "payment" in c.type}
         assert "shared_payment_tool" in pay_types
+
+
+class TestFindDateLibPatterns:
+    def test_shared_date_lib(self):
+        from atlas.connections import _find_date_lib_patterns
+        projects = [
+            _proj("a", date_libs=["Day.js"]),
+            _proj("b", date_libs=["Day.js", "date-fns"]),
+        ]
+        conns = _find_date_lib_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_date_lib"]
+        assert len(shared) == 1
+        assert "Day.js" in shared[0].detail
+
+    def test_no_shared_unique(self):
+        from atlas.connections import _find_date_lib_patterns
+        projects = [
+            _proj("a", date_libs=["Day.js"]),
+            _proj("b", date_libs=["Luxon"]),
+        ]
+        conns = _find_date_lib_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_date_lib"]
+        assert len(shared) == 0
+
+    def test_divergence_modern_vs_legacy(self):
+        from atlas.connections import _find_date_lib_patterns
+        projects = [
+            _proj("a", date_libs=["Day.js"]),
+            _proj("b", date_libs=["Moment.js"]),
+        ]
+        conns = _find_date_lib_patterns(projects)
+        div = [c for c in conns if c.type == "date_lib_divergence"]
+        assert len(div) == 1
+        assert "modern" in div[0].detail
+        assert "legacy" in div[0].detail
+
+    def test_no_divergence_same_category(self):
+        from atlas.connections import _find_date_lib_patterns
+        projects = [
+            _proj("a", date_libs=["Day.js"]),
+            _proj("b", date_libs=["date-fns"]),
+        ]
+        conns = _find_date_lib_patterns(projects)
+        div = [c for c in conns if c.type == "date_lib_divergence"]
+        assert len(div) == 0
+
+    def test_empty(self):
+        from atlas.connections import _find_date_lib_patterns
+        projects = [_proj("a"), _proj("b")]
+        assert _find_date_lib_patterns(projects) == []
+
+    def test_cap_at_10(self):
+        from atlas.connections import _find_date_lib_patterns
+        projects = [_proj(f"p{i}", date_libs=[f"Lib{i}"]) for i in range(20)]
+        for p in projects:
+            p.tech_stack.date_libs.append("Day.js")
+        conns = _find_date_lib_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", date_libs=["Day.js", "Moment.js"]),
+            _proj("b", date_libs=["Day.js", "pytz"]),
+        ]
+        conns = find_connections(projects)
+        date_types = {c.type for c in conns if "date" in c.type}
+        assert "shared_date_lib" in date_types

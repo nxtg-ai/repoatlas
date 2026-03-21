@@ -54,6 +54,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_graphql_patterns(projects))
     connections.extend(_find_event_streaming_patterns(projects))
     connections.extend(_find_payment_patterns(projects))
+    connections.extend(_find_date_lib_patterns(projects))
     return connections
 
 
@@ -3143,6 +3144,59 @@ def _find_payment_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="payment_divergence",
             detail=f"Mixed payment approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_date_lib_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project date/time library patterns."""
+    connections: list[Connection] = []
+
+    # Shared date libs — same lib used by 2+ projects
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.date_libs:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_date_lib",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Date lib divergence — modern vs legacy
+    modern = {"Day.js", "date-fns", "Luxon", "Temporal", "Tempo", "Arrow", "Pendulum",
+              "chrono", "time", "Spacetime"}
+    legacy = {"Moment.js", "Joda-Time", "python-dateutil", "pytz"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "modern": {}, "legacy": {},
+    }
+    cat_sets = [("modern", modern), ("legacy", legacy)]
+    for p in projects:
+        for lib in p.tech_stack.date_libs:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="date_lib_divergence",
+            detail=f"Mixed date/time approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

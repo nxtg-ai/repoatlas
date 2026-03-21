@@ -413,6 +413,7 @@ CONNECTION_CATEGORIES = {
     "graphql": {"shared_graphql_lib", "graphql_divergence"},
     "streaming": {"shared_event_streaming", "event_streaming_divergence"},
     "payments": {"shared_payment_tool", "payment_divergence"},
+    "datetime": {"shared_date_lib", "date_lib_divergence"},
 }
 
 

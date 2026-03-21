@@ -152,8 +152,9 @@
 | N-139 | [Payment & Billing Intelligence](#n-139-payment--billing-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-140 | [Top Projects CSV Export](#n-140-top-projects-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-141 | [Image Processing Library Detection](#n-141-image-processing-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-142 | [Date & Time Intelligence](#n-142-date--time-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 138/141 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 139/142 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -252,7 +253,8 @@
 - Cross-project GraphQL intelligence (shared GraphQL libs, server-first vs client-first paradigm divergence)
 - Cross-project event streaming intelligence (shared streaming tools, kafka-based vs amqp-based vs cloud-managed paradigm divergence)
 - Cross-project payment intelligence (shared payment tools, traditional vs merchant-of-record paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139
+- Cross-project date/time intelligence (shared date/time libs, modern vs legacy paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -693,6 +695,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-142: Date & Time Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project date/time intelligence. Detects shared date/time libs (shared_date_lib, info) and paradigm divergence — modern (Day.js, date-fns, Luxon, Temporal, Arrow, Pendulum, chrono) vs legacy (Moment.js, Joda-Time, python-dateutil, pytz) (date_lib_divergence, warning). Added connection types, display icons/labels, CLI category "datetime", export labels, recommendation mapping. 7 tests.
+**Shipped**: 2026-03-21. Total test count: 2145 → 2152. 45th intelligence feature.
 
 ### N-141: Image Processing Library Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

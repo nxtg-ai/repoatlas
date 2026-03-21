@@ -805,6 +805,8 @@ def _connections_section(conns: list) -> list[str]:
         "event_streaming_divergence": "Streaming Approach Divergence",
         "shared_payment_tool": "Shared Payment Tool",
         "payment_divergence": "Payment Approach Divergence",
+        "shared_date_lib": "Shared Date/Time Lib",
+        "date_lib_divergence": "Date/Time Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
