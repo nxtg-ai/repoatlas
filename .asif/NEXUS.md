@@ -48,8 +48,9 @@
 | N-35 | [Package Manager Intelligence](#n-35-package-manager-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-36 | [Package Manager Summary Panel](#n-36-package-manager-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-37 | [License Detection](#n-37-license-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-38 | [License Intelligence](#n-38-license-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 34/37 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 35/38 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -79,7 +80,8 @@
 - Cross-project testing intelligence (shared frameworks, runner divergence, testing gaps)
 - Cross-project database intelligence (shared databases, relational/vector/broker divergence, database gaps)
 - Cross-project package manager intelligence (shared managers, JS/Python/Java divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35
+- Cross-project license intelligence (shared licenses, copyleft/permissive divergence, license gaps)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -234,6 +236,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project package manager pattern detection via `_find_package_manager_patterns()` in connections.py. Detects: shared package managers (Poetry/npm across 2+ projects), JS package manager divergence (npm vs Yarn vs pnpm vs Bun), Python package manager divergence (pip vs Poetry vs PDM vs uv vs Pipenv), Java build tool divergence (Maven vs Gradle). New connection types (`shared_pkg_manager`, `pkg_manager_divergence`) displayed in `atlas connections`, markdown export, and `atlas doctor`. 13 package manager pattern tests.
 **Shipped**: 2026-03-21. Total test count: 736 → 749. Completes N-34 detection→intelligence pipeline. All 7 detection→intelligence pipelines complete.
+
+### N-38: License Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project license pattern detection via `_find_license_patterns()` in connections.py. Analyzes license data from N-37 across the portfolio to detect: shared licenses (MIT/Apache-2.0 across 2+ projects), license divergence with copyleft/permissive detection (GPL+MIT mix = critical severity, MIT+Apache = warning severity), and license gaps (projects with 5+ source files but no detected license). New connection types (`shared_license`, `license_divergence`, `license_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps to `docs` recommendation category. 13 license pattern tests.
+**Shipped**: 2026-03-21. Total test count: 780 → 793. Completes N-37 detection→intelligence pipeline. 8th intelligence layer.
 
 ### N-37: License Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

@@ -20,6 +20,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_ai_patterns(projects))
     connections.extend(_find_testing_patterns(projects))
     connections.extend(_find_package_manager_patterns(projects))
+    connections.extend(_find_license_patterns(projects))
     return connections
 
 
@@ -714,6 +715,69 @@ def _find_package_manager_patterns(projects: list[Project]) -> list[Connection]:
             type="pkg_manager_divergence",
             detail=f"Multiple Java build tools: {', '.join(detail_parts)} — standardize",
             projects=all_projects,
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_license_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project license patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared licenses — same license used in 2+ projects
+    license_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        if p.license:
+            license_to_projects[p.license].append(p.name)
+
+    for lic, projs in license_to_projects.items():
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_license",
+                detail=f"{lic} used across {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # License divergence — multiple license types in portfolio
+    distinct_licenses = set(license_to_projects.keys())
+    if len(distinct_licenses) >= 2:
+        copyleft = {"GPL-2.0", "GPL-3.0", "AGPL-3.0", "LGPL-2.1", "LGPL-3.0"}
+        has_copyleft = distinct_licenses & copyleft
+        permissive = distinct_licenses - copyleft
+        if has_copyleft and permissive:
+            parts = []
+            for lic in sorted(distinct_licenses):
+                projs = license_to_projects[lic]
+                parts.append(f"{lic} ({', '.join(projs[:3])})")
+            all_projects = sorted({p for projs in license_to_projects.values() for p in projs})
+            connections.append(Connection(
+                type="license_divergence",
+                detail=f"Copyleft/permissive mix: {', '.join(parts)} — review compatibility",
+                projects=all_projects,
+                severity="critical",
+            ))
+        else:
+            parts = []
+            for lic in sorted(distinct_licenses):
+                projs = license_to_projects[lic]
+                parts.append(f"{lic} ({', '.join(projs[:3])})")
+            all_projects = sorted({p for projs in license_to_projects.values() for p in projs})
+            connections.append(Connection(
+                type="license_divergence",
+                detail=f"Multiple licenses: {', '.join(parts)} — consider standardizing",
+                projects=all_projects,
+                severity="warning",
+            ))
+
+    # License gaps — projects with source files but no detected license
+    unlicensed = [p.name for p in projects if not p.license and p.source_file_count > 5]
+    if unlicensed:
+        connections.append(Connection(
+            type="license_gap",
+            detail=f"{len(unlicensed)} project(s) have no detected license — add a LICENSE file",
+            projects=sorted(unlicensed),
             severity="warning",
         ))
 

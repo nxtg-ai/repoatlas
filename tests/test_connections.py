@@ -11,6 +11,7 @@ from atlas.connections import (
     _find_shared_deps,
     _find_shared_frameworks,
     _find_testing_patterns,
+    _find_license_patterns,
     _find_package_manager_patterns,
     _find_version_mismatches,
     find_connections,
@@ -21,6 +22,7 @@ from atlas.models import GitInfo, HealthScore, Project, TechStack
 def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           infrastructure=None, security_tools=None, quality_tools=None,
           ai_tools=None, testing_frameworks=None, package_managers=None,
+          project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -41,6 +43,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
         health=HealthScore(structure=structure_score),
         test_file_count=test_files,
         source_file_count=source_files,
+        license=project_license,
     )
 
 
@@ -1243,6 +1246,144 @@ class TestFindPackageManagerPatterns:
     def test_empty_projects(self):
         conns = _find_package_manager_patterns([])
         assert conns == []
+
+
+# ---------------------------------------------------------------------------
+# License patterns (N-38)
+# ---------------------------------------------------------------------------
+class TestFindLicensePatterns:
+    def test_shared_license(self):
+        projects = [
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="MIT"),
+            _proj("c", project_license="Apache-2.0"),
+        ]
+        conns = _find_license_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_license"]
+        assert len(shared) == 1
+        assert "MIT" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_no_shared_when_all_different(self):
+        projects = [
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="Apache-2.0"),
+            _proj("c", project_license="ISC"),
+        ]
+        conns = _find_license_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_license"]
+        assert len(shared) == 0
+
+    def test_license_divergence_permissive(self):
+        projects = [
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="Apache-2.0"),
+        ]
+        conns = _find_license_patterns(projects)
+        div = [c for c in conns if c.type == "license_divergence"]
+        assert len(div) == 1
+        assert div[0].severity == "warning"
+        assert "standardizing" in div[0].detail
+
+    def test_license_divergence_copyleft_mix(self):
+        projects = [
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="GPL-3.0"),
+        ]
+        conns = _find_license_patterns(projects)
+        div = [c for c in conns if c.type == "license_divergence"]
+        assert len(div) == 1
+        assert div[0].severity == "critical"
+        assert "Copyleft/permissive mix" in div[0].detail
+
+    def test_no_divergence_same_license(self):
+        projects = [
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="MIT"),
+        ]
+        conns = _find_license_patterns(projects)
+        div = [c for c in conns if c.type == "license_divergence"]
+        assert len(div) == 0
+
+    def test_license_gap(self):
+        projects = [
+            _proj("a", project_license="MIT", source_files=20),
+            _proj("b", project_license="", source_files=20),
+        ]
+        conns = _find_license_patterns(projects)
+        gap = [c for c in conns if c.type == "license_gap"]
+        assert len(gap) == 1
+        assert "b" in gap[0].projects
+        assert gap[0].severity == "warning"
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", project_license="MIT", source_files=20),
+            _proj("b", project_license="", source_files=3),
+        ]
+        conns = _find_license_patterns(projects)
+        gap = [c for c in conns if c.type == "license_gap"]
+        assert len(gap) == 0
+
+    def test_no_gap_all_licensed(self):
+        projects = [
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="Apache-2.0"),
+        ]
+        conns = _find_license_patterns(projects)
+        gap = [c for c in conns if c.type == "license_gap"]
+        assert len(gap) == 0
+
+    def test_multiple_gaps(self):
+        projects = [
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="", source_files=20),
+            _proj("c", project_license="", source_files=15),
+        ]
+        conns = _find_license_patterns(projects)
+        gap = [c for c in conns if c.type == "license_gap"]
+        assert len(gap) == 1
+        assert "2 project(s)" in gap[0].detail
+        assert "b" in gap[0].projects
+        assert "c" in gap[0].projects
+
+    def test_agpl_copyleft_detection(self):
+        projects = [
+            _proj("a", project_license="Apache-2.0"),
+            _proj("b", project_license="AGPL-3.0"),
+        ]
+        conns = _find_license_patterns(projects)
+        div = [c for c in conns if c.type == "license_divergence"]
+        assert len(div) == 1
+        assert div[0].severity == "critical"
+
+    def test_lgpl_copyleft_detection(self):
+        projects = [
+            _proj("a", project_license="MIT"),
+            _proj("b", project_license="LGPL-3.0"),
+        ]
+        conns = _find_license_patterns(projects)
+        div = [c for c in conns if c.type == "license_divergence"]
+        assert len(div) == 1
+        assert div[0].severity == "critical"
+
+    def test_empty_projects(self):
+        conns = _find_license_patterns([])
+        assert conns == []
+
+    def test_all_unlicensed(self):
+        projects = [
+            _proj("a", project_license="", source_files=20),
+            _proj("b", project_license="", source_files=20),
+        ]
+        conns = _find_license_patterns(projects)
+        # No shared/divergence, just gap
+        shared = [c for c in conns if c.type == "shared_license"]
+        div = [c for c in conns if c.type == "license_divergence"]
+        gap = [c for c in conns if c.type == "license_gap"]
+        assert len(shared) == 0
+        assert len(div) == 0
+        assert len(gap) == 1
 
     def test_single_project(self):
         conns = _find_package_manager_patterns([_proj("solo", package_managers=["Poetry"])])
