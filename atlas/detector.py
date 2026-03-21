@@ -978,3 +978,95 @@ def detect_docs_artifacts(project_path: Path) -> list[str]:
         artifacts.append(".editorconfig")
 
     return sorted(artifacts)
+
+
+# --- CI/CD configuration ---
+
+
+def detect_ci_config(project_path: Path) -> list[str]:
+    """Detect CI/CD configuration and workflow artifacts."""
+    config: list[str] = []
+
+    github_dir = project_path / ".github"
+
+    # GitHub Actions workflows
+    workflows_dir = github_dir / "workflows"
+    if workflows_dir.is_dir():
+        workflow_files = list(workflows_dir.glob("*.yml")) + list(workflows_dir.glob("*.yaml"))
+        if workflow_files:
+            config.append("GitHub Actions")
+            # Detect specific workflow patterns
+            for wf in workflow_files:
+                try:
+                    content = wf.read_text(errors="ignore")[:4000].lower()
+                    if "release" in wf.stem.lower() or "on:\n  release" in content or "on:\n  push:\n    tags" in content:
+                        if "release workflow" not in config:
+                            config.append("release workflow")
+                    if "deploy" in wf.stem.lower() or "deploy" in content:
+                        if "deploy workflow" not in config:
+                            config.append("deploy workflow")
+                except OSError:
+                    pass
+
+    # GitLab CI
+    if (project_path / ".gitlab-ci.yml").exists():
+        config.append("GitLab CI")
+
+    # PR template
+    pr_template_locations = [
+        github_dir / "pull_request_template.md",
+        github_dir / "PULL_REQUEST_TEMPLATE.md",
+        project_path / "pull_request_template.md",
+        project_path / "PULL_REQUEST_TEMPLATE.md",
+    ]
+    pr_template_dir = github_dir / "PULL_REQUEST_TEMPLATE"
+    if any(p.exists() for p in pr_template_locations) or (pr_template_dir.is_dir()):
+        config.append("PR template")
+
+    # Issue templates
+    issue_template_dir = github_dir / "ISSUE_TEMPLATE"
+    issue_template_locations = [
+        github_dir / "issue_template.md",
+        github_dir / "ISSUE_TEMPLATE.md",
+    ]
+    if (issue_template_dir.is_dir()) or any(p.exists() for p in issue_template_locations):
+        config.append("issue templates")
+
+    # CODEOWNERS
+    codeowners_locations = [
+        github_dir / "CODEOWNERS",
+        project_path / "CODEOWNERS",
+        project_path / "docs" / "CODEOWNERS",
+    ]
+    if any(p.exists() for p in codeowners_locations):
+        config.append("CODEOWNERS")
+
+    # Dependabot config
+    if (github_dir / "dependabot.yml").exists() or (github_dir / "dependabot.yaml").exists():
+        config.append("Dependabot config")
+
+    # Renovate config
+    renovate_locations = [
+        project_path / "renovate.json",
+        project_path / "renovate.json5",
+        project_path / ".renovaterc",
+        project_path / ".renovaterc.json",
+    ]
+    if any(p.exists() for p in renovate_locations):
+        config.append("Renovate config")
+
+    # Pre-commit hooks
+    if (project_path / ".pre-commit-config.yaml").exists():
+        config.append("pre-commit")
+
+    # Git hooks directory
+    git_hooks = project_path / ".githooks"
+    husky_dir = project_path / ".husky"
+    if git_hooks.is_dir() or husky_dir.is_dir():
+        config.append("git hooks")
+
+    # .gitattributes
+    if (project_path / ".gitattributes").exists():
+        config.append(".gitattributes")
+
+    return sorted(config)

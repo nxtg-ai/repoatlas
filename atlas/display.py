@@ -288,6 +288,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         da_parts = [f"{da} ({count})" for da, count in top_da]
         lines.append(f"  [bold]Docs:[/bold]         {has_docs}/{n} projects · {', '.join(da_parts)}")
 
+    # CI/CD configuration
+    has_ci_config = sum(1 for p in projects if p.tech_stack.ci_config)
+    if has_ci_config:
+        ci_counter: Counter[str] = Counter()
+        for p in projects:
+            for ci in p.tech_stack.ci_config:
+                ci_counter[ci] += 1
+        top_ci = ci_counter.most_common(6)
+        ci_parts = [f"{ci} ({count})" for ci, count in top_ci]
+        lines.append(f"  [bold]CI Config:[/bold]    {has_ci_config}/{n} projects · {', '.join(ci_parts)}")
+
     # License distribution
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -422,6 +433,10 @@ def show_project_card(project: Project):
     if project.tech_stack.docs_artifacts:
         da = ", ".join(project.tech_stack.docs_artifacts[:8])
         lines.append(f"  [bold]Docs:[/bold]       {da}")
+
+    if project.tech_stack.ci_config:
+        ci = ", ".join(project.tech_stack.ci_config[:8])
+        lines.append(f"  [bold]CI/CD:[/bold]      {ci}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

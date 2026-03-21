@@ -53,8 +53,9 @@
 | N-40 | [Enhanced JSON Export](#n-40-enhanced-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-41 | [Documentation Artifacts Detection](#n-41-documentation-artifacts-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-42 | [Documentation Artifacts Intelligence](#n-42-documentation-artifacts-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-43 | [CI/CD Configuration Detection](#n-43-cicd-configuration-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 39/42 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 40/43 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -72,7 +73,8 @@
 - Package managers & build tools: pip, Poetry, PDM, uv, Pipenv, setuptools, Hatch, Flit, npm, Yarn, pnpm, Bun, Cargo, Go Modules, Bundler, Maven, Gradle, NuGet, Composer
 - License detection: MIT, Apache-2.0, GPL-2.0/3.0, AGPL-3.0, LGPL, BSD-2/3, ISC, MPL-2.0, Unlicense, CC0 from LICENSE files and package configs
 - Documentation artifacts: README, CHANGELOG, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, LICENSE, docs/, API specs (OpenAPI/Swagger), .editorconfig
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41
+- CI/CD configuration: GitHub Actions workflows (release/deploy detection), GitLab CI, PR templates, issue templates, CODEOWNERS, Dependabot/Renovate config, pre-commit, git hooks (.husky/.githooks), .gitattributes
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -244,6 +246,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project package manager pattern detection via `_find_package_manager_patterns()` in connections.py. Detects: shared package managers (Poetry/npm across 2+ projects), JS package manager divergence (npm vs Yarn vs pnpm vs Bun), Python package manager divergence (pip vs Poetry vs PDM vs uv vs Pipenv), Java build tool divergence (Maven vs Gradle). New connection types (`shared_pkg_manager`, `pkg_manager_divergence`) displayed in `atlas connections`, markdown export, and `atlas doctor`. 13 package manager pattern tests.
 **Shipped**: 2026-03-21. Total test count: 736 → 749. Completes N-34 detection→intelligence pipeline. All 7 detection→intelligence pipelines complete.
+
+### N-43: CI/CD Configuration Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_ci_config()` in detector.py. Detects CI/CD configuration and workflow artifacts: GitHub Actions workflows (with release/deploy pattern detection), GitLab CI, PR templates (file + directory forms), issue templates, CODEOWNERS (3 locations), Dependabot config, Renovate config (4 file variants), pre-commit hooks, git hooks (.husky/.githooks directories), and .gitattributes. Added `ci_config` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py and export_report.py), markdown export project details, and JSON export portfolio_summary. 18 new detection tests, 3 display tests.
+**Shipped**: 2026-03-21. Total test count: 850 → 871. 11th detection category.
 
 ### N-42: Documentation Artifacts Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

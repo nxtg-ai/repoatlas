@@ -9,6 +9,7 @@ from atlas.detector import (
     count_files,
     count_loc,
     count_test_files,
+    detect_ci_config,
     detect_databases,
     detect_docs_artifacts,
     detect_frameworks,
@@ -1220,4 +1221,137 @@ class TestDetectDocsArtifacts:
         (proj / "CHANGELOG.md").write_text("# Changelog")
         (proj / "LICENSE").write_text("MIT License")
         result = detect_docs_artifacts(proj)
+        assert result == sorted(result)
+
+
+class TestDetectCiConfig:
+    def test_empty_project(self, tmp_path):
+        proj = tmp_path / "empty"
+        proj.mkdir()
+        assert detect_ci_config(proj) == []
+
+    def test_github_actions(self, tmp_path):
+        proj = tmp_path / "gha"
+        proj.mkdir()
+        (proj / ".github" / "workflows").mkdir(parents=True)
+        (proj / ".github" / "workflows" / "ci.yml").write_text("name: CI")
+        result = detect_ci_config(proj)
+        assert "GitHub Actions" in result
+
+    def test_gitlab_ci(self, tmp_path):
+        proj = tmp_path / "gitlab"
+        proj.mkdir()
+        (proj / ".gitlab-ci.yml").write_text("stages: [build]")
+        assert "GitLab CI" in detect_ci_config(proj)
+
+    def test_pr_template(self, tmp_path):
+        proj = tmp_path / "pr"
+        proj.mkdir()
+        (proj / ".github").mkdir()
+        (proj / ".github" / "pull_request_template.md").write_text("## Summary")
+        assert "PR template" in detect_ci_config(proj)
+
+    def test_pr_template_uppercase(self, tmp_path):
+        proj = tmp_path / "pr2"
+        proj.mkdir()
+        (proj / ".github").mkdir()
+        (proj / ".github" / "PULL_REQUEST_TEMPLATE.md").write_text("## Summary")
+        assert "PR template" in detect_ci_config(proj)
+
+    def test_pr_template_directory(self, tmp_path):
+        proj = tmp_path / "pr3"
+        proj.mkdir()
+        (proj / ".github" / "PULL_REQUEST_TEMPLATE").mkdir(parents=True)
+        assert "PR template" in detect_ci_config(proj)
+
+    def test_issue_templates(self, tmp_path):
+        proj = tmp_path / "issues"
+        proj.mkdir()
+        (proj / ".github" / "ISSUE_TEMPLATE").mkdir(parents=True)
+        assert "issue templates" in detect_ci_config(proj)
+
+    def test_codeowners_github(self, tmp_path):
+        proj = tmp_path / "co"
+        proj.mkdir()
+        (proj / ".github").mkdir()
+        (proj / ".github" / "CODEOWNERS").write_text("* @team")
+        assert "CODEOWNERS" in detect_ci_config(proj)
+
+    def test_codeowners_root(self, tmp_path):
+        proj = tmp_path / "co2"
+        proj.mkdir()
+        (proj / "CODEOWNERS").write_text("* @team")
+        assert "CODEOWNERS" in detect_ci_config(proj)
+
+    def test_dependabot_config(self, tmp_path):
+        proj = tmp_path / "depbot"
+        proj.mkdir()
+        (proj / ".github").mkdir()
+        (proj / ".github" / "dependabot.yml").write_text("version: 2")
+        assert "Dependabot config" in detect_ci_config(proj)
+
+    def test_renovate_config(self, tmp_path):
+        proj = tmp_path / "renovate"
+        proj.mkdir()
+        (proj / "renovate.json").write_text("{}")
+        assert "Renovate config" in detect_ci_config(proj)
+
+    def test_pre_commit(self, tmp_path):
+        proj = tmp_path / "precommit"
+        proj.mkdir()
+        (proj / ".pre-commit-config.yaml").write_text("repos: []")
+        assert "pre-commit" in detect_ci_config(proj)
+
+    def test_git_hooks_dir(self, tmp_path):
+        proj = tmp_path / "hooks"
+        proj.mkdir()
+        (proj / ".husky").mkdir()
+        assert "git hooks" in detect_ci_config(proj)
+
+    def test_gitattributes(self, tmp_path):
+        proj = tmp_path / "attrs"
+        proj.mkdir()
+        (proj / ".gitattributes").write_text("*.txt text")
+        assert ".gitattributes" in detect_ci_config(proj)
+
+    def test_release_workflow(self, tmp_path):
+        proj = tmp_path / "rel"
+        proj.mkdir()
+        (proj / ".github" / "workflows").mkdir(parents=True)
+        (proj / ".github" / "workflows" / "release.yml").write_text("name: Release")
+        result = detect_ci_config(proj)
+        assert "release workflow" in result
+
+    def test_deploy_workflow(self, tmp_path):
+        proj = tmp_path / "deploy"
+        proj.mkdir()
+        (proj / ".github" / "workflows").mkdir(parents=True)
+        (proj / ".github" / "workflows" / "deploy.yml").write_text("name: Deploy")
+        result = detect_ci_config(proj)
+        assert "deploy workflow" in result
+
+    def test_multiple_configs(self, tmp_path):
+        proj = tmp_path / "full"
+        proj.mkdir()
+        (proj / ".github" / "workflows").mkdir(parents=True)
+        (proj / ".github" / "workflows" / "ci.yml").write_text("name: CI")
+        (proj / ".github" / "CODEOWNERS").write_text("* @team")
+        (proj / ".github" / "dependabot.yml").write_text("version: 2")
+        (proj / ".pre-commit-config.yaml").write_text("repos: []")
+        (proj / ".gitattributes").write_text("*.txt text")
+        result = detect_ci_config(proj)
+        assert "GitHub Actions" in result
+        assert "CODEOWNERS" in result
+        assert "Dependabot config" in result
+        assert "pre-commit" in result
+        assert ".gitattributes" in result
+
+    def test_results_are_sorted(self, tmp_path):
+        proj = tmp_path / "sorted"
+        proj.mkdir()
+        (proj / ".github" / "workflows").mkdir(parents=True)
+        (proj / ".github" / "workflows" / "ci.yml").write_text("name: CI")
+        (proj / ".pre-commit-config.yaml").write_text("repos: []")
+        (proj / "CODEOWNERS").write_text("* @team")
+        result = detect_ci_config(proj)
         assert result == sorted(result)

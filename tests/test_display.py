@@ -12,7 +12,8 @@ from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
 def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
           security_tools=None, testing_frameworks=None, databases=None,
-          package_managers=None, docs_artifacts=None, project_license="",
+          package_managers=None, docs_artifacts=None, ci_config=None,
+          project_license="",
           test_files=0, source_files=10, loc=100) -> Project:
     return Project(
         name=name,
@@ -26,6 +27,7 @@ def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
             databases=databases or [],
             package_managers=package_managers or [],
             docs_artifacts=docs_artifacts or [],
+            ci_config=ci_config or [],
         ),
         git_info=GitInfo(total_commits=10, branch="main"),
         health=HealthScore(tests=0.8, git_hygiene=0.9, documentation=0.7,
@@ -344,6 +346,39 @@ class TestPortfolioSummaryDocsArtifacts:
         output = _capture_summary(projects)
         assert "README (3)" in output
         assert "CHANGELOG (1)" in output
+
+
+class TestPortfolioSummaryCiConfig:
+    def test_ci_config_coverage(self):
+        projects = [
+            _proj("a", ci_config=["GitHub Actions", "pre-commit"]),
+            _proj("b", ci_config=["GitHub Actions"]),
+            _proj("c", ci_config=[]),
+        ]
+        output = _capture_summary(projects)
+        assert "CI Config" in output
+        assert "2/3 projects" in output
+        assert "GitHub Actions (2)" in output
+
+    def test_ci_config_hidden_when_none(self):
+        projects = [
+            _proj("a", ci_config=[]),
+            _proj("b", ci_config=[]),
+        ]
+        output = _capture_summary(projects)
+        lines = output.split("\n")
+        ci_lines = [ln for ln in lines if "CI Config:" in ln and "projects" in ln]
+        assert len(ci_lines) == 0
+
+    def test_ci_config_multiple_ranked(self):
+        projects = [
+            _proj("a", ci_config=["GitHub Actions", "pre-commit", "CODEOWNERS"]),
+            _proj("b", ci_config=["GitHub Actions", "Dependabot config"]),
+            _proj("c", ci_config=["pre-commit"]),
+        ]
+        output = _capture_summary(projects)
+        assert "GitHub Actions (2)" in output
+        assert "pre-commit (2)" in output
 
 
 class TestShowStatusSummaryPanel:

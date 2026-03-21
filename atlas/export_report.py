@@ -141,6 +141,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         top_da = da_counter.most_common(6)
         lines.append(f"**Docs**: {has_docs}/{n} projects · {', '.join(t for t, _ in top_da)}")
 
+    # CI/CD configuration
+    has_ci_config = sum(1 for p in projects if p.tech_stack.ci_config)
+    if has_ci_config:
+        ci_counter: Counter[str] = Counter()
+        for p in projects:
+            for ci in p.tech_stack.ci_config:
+                ci_counter[ci] += 1
+        top_ci = ci_counter.most_common(6)
+        lines.append(f"**CI Config**: {has_ci_config}/{n} projects · {', '.join(t for t, _ in top_ci)}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -192,6 +202,8 @@ def _project_details(projects: list[Project]) -> list[str]:
             lines.append(f"- **Pkg Managers**: {', '.join(p.tech_stack.package_managers[:8])}")
         if p.tech_stack.docs_artifacts:
             lines.append(f"- **Docs**: {', '.join(p.tech_stack.docs_artifacts[:8])}")
+        if p.tech_stack.ci_config:
+            lines.append(f"- **CI Config**: {', '.join(p.tech_stack.ci_config[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -381,6 +393,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             da_counter[da] += 1
     has_docs = sum(1 for p in projects if p.tech_stack.docs_artifacts)
 
+    # CI/CD configuration
+    ci_counter: Counter[str] = Counter()
+    for p in projects:
+        for ci in p.tech_stack.ci_config:
+            ci_counter[ci] += 1
+    has_ci_config = sum(1 for p in projects if p.tech_stack.ci_config)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -403,5 +422,6 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "package_managers": {"coverage": f"{has_pm}/{n}", "managers": dict(pm_counter.most_common(10))},
         "ai_ml": {"coverage": f"{has_ai}/{n}", "tools": dict(ai_counter.most_common(10))},
         "docs_artifacts": {"coverage": f"{has_docs}/{n}", "artifacts": dict(da_counter.most_common(10))},
+        "ci_config": {"coverage": f"{has_ci_config}/{n}", "config": dict(ci_counter.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }

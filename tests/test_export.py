@@ -10,7 +10,7 @@ from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 def _proj(name: str, languages=None, frameworks=None, databases=None,
           infrastructure=None, security_tools=None, ai_tools=None,
           quality_tools=None, testing_frameworks=None, package_managers=None,
-          docs_artifacts=None, project_license="",
+          docs_artifacts=None, ci_config=None, project_license="",
           test_files=5, source_files=20, loc=500) -> Project:
     return Project(
         name=name,
@@ -26,6 +26,7 @@ def _proj(name: str, languages=None, frameworks=None, databases=None,
             testing_frameworks=testing_frameworks or [],
             package_managers=package_managers or [],
             docs_artifacts=docs_artifacts or [],
+            ci_config=ci_config or [],
         ),
         git_info=GitInfo(
             branch="main",
