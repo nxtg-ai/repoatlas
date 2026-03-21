@@ -132,6 +132,8 @@ def _project_details(projects: list[Project]) -> list[str]:
             lines.append(f"- **Security**: {', '.join(p.tech_stack.security_tools[:8])}")
         if p.tech_stack.ai_tools:
             lines.append(f"- **AI/ML**: {', '.join(p.tech_stack.ai_tools[:8])}")
+        if p.tech_stack.quality_tools:
+            lines.append(f"- **Quality**: {', '.join(p.tech_stack.quality_tools[:8])}")
 
         if p.git_info.branch:
             lines.append(f"- **Git**: {p.git_info.branch} · {p.git_info.total_commits:,} commits")

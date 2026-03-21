@@ -95,6 +95,7 @@ Everything is free. Everything is open source. No catches.
 | **Serverless** | Vercel, Netlify, Cloudflare Workers, Fly.io, Render |
 | **Security** | Dependabot, Renovate, Snyk, CodeQL, Bandit, Gitleaks, Trivy, SECURITY.md |
 | **AI/ML** | Anthropic SDK, OpenAI, LangChain, LlamaIndex, Transformers, PyTorch, TensorFlow, scikit-learn, Vercel AI SDK, MLflow, W&B, DVC, ChromaDB, Pinecone, Jupyter |
+| **Code Quality** | Ruff, Flake8, Pylint, ESLint, Biome, Black, Prettier, isort, mypy, Pyright, TypeScript, golangci-lint, Clippy |
 | **Documentation** | README, CLAUDE.md, CHANGELOG, docs/ |
 
 ## Health Score Breakdown

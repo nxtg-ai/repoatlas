@@ -400,6 +400,133 @@ def detect_security_tools(project_path: Path) -> list[str]:
     return tools
 
 
+def detect_quality_tools(project_path: Path) -> list[str]:
+    """Detect code quality tooling — linters, formatters, type checkers."""
+    tools: list[str] = []
+
+    # --- Python quality tools ---
+
+    # Ruff (config files)
+    if (project_path / ".ruff.toml").exists() or (project_path / "ruff.toml").exists():
+        _check_add(tools, "ruff", "ruff", "Ruff")
+    pyproject = project_path / "pyproject.toml"
+    if pyproject.exists():
+        pyproject_content = pyproject.read_text(errors="ignore").lower()
+        if "[tool.ruff" in pyproject_content:
+            _check_add(tools, "ruff", "ruff", "Ruff")
+        if "[tool.pylint" in pyproject_content:
+            _check_add(tools, "pylint", "pylint", "Pylint")
+        if "[tool.mypy" in pyproject_content:
+            _check_add(tools, "mypy", "mypy", "mypy")
+        if "[tool.pyright" in pyproject_content:
+            _check_add(tools, "pyright", "pyright", "Pyright")
+        if "[tool.black" in pyproject_content:
+            _check_add(tools, "black", "black", "Black")
+        if "[tool.isort" in pyproject_content:
+            _check_add(tools, "isort", "isort", "isort")
+
+    # Flake8 config
+    if (project_path / ".flake8").exists():
+        _check_add(tools, "flake8", "flake8", "Flake8")
+    setup_cfg = project_path / "setup.cfg"
+    if setup_cfg.exists():
+        cfg_content = setup_cfg.read_text(errors="ignore").lower()
+        if "[flake8]" in cfg_content:
+            _check_add(tools, "flake8", "flake8", "Flake8")
+
+    # Pylint config
+    if (project_path / ".pylintrc").exists():
+        _check_add(tools, "pylint", "pylint", "Pylint")
+
+    # mypy config
+    if (project_path / ".mypy.ini").exists() or (project_path / "mypy.ini").exists():
+        _check_add(tools, "mypy", "mypy", "mypy")
+
+    # Pyright config
+    if (project_path / "pyrightconfig.json").exists():
+        _check_add(tools, "pyright", "pyright", "Pyright")
+
+    # Python deps
+    for cfg in ("pyproject.toml", "requirements.txt", "requirements-dev.txt"):
+        path = project_path / cfg
+        if path.exists():
+            content = path.read_text(errors="ignore").lower()
+            _check_add(tools, content, "ruff", "Ruff")
+            _check_add(tools, content, "flake8", "Flake8")
+            _check_add(tools, content, "pylint", "Pylint")
+            _check_add(tools, content, "black", "Black")
+            _check_add(tools, content, "isort", "isort")
+            _check_add(tools, content, "autopep8", "autopep8")
+            _check_add(tools, content, "mypy", "mypy")
+            _check_add(tools, content, "pyright", "Pyright")
+
+    # --- JavaScript/TypeScript quality tools ---
+
+    # ESLint config
+    eslint_configs = (".eslintrc", ".eslintrc.js", ".eslintrc.json", ".eslintrc.yml",
+                      ".eslintrc.yaml", "eslint.config.js", "eslint.config.mjs")
+    for cfg in eslint_configs:
+        if (project_path / cfg).exists():
+            _check_add(tools, "eslint", "eslint", "ESLint")
+            break
+
+    # Prettier config
+    prettier_configs = (".prettierrc", ".prettierrc.js", ".prettierrc.json",
+                        ".prettierrc.yml", ".prettierrc.yaml", "prettier.config.js",
+                        "prettier.config.mjs")
+    for cfg in prettier_configs:
+        if (project_path / cfg).exists():
+            _check_add(tools, "prettier", "prettier", "Prettier")
+            break
+
+    # TypeScript
+    if (project_path / "tsconfig.json").exists():
+        _check_add(tools, "typescript", "typescript", "TypeScript")
+
+    # Biome
+    if (project_path / "biome.json").exists() or (project_path / "biome.jsonc").exists():
+        _check_add(tools, "biome", "biome", "Biome")
+
+    # JS deps
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text())
+            all_deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
+            js_quality = {
+                "eslint": "ESLint",
+                "prettier": "Prettier",
+                "typescript": "TypeScript",
+                "@biomejs/biome": "Biome",
+            }
+            for dep, name in js_quality.items():
+                if dep in all_deps and name not in tools:
+                    tools.append(name)
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    # --- Go quality tools ---
+    if (project_path / ".golangci.yml").exists() or (project_path / ".golangci.yaml").exists():
+        tools.append("golangci-lint")
+
+    # --- Rust quality tools ---
+    if (project_path / ".clippy.toml").exists() or (project_path / "clippy.toml").exists():
+        tools.append("Clippy")
+
+    # --- Pre-commit hooks ---
+    pre_commit = project_path / ".pre-commit-config.yaml"
+    if pre_commit.exists():
+        content = pre_commit.read_text(errors="ignore").lower()
+        _check_add(tools, content, "ruff", "Ruff")
+        _check_add(tools, content, "black", "Black")
+        _check_add(tools, content, "isort", "isort")
+        _check_add(tools, content, "mypy", "mypy")
+        _check_add(tools, content, "eslint", "ESLint")
+        _check_add(tools, content, "prettier", "Prettier")
+
+    return tools
+
+
 def _detect_cloud_from_deps(project_path: Path, infra: list[str]) -> None:
     """Detect cloud providers from dependency files."""
     search_files = ("pyproject.toml", "requirements.txt", "package.json")

@@ -34,8 +34,9 @@
 | N-21 | [AI/ML Tooling Detection](#n-21-aiml-tooling-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 | N-22 | [Rich Markdown Export](#n-22-rich-markdown-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 | N-23 | [Security Intelligence](#n-23-security-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
+| N-24 | [Code Quality Tooling Detection](#n-24-code-quality-tooling-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 20/23 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 21/24 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -47,7 +48,8 @@
 - Infrastructure & deployment: Docker, K8s, Terraform, cloud providers, serverless
 - Security posture: Dependabot, Renovate, Snyk, CodeQL, Bandit, Gitleaks, Trivy, SECURITY.md
 - AI/ML tooling: Anthropic, OpenAI, LangChain, LlamaIndex, Transformers, PyTorch, TensorFlow, Vercel AI SDK, MLflow, W&B, DVC, Jupyter
-- **Shipped**: N-01, N-17, N-19, N-21
+- Code quality tooling: Ruff, Flake8, Pylint, ESLint, Biome, Black, Prettier, mypy, Pyright, TypeScript, golangci-lint, Clippy
+- **Shipped**: N-01, N-17, N-19, N-21, N-24
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -181,6 +183,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Refactored markdown export into dedicated `export_report.py` module with `build_markdown_report()`. Generates comprehensive portfolio reports: header with aggregate stats, project table sorted by health, portfolio summary (languages, frameworks, infra coverage, security posture, AI/ML adoption), per-project details (health breakdown across 4 dimensions, all tech stack fields, git info), and cross-project intelligence grouped by type with severity icons. Replaces inline markdown generation in cli.py. 23 export tests.
 **Shipped**: 2026-03-13. Total test count: 483 → 506. Surfaces all detection data (N-17, N-19, N-21) in exported reports.
+
+### N-24: Code Quality Tooling Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_quality_tools()` in detector.py. Detects code quality tooling across projects: Python linters (Ruff, Flake8, Pylint), Python formatters (Black, isort, autopep8), Python type checkers (mypy, Pyright), JS/TS tools (ESLint, Prettier, TypeScript, Biome), Go (golangci-lint), Rust (Clippy). Reads config files, dependency files, pyproject.toml sections, and pre-commit hooks. Added `quality_tools` field to TechStack model. Shows in `atlas inspect`, portfolio summary panel, and markdown export. 45 quality tools tests.
+**Shipped**: 2026-03-13. Total test count: 522 → 567. Enables future quality intelligence layer.
 
 ### N-23: Security Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

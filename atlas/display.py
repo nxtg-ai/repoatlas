@@ -190,6 +190,30 @@ def _show_portfolio_summary(portfolio: Portfolio):
         sec_parts.append(f"Secret scanning {has_secret_scan}/{n}")
     lines.append(f"  [bold]Security:[/bold]     {' · '.join(sec_parts)}")
 
+    # Code quality tooling
+    has_quality = sum(1 for p in projects if p.tech_stack.quality_tools)
+    if has_quality:
+        has_linter = sum(1 for p in projects if any(
+            t in p.tech_stack.quality_tools
+            for t in ("Ruff", "Flake8", "Pylint", "ESLint", "Biome", "golangci-lint", "Clippy")
+        ))
+        has_formatter = sum(1 for p in projects if any(
+            t in p.tech_stack.quality_tools
+            for t in ("Black", "Prettier", "Biome", "autopep8", "isort")
+        ))
+        has_types = sum(1 for p in projects if any(
+            t in p.tech_stack.quality_tools
+            for t in ("mypy", "Pyright", "TypeScript")
+        ))
+        qt_parts = [f"Any tooling {has_quality}/{n}"]
+        if has_linter:
+            qt_parts.append(f"Linting {has_linter}/{n}")
+        if has_formatter:
+            qt_parts.append(f"Formatting {has_formatter}/{n}")
+        if has_types:
+            qt_parts.append(f"Type checking {has_types}/{n}")
+        lines.append(f"  [bold]Quality:[/bold]      {' · '.join(qt_parts)}")
+
     # AI/ML adoption
     has_ai = sum(1 for p in projects if p.tech_stack.ai_tools)
     if has_ai:
@@ -289,6 +313,10 @@ def show_project_card(project: Project):
     if project.tech_stack.ai_tools:
         ai = ", ".join(project.tech_stack.ai_tools[:6])
         lines.append(f"  [bold]AI/ML:[/bold]      {ai}")
+
+    if project.tech_stack.quality_tools:
+        qt = ", ".join(project.tech_stack.quality_tools[:6])
+        lines.append(f"  [bold]Quality:[/bold]    {qt}")
 
     if project.git_info.branch:
         lines.append(f"  [bold]Branch:[/bold]    {project.git_info.branch}")
