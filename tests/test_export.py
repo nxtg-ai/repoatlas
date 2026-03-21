@@ -319,6 +319,7 @@ class TestConnectionsSection:
                   docs_artifacts=["README", "CHANGELOG", "CONTRIBUTING"],
                   ci_config=["PR template", "pre-commit"],
                   project_license="MIT")
+        p.tech_stack.config_tools = ["python-dotenv"]
         p.health.tests = 1.0
         report = build_markdown_report(_portfolio(p))
         assert "Cross-Project Intelligence" not in report

@@ -257,6 +257,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "doc_generator_gap": "docs",
         "doc_generator_divergence": "docs",
         "cli_framework_divergence": "deps",
+        "config_tool_gap": "deps",
+        "config_tool_divergence": "deps",
     }
 
     for conn in connections:

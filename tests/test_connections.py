@@ -30,6 +30,7 @@ from atlas.connections import (
     _find_task_queue_patterns,
     _find_search_engine_patterns,
     _find_feature_flag_patterns,
+    _find_config_tool_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -4432,3 +4433,95 @@ class TestFindCliFrameworkPatterns:
         conns = find_connections(projects)
         cli_types = {c.type for c in conns if "cli_framework" in c.type}
         assert "shared_cli_framework" in cli_types
+
+
+# ---------------------------------------------------------------------------
+# _find_config_tool_patterns
+# ---------------------------------------------------------------------------
+class TestFindConfigToolPatterns:
+    def test_no_config_tools(self):
+        projects = [_proj("a"), _proj("b")]
+        assert _find_config_tool_patterns(projects) == []
+
+    def test_shared_config_tool(self):
+        projects = [
+            _proj("a", config_tools=["python-dotenv"]),
+            _proj("b", config_tools=["python-dotenv"]),
+        ]
+        conns = _find_config_tool_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_config_tool"]
+        assert len(shared) == 1
+        assert "python-dotenv" in shared[0].detail
+
+    def test_no_shared_if_unique(self):
+        projects = [
+            _proj("a", config_tools=["Viper"]),
+            _proj("b", config_tools=["Dynaconf"]),
+        ]
+        conns = _find_config_tool_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_config_tool"]
+        assert len(shared) == 0
+
+    def test_divergence_env_vs_structured(self):
+        projects = [
+            _proj("a", config_tools=["python-dotenv"]),
+            _proj("b", config_tools=["Hydra"]),
+        ]
+        conns = _find_config_tool_patterns(projects)
+        divs = [c for c in conns if c.type == "config_tool_divergence"]
+        assert len(divs) == 1
+        assert "env_based" in divs[0].detail
+        assert "structured" in divs[0].detail
+
+    def test_no_divergence_same_paradigm(self):
+        projects = [
+            _proj("a", config_tools=["python-dotenv"]),
+            _proj("b", config_tools=["dotenv"]),
+        ]
+        conns = _find_config_tool_patterns(projects)
+        divs = [c for c in conns if c.type == "config_tool_divergence"]
+        assert len(divs) == 0
+
+    def test_gap_backend_no_config(self):
+        projects = [
+            _proj("a", config_tools=["Dynaconf"], source_files=10),
+            _proj("b", config_tools=[], source_files=10),
+        ]
+        # b needs a backend language for gap detection
+        projects[1].tech_stack.languages = {"Python": 50}
+        conns = _find_config_tool_patterns(projects)
+        gaps = [c for c in conns if c.type == "config_tool_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+
+    def test_no_gap_if_has_config(self):
+        projects = [_proj("a", config_tools=["Viper"], source_files=10)]
+        projects[0].tech_stack.languages = {"Go": 50}
+        conns = _find_config_tool_patterns(projects)
+        gaps = [c for c in conns if c.type == "config_tool_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_if_small_project(self):
+        projects = [_proj("a", config_tools=[], source_files=3)]
+        projects[0].tech_stack.languages = {"Python": 50}
+        conns = _find_config_tool_patterns(projects)
+        gaps = [c for c in conns if c.type == "config_tool_gap"]
+        assert len(gaps) == 0
+
+    def test_cap_at_10(self):
+        tools = [f"tool{i}" for i in range(15)]
+        projects = [
+            _proj("a", config_tools=tools),
+            _proj("b", config_tools=tools),
+        ]
+        conns = _find_config_tool_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", config_tools=["python-dotenv"]),
+            _proj("b", config_tools=["python-dotenv", "Hydra"]),
+        ]
+        conns = find_connections(projects)
+        config_types = {c.type for c in conns if "config_tool" in c.type}
+        assert "shared_config_tool" in config_types

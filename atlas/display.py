@@ -139,6 +139,9 @@ CONNECTION_ICONS = {
     "doc_generator_gap": "[red]\u2261[/red]",
     "shared_cli_framework": "[green]\u2318[/green]",
     "cli_framework_divergence": "[yellow]\u2318[/yellow]",
+    "shared_config_tool": "[green]\u2699[/green]",
+    "config_tool_divergence": "[yellow]\u2699[/yellow]",
+    "config_tool_gap": "[red]\u2699[/red]",
 }
 
 
@@ -778,6 +781,9 @@ def show_connections(connections: list[Connection]):
         "doc_generator_gap": "Doc Generator Gaps",
         "shared_cli_framework": "Shared CLI Frameworks",
         "cli_framework_divergence": "CLI Framework Divergence",
+        "shared_config_tool": "Shared Config Tools",
+        "config_tool_divergence": "Config Tool Divergence",
+        "config_tool_gap": "Config Tool Gaps",
     }
 
     lines = []
@@ -850,6 +856,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_http_client": "http", "http_client_divergence": "http", "http_client_gap": "http",
         "shared_doc_generator": "docgen", "doc_generator_divergence": "docgen", "doc_generator_gap": "docgen",
         "shared_cli_framework": "cli", "cli_framework_divergence": "cli",
+        "shared_config_tool": "config", "config_tool_divergence": "config", "config_tool_gap": "config",
     }
 
     for conn in connections:

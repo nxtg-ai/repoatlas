@@ -344,6 +344,7 @@ CONNECTION_CATEGORIES = {
     "http": {"shared_http_client", "http_client_divergence", "http_client_gap"},
     "docgen": {"shared_doc_generator", "doc_generator_divergence", "doc_generator_gap"},
     "cli": {"shared_cli_framework", "cli_framework_divergence"},
+    "config": {"shared_config_tool", "config_tool_divergence", "config_tool_gap"},
 }
 
 

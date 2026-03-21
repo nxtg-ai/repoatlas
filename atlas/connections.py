@@ -45,6 +45,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_http_client_patterns(projects))
     connections.extend(_find_doc_generator_patterns(projects))
     connections.extend(_find_cli_framework_patterns(projects))
+    connections.extend(_find_config_tool_patterns(projects))
     return connections
 
 
@@ -2602,5 +2603,76 @@ def _find_cli_framework_patterns(projects: list[Project]) -> list[Connection]:
             projects=sorted(all_projs),
             severity="warning",
         ))
+
+    return connections[:10]
+
+
+def _find_config_tool_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project configuration management patterns."""
+    connections: list[Connection] = []
+
+    # Shared config tools — same tool used by 2+ projects
+    tool_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for t in p.tech_stack.config_tools:
+            tool_to_projects[t].append(p.name)
+
+    for t, projs in sorted(tool_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_config_tool",
+                detail=f"{t} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Config tool divergence — different paradigms
+    env_based = {"python-dotenv", "dotenv", "godotenv", "dotenvy", "dotenv-java",
+                 "python-decouple", "environs", "envalid", "env-cmd", "cross-env",
+                 "envconfig", "env", "cleanenv", "envy", "t3-env"}
+    structured = {"Dynaconf", "Hydra", "OmegaConf", "Pydantic Settings", "Convict",
+                  "node-config", "Viper", "koanf", "config-rs", "Figment",
+                  "Spring Config", "Typesafe Config", "Commons Configuration",
+                  "ConfigObj", "Confuse", "Everett", "nconf", "cosmiconfig", "rc"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "env_based": {}, "structured": {},
+    }
+    cat_sets = [("env_based", env_based), ("structured", structured)]
+    for p in projects:
+        for t in p.tech_stack.config_tools:
+            for cat_name, cat_set in cat_sets:
+                if t in cat_set:
+                    cat_found[cat_name].setdefault(t, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, fws in active_cats.items():
+            fw_names = ", ".join(sorted(fws.keys())[:3])
+            parts.append(f"{cat_name} ({fw_names})")
+            for ps in fws.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="config_tool_divergence",
+            detail=f"Mixed config approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # Config tool gap — backend projects without config management
+    for p in projects:
+        has_backend = (
+            any(lang in p.tech_stack.languages for lang in ("Python", "Go", "Java", "Rust"))
+            or any(fw in p.tech_stack.frameworks for fw in ("FastAPI", "Django", "Flask", "Express", "NestJS", "Spring Boot", "Gin", "Echo", "Actix", "Rails"))
+        )
+        if has_backend and not p.tech_stack.config_tools and p.source_file_count >= 5:
+            connections.append(Connection(
+                type="config_tool_gap",
+                detail=f"{p.name} is a backend project with no config management tool detected",
+                projects=[p.name],
+                severity="info",
+            ))
 
     return connections[:10]

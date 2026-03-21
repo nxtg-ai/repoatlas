@@ -122,8 +122,9 @@
 | N-109 | [CLI Framework Intelligence](#n-109-cli-framework-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-110 | [Status JSON Export](#n-110-status-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-111 | [Configuration Management Detection](#n-111-configuration-management-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-112 | [Configuration Management Intelligence](#n-112-configuration-management-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 108/111 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 109/112 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -203,7 +204,8 @@
 - Cross-project HTTP client intelligence (shared HTTP clients, sync vs async vs fetch-based vs RPC-style paradigm divergence, HTTP client gaps for backend projects)
 - Cross-project documentation generation intelligence (shared doc generators, static-site vs API-docs vs component-docs paradigm divergence, doc generator gaps for projects with 20+ source files)
 - Cross-project CLI framework intelligence (shared CLI frameworks, declarative vs TUI paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109
+- Cross-project configuration management intelligence (shared config tools, env-based vs structured paradigm divergence, config tool gaps for backend projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -633,6 +635,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-112: Configuration Management Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project configuration management intelligence: shared config tools (shared_config_tool), env-based vs structured paradigm divergence (config_tool_divergence — env_based: dotenv/decouple/envalid/etc vs structured: Hydra/Viper/Convict/etc), config tool gaps for backend projects with 5+ source files (config_tool_gap). New CONNECTION_CATEGORIES entry "config". Updated display type_labels, icons, stats category mapping, export type_labels, recommendations mapping. 10 tests.
+**Shipped**: 2026-03-21. Total test count: 1830 → 1840. 36th intelligence feature.
 
 ### N-111: Configuration Management Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
