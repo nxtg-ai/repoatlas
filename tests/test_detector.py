@@ -10,6 +10,7 @@ from atlas.detector import (
     count_loc,
     count_test_files,
     detect_databases,
+    detect_docs_artifacts,
     detect_frameworks,
     detect_key_deps,
     detect_languages,
@@ -1102,3 +1103,121 @@ class TestDetectLicense:
         proj.mkdir()
         (proj / "LICENSE").write_text("Proprietary license. All rights reserved.")
         assert detect_license(proj) == ""
+
+
+class TestDetectDocsArtifacts:
+    def test_empty_project(self, tmp_path):
+        proj = tmp_path / "empty"
+        proj.mkdir()
+        assert detect_docs_artifacts(proj) == []
+
+    def test_readme_detected(self, tmp_path):
+        proj = tmp_path / "readme"
+        proj.mkdir()
+        (proj / "README.md").write_text("# My Project")
+        assert "README" in detect_docs_artifacts(proj)
+
+    def test_readme_rst(self, tmp_path):
+        proj = tmp_path / "readme_rst"
+        proj.mkdir()
+        (proj / "README.rst").write_text("My Project\n==========")
+        assert "README" in detect_docs_artifacts(proj)
+
+    def test_changelog_detected(self, tmp_path):
+        proj = tmp_path / "changelog"
+        proj.mkdir()
+        (proj / "CHANGELOG.md").write_text("# Changelog")
+        assert "CHANGELOG" in detect_docs_artifacts(proj)
+
+    def test_changes_file_detected_as_changelog(self, tmp_path):
+        proj = tmp_path / "changes"
+        proj.mkdir()
+        (proj / "CHANGES.md").write_text("# Changes")
+        assert "CHANGELOG" in detect_docs_artifacts(proj)
+
+    def test_history_file_detected_as_changelog(self, tmp_path):
+        proj = tmp_path / "history"
+        proj.mkdir()
+        (proj / "HISTORY.md").write_text("# History")
+        assert "CHANGELOG" in detect_docs_artifacts(proj)
+
+    def test_contributing_detected(self, tmp_path):
+        proj = tmp_path / "contrib"
+        proj.mkdir()
+        (proj / "CONTRIBUTING.md").write_text("# Contributing")
+        assert "CONTRIBUTING" in detect_docs_artifacts(proj)
+
+    def test_code_of_conduct_detected(self, tmp_path):
+        proj = tmp_path / "coc"
+        proj.mkdir()
+        (proj / "CODE_OF_CONDUCT.md").write_text("# Code of Conduct")
+        assert "CODE_OF_CONDUCT" in detect_docs_artifacts(proj)
+
+    def test_security_detected(self, tmp_path):
+        proj = tmp_path / "sec"
+        proj.mkdir()
+        (proj / "SECURITY.md").write_text("# Security Policy")
+        assert "SECURITY" in detect_docs_artifacts(proj)
+
+    def test_license_file_detected(self, tmp_path):
+        proj = tmp_path / "lic"
+        proj.mkdir()
+        (proj / "LICENSE").write_text("MIT License")
+        assert "LICENSE" in detect_docs_artifacts(proj)
+
+    def test_docs_directory_detected(self, tmp_path):
+        proj = tmp_path / "docdir"
+        proj.mkdir()
+        (proj / "docs").mkdir()
+        assert "docs/" in detect_docs_artifacts(proj)
+
+    def test_openapi_json_detected(self, tmp_path):
+        proj = tmp_path / "api"
+        proj.mkdir()
+        (proj / "openapi.json").write_text('{"openapi": "3.0.0"}')
+        assert "API spec" in detect_docs_artifacts(proj)
+
+    def test_swagger_yaml_detected(self, tmp_path):
+        proj = tmp_path / "swagger"
+        proj.mkdir()
+        (proj / "swagger.yaml").write_text("swagger: '2.0'")
+        assert "API spec" in detect_docs_artifacts(proj)
+
+    def test_api_spec_in_docs_dir(self, tmp_path):
+        proj = tmp_path / "apidocs"
+        proj.mkdir()
+        (proj / "docs").mkdir()
+        (proj / "docs" / "openapi.yaml").write_text("openapi: 3.0.0")
+        assert "API spec" in detect_docs_artifacts(proj)
+
+    def test_editorconfig_detected(self, tmp_path):
+        proj = tmp_path / "editor"
+        proj.mkdir()
+        (proj / ".editorconfig").write_text("root = true")
+        assert ".editorconfig" in detect_docs_artifacts(proj)
+
+    def test_multiple_artifacts(self, tmp_path):
+        proj = tmp_path / "full"
+        proj.mkdir()
+        (proj / "README.md").write_text("# Project")
+        (proj / "CHANGELOG.md").write_text("# Changelog")
+        (proj / "CONTRIBUTING.md").write_text("# Contributing")
+        (proj / "LICENSE").write_text("MIT License")
+        (proj / "docs").mkdir()
+        (proj / ".editorconfig").write_text("root = true")
+        result = detect_docs_artifacts(proj)
+        assert "README" in result
+        assert "CHANGELOG" in result
+        assert "CONTRIBUTING" in result
+        assert "LICENSE" in result
+        assert "docs/" in result
+        assert ".editorconfig" in result
+
+    def test_results_are_sorted(self, tmp_path):
+        proj = tmp_path / "sorted"
+        proj.mkdir()
+        (proj / "README.md").write_text("# Project")
+        (proj / "CHANGELOG.md").write_text("# Changelog")
+        (proj / "LICENSE").write_text("MIT License")
+        result = detect_docs_artifacts(proj)
+        assert result == sorted(result)

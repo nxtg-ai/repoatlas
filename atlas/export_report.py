@@ -131,6 +131,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         top_ai = ai_counter.most_common(5)
         lines.append(f"**AI/ML**: {has_ai}/{n} projects · {', '.join(t for t, _ in top_ai)}")
 
+    # Documentation artifacts
+    has_docs = sum(1 for p in projects if p.tech_stack.docs_artifacts)
+    if has_docs:
+        da_counter: Counter[str] = Counter()
+        for p in projects:
+            for da in p.tech_stack.docs_artifacts:
+                da_counter[da] += 1
+        top_da = da_counter.most_common(6)
+        lines.append(f"**Docs**: {has_docs}/{n} projects · {', '.join(t for t, _ in top_da)}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -180,6 +190,8 @@ def _project_details(projects: list[Project]) -> list[str]:
             lines.append(f"- **Testing**: {', '.join(p.tech_stack.testing_frameworks[:8])}")
         if p.tech_stack.package_managers:
             lines.append(f"- **Pkg Managers**: {', '.join(p.tech_stack.package_managers[:8])}")
+        if p.tech_stack.docs_artifacts:
+            lines.append(f"- **Docs**: {', '.join(p.tech_stack.docs_artifacts[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -359,6 +371,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             ai_counter[tool] += 1
     has_ai = sum(1 for p in projects if p.tech_stack.ai_tools)
 
+    # Documentation artifacts
+    da_counter: Counter[str] = Counter()
+    for p in projects:
+        for da in p.tech_stack.docs_artifacts:
+            da_counter[da] += 1
+    has_docs = sum(1 for p in projects if p.tech_stack.docs_artifacts)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -380,5 +399,6 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "databases": {"coverage": f"{has_db}/{n}", "databases": dict(db_counter.most_common(10))},
         "package_managers": {"coverage": f"{has_pm}/{n}", "managers": dict(pm_counter.most_common(10))},
         "ai_ml": {"coverage": f"{has_ai}/{n}", "tools": dict(ai_counter.most_common(10))},
+        "docs_artifacts": {"coverage": f"{has_docs}/{n}", "artifacts": dict(da_counter.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }

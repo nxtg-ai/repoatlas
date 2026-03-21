@@ -906,3 +906,75 @@ def detect_license(project_path: Path) -> str:
                 pass
 
     return ""
+
+
+# --- Documentation artifacts ---
+
+_README_NAMES = ("README.md", "README.rst", "README.txt", "README")
+_CHANGELOG_NAMES = (
+    "CHANGELOG.md", "CHANGELOG.rst", "CHANGELOG.txt", "CHANGELOG",
+    "CHANGES.md", "CHANGES.rst", "CHANGES.txt", "CHANGES",
+    "HISTORY.md", "HISTORY.rst", "HISTORY.txt",
+)
+_CONTRIBUTING_NAMES = (
+    "CONTRIBUTING.md", "CONTRIBUTING.rst", "CONTRIBUTING.txt", "CONTRIBUTING",
+)
+_COC_NAMES = (
+    "CODE_OF_CONDUCT.md", "CODE_OF_CONDUCT.rst", "CODE_OF_CONDUCT.txt",
+    "CODE_OF_CONDUCT",
+)
+_SECURITY_NAMES = (
+    "SECURITY.md", "SECURITY.rst", "SECURITY.txt", "SECURITY",
+)
+_API_SPEC_NAMES = (
+    "openapi.json", "openapi.yaml", "openapi.yml",
+    "swagger.json", "swagger.yaml", "swagger.yml",
+)
+
+
+def detect_docs_artifacts(project_path: Path) -> list[str]:
+    """Detect documentation artifacts present in the project."""
+    artifacts: list[str] = []
+
+    # README
+    if any((project_path / name).exists() for name in _README_NAMES):
+        artifacts.append("README")
+
+    # CHANGELOG
+    if any((project_path / name).exists() for name in _CHANGELOG_NAMES):
+        artifacts.append("CHANGELOG")
+
+    # CONTRIBUTING
+    if any((project_path / name).exists() for name in _CONTRIBUTING_NAMES):
+        artifacts.append("CONTRIBUTING")
+
+    # CODE_OF_CONDUCT
+    if any((project_path / name).exists() for name in _COC_NAMES):
+        artifacts.append("CODE_OF_CONDUCT")
+
+    # SECURITY policy
+    if any((project_path / name).exists() for name in _SECURITY_NAMES):
+        artifacts.append("SECURITY")
+
+    # LICENSE (already detected separately, but useful as a docs artifact)
+    if any((project_path / name).exists() for name in _LICENSE_FILE_NAMES):
+        artifacts.append("LICENSE")
+
+    # docs/ directory
+    docs_dir = project_path / "docs"
+    if docs_dir.is_dir():
+        artifacts.append("docs/")
+
+    # API specification
+    if any((project_path / name).exists() for name in _API_SPEC_NAMES):
+        artifacts.append("API spec")
+    else:
+        # Check in docs/ subdirectory too
+        if docs_dir.is_dir() and any((docs_dir / name).exists() for name in _API_SPEC_NAMES):
+            artifacts.append("API spec")
+
+    # .editorconfig
+    if (project_path / ".editorconfig").exists():
+        artifacts.append(".editorconfig")
+
+    return sorted(artifacts)

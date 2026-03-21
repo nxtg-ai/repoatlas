@@ -12,7 +12,7 @@ from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
 def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
           security_tools=None, testing_frameworks=None, databases=None,
-          package_managers=None, project_license="",
+          package_managers=None, docs_artifacts=None, project_license="",
           test_files=0, source_files=10, loc=100) -> Project:
     return Project(
         name=name,
@@ -25,6 +25,7 @@ def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
             testing_frameworks=testing_frameworks or [],
             databases=databases or [],
             package_managers=package_managers or [],
+            docs_artifacts=docs_artifacts or [],
         ),
         git_info=GitInfo(total_commits=10, branch="main"),
         health=HealthScore(tests=0.8, git_hygiene=0.9, documentation=0.7,
@@ -310,6 +311,39 @@ class TestPortfolioSummaryLicenses:
         output = _capture_summary(projects)
         assert "MIT (2)" in output
         assert "Apache-2.0 (1)" in output
+
+
+class TestPortfolioSummaryDocsArtifacts:
+    def test_docs_coverage(self):
+        projects = [
+            _proj("a", docs_artifacts=["README", "CHANGELOG", "LICENSE"]),
+            _proj("b", docs_artifacts=["README"]),
+            _proj("c", docs_artifacts=[]),
+        ]
+        output = _capture_summary(projects)
+        assert "Docs" in output
+        assert "2/3 projects" in output
+        assert "README (2)" in output
+
+    def test_docs_hidden_when_none(self):
+        projects = [
+            _proj("a", docs_artifacts=[]),
+            _proj("b", docs_artifacts=[]),
+        ]
+        output = _capture_summary(projects)
+        lines = output.split("\n")
+        docs_lines = [ln for ln in lines if "Docs:" in ln and "projects" in ln]
+        assert len(docs_lines) == 0
+
+    def test_docs_multiple_ranked(self):
+        projects = [
+            _proj("a", docs_artifacts=["README", "CHANGELOG", "LICENSE"]),
+            _proj("b", docs_artifacts=["README", "CONTRIBUTING"]),
+            _proj("c", docs_artifacts=["README"]),
+        ]
+        output = _capture_summary(projects)
+        assert "README (3)" in output
+        assert "CHANGELOG (1)" in output
 
 
 class TestShowStatusSummaryPanel:

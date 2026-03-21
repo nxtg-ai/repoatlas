@@ -51,8 +51,9 @@
 | N-38 | [License Intelligence](#n-38-license-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-39 | [License Summary Panel](#n-39-license-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-40 | [Enhanced JSON Export](#n-40-enhanced-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-41 | [Documentation Artifacts Detection](#n-41-documentation-artifacts-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 37/40 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 38/41 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -69,7 +70,8 @@
 - Database & data stores: PostgreSQL, MySQL, SQLite, MongoDB, Redis, Elasticsearch, Neo4j, Cassandra, InfluxDB, DynamoDB, Firestore, Supabase, PlanetScale, CockroachDB, ChromaDB, Pinecone, Qdrant, Weaviate, Kafka, RabbitMQ, Memcached
 - Package managers & build tools: pip, Poetry, PDM, uv, Pipenv, setuptools, Hatch, Flit, npm, Yarn, pnpm, Bun, Cargo, Go Modules, Bundler, Maven, Gradle, NuGet, Composer
 - License detection: MIT, Apache-2.0, GPL-2.0/3.0, AGPL-3.0, LGPL, BSD-2/3, ISC, MPL-2.0, Unlicense, CC0 from LICENSE files and package configs
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37
+- Documentation artifacts: README, CHANGELOG, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, LICENSE, docs/, API specs (OpenAPI/Swagger), .editorconfig
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -240,6 +242,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project package manager pattern detection via `_find_package_manager_patterns()` in connections.py. Detects: shared package managers (Poetry/npm across 2+ projects), JS package manager divergence (npm vs Yarn vs pnpm vs Bun), Python package manager divergence (pip vs Poetry vs PDM vs uv vs Pipenv), Java build tool divergence (Maven vs Gradle). New connection types (`shared_pkg_manager`, `pkg_manager_divergence`) displayed in `atlas connections`, markdown export, and `atlas doctor`. 13 package manager pattern tests.
 **Shipped**: 2026-03-21. Total test count: 736 → 749. Completes N-34 detection→intelligence pipeline. All 7 detection→intelligence pipelines complete.
+
+### N-41: Documentation Artifacts Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_docs_artifacts()` in detector.py. Detects documentation artifacts present in projects: README (md/rst/txt), CHANGELOG (also CHANGES/HISTORY variants), CONTRIBUTING, CODE_OF_CONDUCT, SECURITY policy, LICENSE file, docs/ directory, API specs (OpenAPI/Swagger JSON/YAML — checks root and docs/ subdirectory), and .editorconfig. Returns sorted list of artifact names. Added `docs_artifacts` field to TechStack model. Shows in `atlas inspect` project card, markdown export project details, portfolio summary panel (display.py and export_report.py), and JSON export portfolio_summary. 17 new detection tests, 3 display tests. Distinct from health.py documentation scoring — health gives a numeric score for README/CHANGELOG/docs/CLAUDE.md presence; docs_artifacts provides a detailed inventory of specific documentation artifacts.
+**Shipped**: 2026-03-21. Total test count: 813 → 833. 10th detection category.
 
 ### N-40: Enhanced JSON Export
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1

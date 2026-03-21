@@ -22,7 +22,7 @@ from atlas.models import GitInfo, HealthScore, Project, TechStack
 def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           infrastructure=None, security_tools=None, quality_tools=None,
           ai_tools=None, testing_frameworks=None, package_managers=None,
-          project_license="",
+          docs_artifacts=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -38,6 +38,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             ai_tools=ai_tools or [],
             testing_frameworks=testing_frameworks or [],
             package_managers=package_managers or [],
+            docs_artifacts=docs_artifacts or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),

@@ -274,6 +274,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         ai_parts = [f"{tool} ({count})" for tool, count in top_ai]
         lines.append(f"  [bold]AI/ML:[/bold]        {has_ai}/{n} projects · {', '.join(ai_parts)}")
 
+    # Documentation artifacts
+    has_docs = sum(1 for p in projects if p.tech_stack.docs_artifacts)
+    if has_docs:
+        da_counter: Counter[str] = Counter()
+        for p in projects:
+            for da in p.tech_stack.docs_artifacts:
+                da_counter[da] += 1
+        top_da = da_counter.most_common(6)
+        da_parts = [f"{da} ({count})" for da, count in top_da]
+        lines.append(f"  [bold]Docs:[/bold]         {has_docs}/{n} projects · {', '.join(da_parts)}")
+
     # License distribution
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -401,6 +412,10 @@ def show_project_card(project: Project):
     if project.tech_stack.package_managers:
         pm = ", ".join(project.tech_stack.package_managers[:6])
         lines.append(f"  [bold]Pkg Mgrs:[/bold]   {pm}")
+
+    if project.tech_stack.docs_artifacts:
+        da = ", ".join(project.tech_stack.docs_artifacts[:8])
+        lines.append(f"  [bold]Docs:[/bold]       {da}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")
