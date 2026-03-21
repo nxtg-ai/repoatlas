@@ -208,6 +208,66 @@ class TestConnections:
         result = runner.invoke(app, ["connections"])
         assert result.exit_code == 1
 
+    def test_connections_type_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--type", "deps"])
+        assert result.exit_code == 0
+        assert "Filtered" in result.output
+
+    def test_connections_type_filter_short_flag(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "-t", "security"])
+        assert result.exit_code == 0
+        assert "Filtered" in result.output
+
+    def test_connections_invalid_type(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--type", "bogus"])
+        assert result.exit_code == 1
+        assert "Unknown category" in result.output
+
+    def test_connections_no_filter_shows_all(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections"])
+        assert result.exit_code == 0
+        assert "Filtered" not in result.output
+
+    def test_connections_all_categories_valid(self, portfolio_dir, tmp_path):
+        from atlas.cli import CONNECTION_CATEGORIES
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        for cat in CONNECTION_CATEGORIES:
+            result = runner.invoke(app, ["connections", "--type", cat])
+            assert result.exit_code == 0, f"Category '{cat}' failed"
+
 
 # ===========================================================================
 # atlas doctor

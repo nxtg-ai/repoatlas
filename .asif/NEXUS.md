@@ -70,8 +70,9 @@
 | N-57 | [Markdown Badge Generation](#n-57-markdown-badge-generation) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-58 | [Authentication & Auth Detection](#n-58-authentication--auth-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-59 | [Authentication Intelligence](#n-59-authentication-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-60 | [Connection Category Filtering](#n-60-connection-category-filtering) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 56/59 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 57/60 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -136,7 +137,8 @@
 - CSV export: `atlas export --format csv` for spreadsheet-friendly portfolio data
 - Health trend sparklines: Unicode mini-charts in `atlas status` showing per-project health history
 - Markdown badge generation: shields.io badges for portfolio README (health grade, project count, test files, LOC, primary language)
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57
+- Connection category filtering: `atlas connections --type security` to filter cross-project intelligence by category (17 categories)
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -333,6 +335,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project authentication pattern detection via `_find_auth_patterns()` in connections.py. Analyzes auth_tools data from N-58 across the portfolio to detect: shared auth tools (Clerk/PyJWT across 2+ projects, info), auth provider divergence (Clerk vs Auth0 vs Firebase Auth vs Supabase Auth vs Keycloak across portfolio, warning), auth strategy divergence (session-based Passport.js/Flask-Login vs token-based PyJWT/NextAuth.js across portfolio, info), and auth gaps (web projects with frameworks like FastAPI/Django/Next.js but no auth tooling, warning). New connection types (`shared_auth`, `auth_divergence`, `auth_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps auth_gap and auth_divergence to `infra` recommendation categories. 17 auth pattern tests.
 **Shipped**: 2026-03-21. Total test count: 1116 → 1133. Completes N-58 detection→intelligence pipeline. All 17 detection→intelligence pipelines complete.
+
+### N-60: Connection Category Filtering
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--type`/`-t` filter option to `atlas connections` command. Filters cross-project intelligence by category: deps, health, infra, security, quality, ai, testing, database, packages, license, docs, ci, runtime, build, api, monitoring, auth (17 categories). Each category maps to its related connection types. Shows "Filtered: X/Y connections" header when active. Invalid categories show error with valid options list. `CONNECTION_CATEGORIES` dict defined in cli.py for clean mapping. 5 new CLI integration tests.
+**Shipped**: 2026-03-21. Total test count: 1133 → 1138. Makes `atlas connections` output navigable for large portfolios.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

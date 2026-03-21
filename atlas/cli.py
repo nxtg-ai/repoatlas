@@ -256,8 +256,31 @@ def _project_has_tech(project, term: str) -> bool:
     return any(term == item.lower() for item in all_items)
 
 
+CONNECTION_CATEGORIES = {
+    "deps": {"shared_dep", "shared_framework", "version_mismatch", "reuse_candidate"},
+    "health": {"health_gap"},
+    "infra": {"shared_infra", "infra_divergence", "infra_gap"},
+    "security": {"shared_security", "security_divergence", "security_gap"},
+    "quality": {"shared_quality", "quality_divergence", "quality_gap"},
+    "ai": {"shared_ai", "ai_divergence", "ai_gap"},
+    "testing": {"shared_testing", "testing_divergence", "testing_gap"},
+    "database": {"shared_database", "database_divergence", "database_gap"},
+    "packages": {"shared_pkg_manager", "pkg_manager_divergence"},
+    "license": {"shared_license", "license_divergence", "license_gap"},
+    "docs": {"shared_docs", "docs_divergence", "docs_gap"},
+    "ci": {"shared_ci_config", "ci_config_divergence", "ci_config_gap"},
+    "runtime": {"shared_runtime", "runtime_divergence", "runtime_gap"},
+    "build": {"shared_build_tool", "build_tool_divergence", "build_tool_gap"},
+    "api": {"shared_api_spec", "api_spec_divergence", "api_spec_gap"},
+    "monitoring": {"shared_monitoring", "monitoring_divergence", "monitoring_gap"},
+    "auth": {"shared_auth", "auth_divergence", "auth_gap"},
+}
+
+
 @app.command()
-def connections():
+def connections(
+    type_filter: Optional[str] = typer.Option(None, "--type", "-t", help="Filter by category: deps, health, infra, security, quality, ai, testing, database, packages, license, docs, ci, runtime, build, api, monitoring, auth"),
+):
     """Show cross-project intelligence."""
     portfolio = _load_portfolio()
 
@@ -266,6 +289,19 @@ def connections():
         return
 
     conns = find_connections(portfolio.projects)
+
+    if type_filter:
+        cat = type_filter.lower()
+        if cat not in CONNECTION_CATEGORIES:
+            valid = ", ".join(sorted(CONNECTION_CATEGORIES))
+            console.print(f"[red]Unknown category '{type_filter}'. Valid: {valid}[/red]")
+            raise typer.Exit(1)
+        allowed = CONNECTION_CATEGORIES[cat]
+        total = len(conns)
+        conns = [c for c in conns if c.type in allowed]
+        console.print()
+        console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (category: {cat})[/dim]")
+
     console.print()
     show_connections(conns)
 
