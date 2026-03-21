@@ -14,6 +14,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_version_mismatches(projects))
     connections.extend(_find_health_gaps(projects))
     connections.extend(_find_shared_databases(projects))
+    connections.extend(_find_infra_patterns(projects))
     return connections
 
 
@@ -148,3 +149,108 @@ def _find_shared_databases(projects: list[Project]) -> list[Connection]:
             ))
 
     return connections[:5]
+
+
+def _find_infra_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project infrastructure patterns."""
+    connections: list[Connection] = []
+    infra_to_projects: dict[str, list[str]] = defaultdict(list)
+
+    for proj in projects:
+        for item in proj.tech_stack.infrastructure:
+            infra_to_projects[item].append(proj.name)
+
+    # Shared infrastructure (2+ projects)
+    for item, projs in sorted(infra_to_projects.items(), key=lambda x: len(x[1]), reverse=True):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_infra",
+                detail=f"{item} used across {len(projs)} projects — standardize config",
+                projects=projs,
+                severity="info",
+            ))
+
+    # Platform divergence — multiple hosting platforms
+    hosting = {"Vercel", "Netlify", "Fly.io", "Render", "Cloudflare Workers", "Serverless Framework"}
+    host_found: dict[str, list[str]] = defaultdict(list)
+    for proj in projects:
+        for item in proj.tech_stack.infrastructure:
+            if item in hosting:
+                host_found[proj.name].append(item)
+    multi_host = {p: hosts for p, hosts in host_found.items() if len(hosts) >= 2}
+    if multi_host:
+        for proj_name, hosts in multi_host.items():
+            connections.append(Connection(
+                type="infra_divergence",
+                detail=f"{proj_name} uses {', '.join(hosts)} — consolidate hosting",
+                projects=[proj_name],
+                severity="warning",
+            ))
+
+    # CI divergence — multiple CI systems across portfolio
+    ci_systems = {"GitHub Actions", "GitLab CI", "Jenkins", "CircleCI"}
+    ci_to_projects: dict[str, list[str]] = defaultdict(list)
+    for proj in projects:
+        for item in proj.tech_stack.infrastructure:
+            if item in ci_systems:
+                ci_to_projects[item].append(proj.name)
+    if len(ci_to_projects) >= 2:
+        detail_parts = [f"{ci} ({', '.join(ps[:3])})" for ci, ps in ci_to_projects.items()]
+        all_ci_projects = list({p for ps in ci_to_projects.values() for p in ps})
+        connections.append(Connection(
+            type="infra_divergence",
+            detail=f"Multiple CI systems: {', '.join(detail_parts)} — standardize",
+            projects=all_ci_projects,
+            severity="warning",
+        ))
+
+    # No CI detected
+    has_ci = {p for ps in ci_to_projects.values() for p in ps}
+    no_ci = [p.name for p in projects if p.name not in has_ci and p.source_file_count > 5]
+    if no_ci:
+        connections.append(Connection(
+            type="infra_gap",
+            detail=f"{len(no_ci)} projects have no CI/CD detected",
+            projects=no_ci,
+            severity="critical",
+        ))
+
+    # Cloud usage without IaC
+    iac_tools = {"Terraform", "Pulumi", "AWS CDK"}
+    cloud_providers = {"AWS", "GCP", "Azure"}
+    has_iac = any(
+        item in iac_tools
+        for proj in projects
+        for item in proj.tech_stack.infrastructure
+    )
+    cloud_projects = [
+        p.name for p in projects
+        if any(item in cloud_providers for item in p.tech_stack.infrastructure)
+    ]
+    if cloud_projects and not has_iac:
+        connections.append(Connection(
+            type="infra_gap",
+            detail=f"{len(cloud_projects)} projects use cloud services without IaC — add Terraform/Pulumi",
+            projects=cloud_projects,
+            severity="warning",
+        ))
+
+    # Docker without orchestration
+    has_docker = [
+        p.name for p in projects
+        if "Docker" in p.tech_stack.infrastructure
+    ]
+    has_orch = any(
+        item in {"Kubernetes", "Docker Compose"}
+        for proj in projects
+        for item in proj.tech_stack.infrastructure
+    )
+    if len(has_docker) >= 3 and not has_orch:
+        connections.append(Connection(
+            type="infra_gap",
+            detail=f"{len(has_docker)} projects use Docker without orchestration — consider Compose/K8s",
+            projects=has_docker,
+            severity="info",
+        ))
+
+    return connections[:10]

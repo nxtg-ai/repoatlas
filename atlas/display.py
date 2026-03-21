@@ -33,6 +33,9 @@ CONNECTION_ICONS = {
     "health_gap": "[red]\u2716[/red]",
     "reuse_candidate": "[green]\u21bb[/green]",
     "shared_database": "[magenta]\u25c6[/magenta]",
+    "shared_infra": "[cyan]\u2b21[/cyan]",
+    "infra_divergence": "[yellow]\u26a1[/yellow]",
+    "infra_gap": "[red]\u25cb[/red]",
 }
 
 
@@ -135,6 +138,9 @@ def show_connections(connections: list[Connection]):
         "health_gap": "Health Gaps",
         "reuse_candidate": "Reuse Opportunities",
         "shared_database": "Shared Databases",
+        "shared_infra": "Shared Infrastructure",
+        "infra_divergence": "Infrastructure Divergence",
+        "infra_gap": "Infrastructure Gaps",
     }
 
     lines = []

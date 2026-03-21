@@ -28,8 +28,9 @@
 | N-15 | [Project Comparison](#n-15-project-comparison) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-16 | [Configuration File](#n-16-configuration-file) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 | N-17 | [Infrastructure Detection](#n-17-infrastructure-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
+| N-18 | [Infrastructure Intelligence](#n-18-infrastructure-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 14/17 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 15/18 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -45,7 +46,8 @@
 - Health scoring across 4 dimensions (tests/git/docs/structure)
 - Cross-project pattern detection (shared deps, version mismatches, health gaps)
 - Side-by-side project comparison with actionable insights
-- **Shipped**: N-02, N-03, N-15
+- Cross-project infrastructure intelligence (shared infra, divergence, gaps)
+- **Shipped**: N-02, N-03, N-15, N-18
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -149,6 +151,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_infrastructure()` in detector.py. Detects Docker/Compose, Kubernetes/Helm, Terraform/Pulumi/CDK, CI/CD (GitHub Actions/GitLab CI/Jenkins/CircleCI), serverless (Vercel/Netlify/Cloudflare Workers/Fly.io/Render), and cloud providers (AWS/GCP/Azure from SDK deps). Added `infrastructure` field to TechStack model. Shows in `atlas inspect`. 28 infrastructure tests.
 **Shipped**: 2026-03-13. Total test count: 367 → 395. README "What It Detects" table expanded.
+
+### N-18: Infrastructure Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project infrastructure pattern detection via `_find_infra_patterns()` in connections.py. Analyzes infrastructure data from N-17 across the portfolio to detect: shared infrastructure (Docker/CI across 2+ projects), platform divergence (multiple hosting platforms per project), CI divergence (multiple CI systems across portfolio), no-CI gaps, cloud usage without IaC, Docker without orchestration. New connection types (`shared_infra`, `infra_divergence`, `infra_gap`) displayed in `atlas connections`. 16 infra pattern tests.
+**Shipped**: 2026-03-13. Total test count: 395 → 410. Builds on N-17 detection data.
 
 ### N-11: CLI Integration Tests
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from atlas.connections import (
     _find_health_gaps,
+    _find_infra_patterns,
     _find_shared_databases,
     _find_shared_deps,
     _find_shared_frameworks,
@@ -13,7 +14,7 @@ from atlas.models import GitInfo, HealthScore, Project, TechStack
 
 
 def _proj(name: str, frameworks=None, key_deps=None, databases=None,
-          test_files=0, source_files=10, git_commits=20,
+          infrastructure=None, test_files=0, source_files=10, git_commits=20,
           uncommitted=0, structure_score=0.5) -> Project:
     return Project(
         name=name,
@@ -22,6 +23,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             frameworks=frameworks or [],
             key_deps=key_deps or {},
             databases=databases or [],
+            infrastructure=infrastructure or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -333,3 +335,133 @@ class TestFindSharedDatabases:
         ]
         conns = _find_shared_databases(projects)
         assert conns[0].severity == "info"
+
+
+# ---------------------------------------------------------------------------
+# _find_infra_patterns
+# ---------------------------------------------------------------------------
+class TestFindInfraPatterns:
+    def test_shared_infra(self):
+        projects = [
+            _proj("a", infrastructure=["Docker", "GitHub Actions"]),
+            _proj("b", infrastructure=["Docker", "Vercel"]),
+        ]
+        conns = _find_infra_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_infra"]
+        assert any("Docker" in c.detail for c in shared)
+
+    def test_shared_infra_needs_two_projects(self):
+        projects = [_proj("a", infrastructure=["Docker"])]
+        conns = _find_infra_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_infra"]
+        assert shared == []
+
+    def test_platform_divergence(self):
+        projects = [
+            _proj("a", infrastructure=["Vercel", "Netlify"]),
+        ]
+        conns = _find_infra_patterns(projects)
+        diverge = [c for c in conns if c.type == "infra_divergence"]
+        assert len(diverge) == 1
+        assert "consolidate" in diverge[0].detail.lower()
+
+    def test_no_platform_divergence_single_host(self):
+        projects = [_proj("a", infrastructure=["Vercel"])]
+        conns = _find_infra_patterns(projects)
+        diverge = [c for c in conns if c.type == "infra_divergence" and "hosting" in c.detail]
+        assert diverge == []
+
+    def test_ci_divergence(self):
+        projects = [
+            _proj("a", infrastructure=["GitHub Actions"]),
+            _proj("b", infrastructure=["GitLab CI"]),
+        ]
+        conns = _find_infra_patterns(projects)
+        diverge = [c for c in conns if c.type == "infra_divergence" and "CI" in c.detail]
+        assert len(diverge) == 1
+        assert "standardize" in diverge[0].detail.lower()
+
+    def test_no_ci_divergence_single_system(self):
+        projects = [
+            _proj("a", infrastructure=["GitHub Actions"]),
+            _proj("b", infrastructure=["GitHub Actions"]),
+        ]
+        conns = _find_infra_patterns(projects)
+        ci_diverge = [c for c in conns if c.type == "infra_divergence" and "CI" in c.detail]
+        assert ci_diverge == []
+
+    def test_no_ci_detected(self):
+        projects = [
+            _proj("a", infrastructure=["Docker"], source_files=20),
+            _proj("b", infrastructure=["Docker"], source_files=15),
+        ]
+        conns = _find_infra_patterns(projects)
+        gaps = [c for c in conns if c.type == "infra_gap" and "CI" in c.detail]
+        assert len(gaps) == 1
+        assert gaps[0].severity == "critical"
+
+    def test_no_ci_gap_when_ci_present(self):
+        projects = [
+            _proj("a", infrastructure=["GitHub Actions"], source_files=20),
+        ]
+        conns = _find_infra_patterns(projects)
+        gaps = [c for c in conns if c.type == "infra_gap" and "CI" in c.detail]
+        assert gaps == []
+
+    def test_cloud_without_iac(self):
+        projects = [
+            _proj("a", infrastructure=["AWS"]),
+            _proj("b", infrastructure=["GCP"]),
+        ]
+        conns = _find_infra_patterns(projects)
+        gaps = [c for c in conns if c.type == "infra_gap" and "IaC" in c.detail]
+        assert len(gaps) == 1
+        assert gaps[0].severity == "warning"
+
+    def test_cloud_with_iac_no_gap(self):
+        projects = [
+            _proj("a", infrastructure=["AWS", "Terraform"]),
+            _proj("b", infrastructure=["GCP"]),
+        ]
+        conns = _find_infra_patterns(projects)
+        gaps = [c for c in conns if c.type == "infra_gap" and "IaC" in c.detail]
+        assert gaps == []
+
+    def test_docker_without_orchestration(self):
+        projects = [
+            _proj("a", infrastructure=["Docker"]),
+            _proj("b", infrastructure=["Docker"]),
+            _proj("c", infrastructure=["Docker"]),
+        ]
+        conns = _find_infra_patterns(projects)
+        gaps = [c for c in conns if c.type == "infra_gap" and "orchestration" in c.detail]
+        assert len(gaps) == 1
+
+    def test_docker_with_compose_no_gap(self):
+        projects = [
+            _proj("a", infrastructure=["Docker", "Docker Compose"]),
+            _proj("b", infrastructure=["Docker"]),
+            _proj("c", infrastructure=["Docker"]),
+        ]
+        conns = _find_infra_patterns(projects)
+        gaps = [c for c in conns if c.type == "infra_gap" and "orchestration" in c.detail]
+        assert gaps == []
+
+    def test_empty_projects(self):
+        assert _find_infra_patterns([]) == []
+
+    def test_limit_10(self):
+        # Many infra items shared across projects
+        infra = [f"tool{i}" for i in range(20)]
+        projects = [_proj("a", infrastructure=infra), _proj("b", infrastructure=infra)]
+        conns = _find_infra_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", infrastructure=["Docker", "GitHub Actions"]),
+            _proj("b", infrastructure=["Docker", "GitLab CI"]),
+        ]
+        conns = find_connections(projects)
+        infra_types = {c.type for c in conns if c.type.startswith("infra") or c.type == "shared_infra"}
+        assert len(infra_types) >= 1
