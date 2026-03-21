@@ -43,8 +43,9 @@
 | N-30 | [Testing Summary Panel](#n-30-testing-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 | N-31 | [Enhanced Database Detection](#n-31-enhanced-database-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 | N-32 | [Database Intelligence](#n-32-database-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
+| N-33 | [Database Summary Panel](#n-33-database-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 29/32 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 30/33 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -82,7 +83,8 @@
 - Rich markdown export for portfolio reports
 - Enhanced doctor recommendations leveraging all detection data
 - Testing framework adoption in portfolio summary panel and markdown export
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30
+- Database adoption in portfolio summary panel and markdown export
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -219,6 +221,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Enhanced `atlas doctor` recommendations engine to leverage all detection data from N-17/N-19/N-24/N-25. Per-project: security (no tooling, missing dep scanning, missing secret scanning), quality (no tooling, missing linting, missing type checking), infrastructure (no CI/CD). Cross-project: maps security_gap/security_divergence, quality_gap/quality_divergence, infra_gap/infra_divergence connections to prioritized recommendations. 23 new recommendation tests.
 **Shipped**: 2026-03-13. Total test count: 583 → 606. Surfaces all detection+intelligence data through actionable `atlas doctor` output.
+
+### N-33: Database Summary Panel
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added database adoption stats to the portfolio summary panel (display.py) and markdown export (export_report.py). Shows `Databases: X/N projects · PostgreSQL (3), Redis (2)` with top databases ranked by usage. Row hidden when no projects have databases. 6 new tests (3 display, 3 export).
+**Shipped**: 2026-03-21. Total test count: 705 → 711. All detection categories now have portfolio summary panel visibility: languages, frameworks, infra, security, quality, testing, databases, AI/ML.
 
 ### N-32: Database Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

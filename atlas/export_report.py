@@ -99,6 +99,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         top_tf = tf_counter.most_common(6)
         lines.append(f"**Testing**: {has_testing}/{n} projects · {', '.join(t for t, _ in top_tf)}")
 
+    # Databases
+    has_db = sum(1 for p in projects if p.tech_stack.databases)
+    if has_db:
+        db_counter: Counter[str] = Counter()
+        for p in projects:
+            for db in p.tech_stack.databases:
+                db_counter[db] += 1
+        top_db = db_counter.most_common(6)
+        lines.append(f"**Databases**: {has_db}/{n} projects · {', '.join(t for t, _ in top_db)}")
+
     # AI/ML
     has_ai = sum(1 for p in projects if p.tech_stack.ai_tools)
     if has_ai:

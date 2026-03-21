@@ -11,7 +11,7 @@ from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
 
 def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
-          security_tools=None, testing_frameworks=None,
+          security_tools=None, testing_frameworks=None, databases=None,
           test_files=0, source_files=10, loc=100) -> Project:
     return Project(
         name=name,
@@ -22,6 +22,7 @@ def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
             infrastructure=infrastructure or [],
             security_tools=security_tools or [],
             testing_frameworks=testing_frameworks or [],
+            databases=databases or [],
         ),
         git_info=GitInfo(total_commits=10, branch="main"),
         health=HealthScore(tests=0.8, git_hygiene=0.9, documentation=0.7,
@@ -164,6 +165,39 @@ class TestPortfolioSummarySecurity:
         ]
         output = _capture_summary(projects)
         assert "Secret scanning" not in output
+
+
+class TestPortfolioSummaryDatabases:
+    def test_database_coverage(self):
+        projects = [
+            _proj("a", databases=["PostgreSQL", "Redis"]),
+            _proj("b", databases=["PostgreSQL"]),
+            _proj("c", databases=[]),
+        ]
+        output = _capture_summary(projects)
+        assert "Databases" in output
+        assert "2/3 projects" in output
+        assert "PostgreSQL (2)" in output
+
+    def test_database_hidden_when_none(self):
+        projects = [
+            _proj("a", databases=[]),
+            _proj("b", databases=[]),
+        ]
+        output = _capture_summary(projects)
+        lines = output.split("\n")
+        db_lines = [ln for ln in lines if "Databases:" in ln and "projects" in ln]
+        assert len(db_lines) == 0
+
+    def test_database_multiple_ranked(self):
+        projects = [
+            _proj("a", databases=["PostgreSQL", "Redis"]),
+            _proj("b", databases=["PostgreSQL", "MongoDB"]),
+            _proj("c", databases=["Redis"]),
+        ]
+        output = _capture_summary(projects)
+        assert "PostgreSQL (2)" in output
+        assert "Redis (2)" in output
 
 
 class TestPortfolioSummaryTesting:

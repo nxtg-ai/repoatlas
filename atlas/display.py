@@ -236,6 +236,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         tf_parts = [f"{tf} ({count})" for tf, count in top_tf]
         lines.append(f"  [bold]Testing:[/bold]      {has_testing}/{n} projects · {', '.join(tf_parts)}")
 
+    # Database adoption
+    has_db = sum(1 for p in projects if p.tech_stack.databases)
+    if has_db:
+        db_counter: Counter[str] = Counter()
+        for p in projects:
+            for db in p.tech_stack.databases:
+                db_counter[db] += 1
+        top_db = db_counter.most_common(6)
+        db_parts = [f"{db} ({count})" for db, count in top_db]
+        lines.append(f"  [bold]Databases:[/bold]    {has_db}/{n} projects · {', '.join(db_parts)}")
+
     # AI/ML adoption
     has_ai = sum(1 for p in projects if p.tech_stack.ai_tools)
     if has_ai:

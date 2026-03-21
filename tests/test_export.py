@@ -121,6 +121,33 @@ class TestPortfolioSummary:
         ))
         assert "AI/ML" not in report
 
+    def test_databases_shown_when_present(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", databases=["PostgreSQL", "Redis"]),
+            _proj("b", databases=["PostgreSQL"]),
+        ))
+        assert "**Databases**" in report
+        assert "2/2 projects" in report
+        assert "PostgreSQL" in report
+
+    def test_databases_hidden_when_absent(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", databases=[]),
+            _proj("b", databases=[]),
+        ))
+        lines = report.split("\n")
+        db_lines = [ln for ln in lines if ln.startswith("**Databases**:") and "projects" in ln]
+        assert len(db_lines) == 0
+
+    def test_databases_ranked(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", databases=["PostgreSQL", "Redis"]),
+            _proj("b", databases=["PostgreSQL", "MongoDB"]),
+            _proj("c", databases=["Redis"]),
+        ))
+        assert "PostgreSQL" in report
+        assert "Redis" in report
+
     def test_testing_shown_when_present(self):
         report = build_markdown_report(_portfolio(
             _proj("a", testing_frameworks=["pytest", "tox"]),
