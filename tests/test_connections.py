@@ -28,6 +28,7 @@ from atlas.connections import (
     _find_container_orchestration_patterns,
     _find_cloud_provider_patterns,
     _find_task_queue_patterns,
+    _find_search_engine_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -3971,3 +3972,104 @@ class TestFindTaskQueuePatterns:
         conns = find_connections(projects)
         queue_types = {c.type for c in conns if "task_queue" in c.type}
         assert "shared_task_queue" in queue_types
+
+
+# ---------------------------------------------------------------------------
+# _find_search_engine_patterns
+# ---------------------------------------------------------------------------
+class TestFindSearchEnginePatterns:
+    def test_shared_search_engine(self):
+        projects = [
+            _proj("a", search_engines=["Elasticsearch"]),
+            _proj("b", search_engines=["Elasticsearch", "Meilisearch"]),
+        ]
+        conns = _find_search_engine_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_search"]
+        assert len(shared) == 1
+        assert "Elasticsearch" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_no_shared_unique_engines(self):
+        projects = [
+            _proj("a", search_engines=["Elasticsearch"]),
+            _proj("b", search_engines=["Algolia"]),
+        ]
+        conns = _find_search_engine_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_search"]
+        assert len(shared) == 0
+
+    def test_divergence_server_vs_client(self):
+        projects = [
+            _proj("a", search_engines=["Elasticsearch"]),
+            _proj("b", search_engines=["Lunr"]),
+        ]
+        conns = _find_search_engine_patterns(projects)
+        div = [c for c in conns if c.type == "search_divergence"]
+        assert len(div) == 1
+        assert "Mixed search paradigms" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_divergence_server_vs_saas(self):
+        projects = [
+            _proj("a", search_engines=["Meilisearch"]),
+            _proj("b", search_engines=["Algolia"]),
+        ]
+        conns = _find_search_engine_patterns(projects)
+        div = [c for c in conns if c.type == "search_divergence"]
+        assert len(div) == 1
+
+    def test_no_divergence_same_paradigm(self):
+        projects = [
+            _proj("a", search_engines=["Elasticsearch"]),
+            _proj("b", search_engines=["Meilisearch"]),
+        ]
+        conns = _find_search_engine_patterns(projects)
+        div = [c for c in conns if c.type == "search_divergence"]
+        assert len(div) == 0
+
+    def test_gap_database_project_without_search(self):
+        projects = [
+            _proj("a", search_engines=["Elasticsearch"], databases=["PostgreSQL"], source_files=30),
+            _proj("b", search_engines=[], databases=["PostgreSQL"], source_files=30),
+        ]
+        conns = _find_search_engine_patterns(projects)
+        gaps = [c for c in conns if c.type == "search_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "info"
+
+    def test_no_gap_all_have_search(self):
+        projects = [
+            _proj("a", search_engines=["Elasticsearch"], databases=["PostgreSQL"]),
+            _proj("b", search_engines=["Algolia"], databases=["MongoDB"]),
+        ]
+        conns = _find_search_engine_patterns(projects)
+        gaps = [c for c in conns if c.type == "search_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_without_database(self):
+        projects = [
+            _proj("a", search_engines=["Elasticsearch"]),
+            _proj("b", search_engines=[], source_files=30),
+        ]
+        conns = _find_search_engine_patterns(projects)
+        gaps = [c for c in conns if c.type == "search_gap"]
+        assert len(gaps) == 0
+
+    def test_gap_orm_project_without_search(self):
+        projects = [
+            _proj("a", search_engines=["Elasticsearch"]),
+            _proj("b", search_engines=[], orm_tools=["SQLAlchemy"], source_files=30),
+        ]
+        conns = _find_search_engine_patterns(projects)
+        gaps = [c for c in conns if c.type == "search_gap"]
+        assert len(gaps) == 1
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", search_engines=["Elasticsearch"]),
+            _proj("b", search_engines=["Elasticsearch", "Algolia"]),
+        ]
+        conns = find_connections(projects)
+        search_types = {c.type for c in conns if "search" in c.type}
+        assert "shared_search" in search_types

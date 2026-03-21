@@ -299,6 +299,7 @@ CONNECTION_CATEGORIES = {
     "containers": {"shared_container_orch", "container_orch_divergence", "container_orch_gap"},
     "cloud": {"shared_cloud", "cloud_divergence", "cloud_gap"},
     "queues": {"shared_task_queue", "task_queue_divergence", "task_queue_gap"},
+    "search": {"shared_search", "search_divergence", "search_gap"},
 }
 
 

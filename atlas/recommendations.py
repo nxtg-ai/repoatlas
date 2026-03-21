@@ -248,6 +248,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "cloud_divergence": "infra",
         "task_queue_gap": "infra",
         "task_queue_divergence": "infra",
+        "search_gap": "infra",
+        "search_divergence": "infra",
     }
 
     for conn in connections:

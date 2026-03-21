@@ -571,6 +571,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_task_queue": "Shared Task Queues",
         "task_queue_divergence": "Task Queue Divergence",
         "task_queue_gap": "Task Queue Gaps",
+        "shared_search": "Shared Search Engines",
+        "search_divergence": "Search Engine Divergence",
+        "search_gap": "Search Engine Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

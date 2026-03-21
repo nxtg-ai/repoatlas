@@ -40,6 +40,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_container_orchestration_patterns(projects))
     connections.extend(_find_cloud_provider_patterns(projects))
     connections.extend(_find_task_queue_patterns(projects))
+    connections.extend(_find_search_engine_patterns(projects))
     return connections
 
 
@@ -2225,6 +2226,80 @@ def _find_task_queue_patterns(projects: list[Project]) -> list[Connection]:
                 detail=f"{len(no_queues)} backend project(s) have no task queue/background jobs detected",
                 projects=sorted(no_queues),
                 severity="warning",
+            ))
+
+    return connections[:10]
+
+
+def _find_search_engine_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project search engine patterns."""
+    connections: list[Connection] = []
+
+    # Shared search engines — same engine used by 2+ projects
+    engine_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for e in p.tech_stack.search_engines:
+            engine_to_projects[e].append(p.name)
+
+    for e, projs in sorted(engine_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_search",
+                detail=f"{e} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Search engine divergence — different search paradigms
+    server_side = {"Elasticsearch", "OpenSearch", "Solr", "Meilisearch",
+                   "Typesense", "Lucene", "Bleve", "Tantivy", "Whoosh",
+                   "Haystack", "Watson"}
+    client_side = {"Lunr", "FlexSearch", "Fuse.js", "MiniSearch"}
+    saas = {"Algolia"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "server": {}, "client": {}, "saas": {},
+    }
+    cat_sets = [
+        ("server", server_side),
+        ("client", client_side),
+        ("saas", saas),
+    ]
+    for p in projects:
+        for e in p.tech_stack.search_engines:
+            for cat_name, cat_set in cat_sets:
+                if e in cat_set:
+                    cat_found[cat_name].setdefault(e, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, engines in active_cats.items():
+            engine_names = ", ".join(sorted(engines.keys())[:3])
+            parts.append(f"{cat_name} ({engine_names})")
+            for ps in engines.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="search_divergence",
+            detail=f"Mixed search paradigms: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # Search gap — data-heavy projects with no search engine
+    has_search = {p.name for p in projects if p.tech_stack.search_engines}
+    if has_search:
+        no_search = [p.name for p in projects
+                     if not p.tech_stack.search_engines
+                     and p.source_file_count > 20
+                     and (p.tech_stack.databases or p.tech_stack.orm_tools)]
+        if no_search:
+            connections.append(Connection(
+                type="search_gap",
+                detail=f"{len(no_search)} database-backed project(s) have no search engine detected",
+                projects=sorted(no_search),
+                severity="info",
             ))
 
     return connections[:10]

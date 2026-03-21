@@ -107,8 +107,9 @@
 | N-94 | [Task Queue Intelligence](#n-94-task-queue-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-95 | [Export Filtering](#n-95-export-filtering) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-96 | [Search Engine Detection](#n-96-search-engine-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-97 | [Search Engine Intelligence](#n-97-search-engine-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 93/96 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 94/97 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -178,7 +179,8 @@
 - Cross-project container orchestration intelligence (shared orchestration tools, IaC vs Kubernetes-native vs Compose divergence, orchestration gaps for Docker projects)
 - Cross-project cloud provider intelligence (shared providers, hyperscaler vs edge/PaaS divergence, multi-hyperscaler complexity warnings, cloud gaps for deployed projects)
 - Cross-project task queue intelligence (shared task queues, traditional vs workflow vs cron paradigm divergence, task queue gaps for backend projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94
+- Cross-project search engine intelligence (shared search engines, server-side vs client-side vs SaaS paradigm divergence, search gaps for database-backed projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -593,6 +595,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_search_engines()` in detector.py. Detects search engines and full-text search tools across ecosystems: Python (Elasticsearch, OpenSearch, Meilisearch, Typesense, Algolia, Solr/pysolr, Whoosh, Haystack, Tantivy, Watson), JS/TS (Elasticsearch, OpenSearch, Meilisearch, Typesense, Algolia, Lunr, FlexSearch, Fuse.js, MiniSearch, Solr), Go (Elasticsearch, OpenSearch, Meilisearch, Typesense, Algolia, Bleve), Rust (Tantivy, Meilisearch, Elasticsearch), Java (Elasticsearch, OpenSearch, Solr, Algolia, Lucene). Added `search_engines` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel, markdown/JSON/CSV export. `_project_has_tech()` searches search_engines. 20 detection tests.
 **Shipped**: 2026-03-21. Total test count: 1645 → 1665. 29th detection category.
+
+### N-97: Search Engine Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project search engine intelligence: shared search engines (shared_search), server-side vs client-side vs SaaS paradigm divergence (search_divergence), search gaps for database-backed projects (search_gap). New CONNECTION_CATEGORIES entry "search". 10 tests.
+**Shipped**: 2026-03-21. Total test count: 1665 → 1675. 31st intelligence feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
