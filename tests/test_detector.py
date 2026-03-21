@@ -21,6 +21,7 @@ from atlas.detector import (
     detect_build_tools,
     detect_api_specs,
     detect_monitoring_tools,
+    detect_auth_tools,
     walk_files,
 )
 
@@ -1893,3 +1894,158 @@ class TestDetectMonitoringTools:
         (tmp_path / "requirements.txt").write_text("sentry-sdk\nopentelemetry-sdk\nprometheus-client\n")
         result = detect_monitoring_tools(tmp_path)
         assert result == sorted(result)
+
+
+# ---------------------------------------------------------------------------
+# detect_auth_tools
+# ---------------------------------------------------------------------------
+class TestDetectAuthTools:
+    def test_empty_project(self, tmp_path):
+        result = detect_auth_tools(tmp_path)
+        assert result == []
+
+    def test_flask_login_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("flask-login==0.6.0\n")
+        result = detect_auth_tools(tmp_path)
+        assert "Flask-Login" in result
+
+    def test_django_allauth_python(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["django-allauth"]\n')
+        result = detect_auth_tools(tmp_path)
+        assert "django-allauth" in result
+
+    def test_pyjwt_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pyjwt>=2.0\n")
+        result = detect_auth_tools(tmp_path)
+        assert "PyJWT" in result
+
+    def test_authlib_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("authlib\n")
+        result = detect_auth_tools(tmp_path)
+        assert "Authlib" in result
+
+    def test_fastapi_users_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("fastapi-users[sqlalchemy]\n")
+        result = detect_auth_tools(tmp_path)
+        assert "FastAPI-Users" in result
+
+    def test_auth0_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("auth0-python\n")
+        result = detect_auth_tools(tmp_path)
+        assert "Auth0" in result
+
+    def test_nextauth_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"next-auth": "^4.0"}
+        }))
+        result = detect_auth_tools(tmp_path)
+        assert "NextAuth.js" in result
+
+    def test_passport_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"passport": "^0.6", "express-session": "^1.17"}
+        }))
+        result = detect_auth_tools(tmp_path)
+        assert "Passport.js" in result
+        assert "express-session" in result
+
+    def test_clerk_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@clerk/nextjs": "^4.0"}
+        }))
+        result = detect_auth_tools(tmp_path)
+        assert "Clerk" in result
+
+    def test_auth0_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@auth0/nextjs-auth0": "^3.0"}
+        }))
+        result = detect_auth_tools(tmp_path)
+        assert "Auth0" in result
+
+    def test_firebase_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"firebase": "^10.0"}
+        }))
+        result = detect_auth_tools(tmp_path)
+        assert "Firebase Auth" in result
+
+    def test_supabase_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@supabase/auth-helpers-nextjs": "^0.8"}
+        }))
+        result = detect_auth_tools(tmp_path)
+        assert "Supabase Auth" in result
+
+    def test_lucia_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"lucia": "^3.0"}
+        }))
+        result = detect_auth_tools(tmp_path)
+        assert "Lucia" in result
+
+    def test_keycloak_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"keycloak-js": "^22.0"}
+        }))
+        result = detect_auth_tools(tmp_path)
+        assert "Keycloak" in result
+
+    def test_bcrypt_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"bcryptjs": "^2.4"}
+        }))
+        result = detect_auth_tools(tmp_path)
+        assert "bcrypt" in result
+
+    def test_golang_jwt_go(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example.com/app\nrequire github.com/golang-jwt/jwt v4.0.0\n")
+        result = detect_auth_tools(tmp_path)
+        assert "golang-jwt" in result
+
+    def test_casbin_go(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example.com/app\nrequire github.com/casbin/casbin v2.0.0\n")
+        result = detect_auth_tools(tmp_path)
+        assert "Casbin" in result
+
+    def test_rust_jsonwebtoken(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\njsonwebtoken = "9"\n')
+        result = detect_auth_tools(tmp_path)
+        assert "jsonwebtoken" in result
+
+    def test_rust_oauth2(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\noauth2 = "4"\n')
+        result = detect_auth_tools(tmp_path)
+        assert "OAuth2" in result
+
+    def test_multiple_tools(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("flask-login\npyjwt\nauthlib\n")
+        result = detect_auth_tools(tmp_path)
+        assert "Flask-Login" in result
+        assert "PyJWT" in result
+        assert "Authlib" in result
+
+    def test_no_duplicates_across_files(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("auth0-python\n")
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@auth0/auth0-react": "^2.0"}
+        }))
+        result = detect_auth_tools(tmp_path)
+        assert result.count("Auth0") == 1
+
+    def test_result_sorted(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pyjwt\nflask-login\nauthlib\n")
+        result = detect_auth_tools(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not valid json")
+        result = detect_auth_tools(tmp_path)
+        assert result == []
+
+    def test_devdependencies_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"jsonwebtoken": "^9.0"}
+        }))
+        result = detect_auth_tools(tmp_path)
+        assert "jsonwebtoken" in result

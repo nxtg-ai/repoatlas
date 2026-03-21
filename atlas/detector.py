@@ -1449,3 +1449,91 @@ def detect_monitoring_tools(project_path: Path) -> list[str]:
         _add("OpenTelemetry")
 
     return sorted(tools)
+
+
+def detect_auth_tools(project_path: Path) -> list[str]:
+    """Detect authentication and authorization frameworks."""
+    tools: list[str] = []
+
+    def _add(name: str) -> None:
+        if name not in tools:
+            tools.append(name)
+
+    # Python dependencies
+    for cfg in ("pyproject.toml", "requirements.txt", "requirements-dev.txt"):
+        path = project_path / cfg
+        if path.exists():
+            content = path.read_text(errors="ignore").lower()
+            _check_add(tools, content, "flask-login", "Flask-Login")
+            _check_add(tools, content, "flask-security", "Flask-Security")
+            _check_add(tools, content, "django-allauth", "django-allauth")
+            _check_add(tools, content, "django-rest-framework", "DRF Auth")
+            _check_add(tools, content, "djangorestframework-simplejwt", "DRF SimpleJWT")
+            _check_add(tools, content, "authlib", "Authlib")
+            _check_add(tools, content, "python-jose", "python-jose")
+            _check_add(tools, content, "pyjwt", "PyJWT")
+            _check_add(tools, content, "passlib", "Passlib")
+            _check_add(tools, content, "python-oauth2", "OAuth2")
+            _check_add(tools, content, "fastapi-users", "FastAPI-Users")
+            _check_add(tools, content, "auth0-python", "Auth0")
+            _check_add(tools, content, "firebase-admin", "Firebase Auth")
+            _check_add(tools, content, "clerk-backend-api", "Clerk")
+            _check_add(tools, content, "supabase", "Supabase Auth")
+
+    # JavaScript/TypeScript dependencies
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text(errors="ignore"))
+            all_deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
+            js_auth = {
+                "next-auth": "NextAuth.js",
+                "@auth/core": "Auth.js",
+                "passport": "Passport.js",
+                "express-session": "express-session",
+                "jsonwebtoken": "jsonwebtoken",
+                "@clerk/nextjs": "Clerk",
+                "@clerk/clerk-react": "Clerk",
+                "@clerk/express": "Clerk",
+                "auth0-js": "Auth0",
+                "@auth0/auth0-react": "Auth0",
+                "@auth0/nextjs-auth0": "Auth0",
+                "firebase": "Firebase Auth",
+                "@supabase/supabase-js": "Supabase Auth",
+                "@supabase/auth-helpers-nextjs": "Supabase Auth",
+                "lucia": "Lucia",
+                "lucia-auth": "Lucia",
+                "@lucia-auth/adapter-prisma": "Lucia",
+                "bcryptjs": "bcrypt",
+                "bcrypt": "bcrypt",
+                "keycloak-js": "Keycloak",
+                "@keycloak/keycloak-admin-client": "Keycloak",
+                "oidc-client-ts": "OIDC",
+                "openid-client": "OIDC",
+                "grant": "Grant",
+            }
+            for dep, name in js_auth.items():
+                if dep in all_deps:
+                    _add(name)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    # Go dependencies
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        content = go_mod.read_text(errors="ignore").lower()
+        _check_add(tools, content, "golang-jwt", "golang-jwt")
+        _check_add(tools, content, "casbin", "Casbin")
+        _check_add(tools, content, "authelia", "Authelia")
+        _check_add(tools, content, "coreos/go-oidc", "OIDC")
+
+    # Rust dependencies
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        content = cargo_toml.read_text(errors="ignore").lower()
+        _check_add(tools, content, "jsonwebtoken", "jsonwebtoken")
+        _check_add(tools, content, "oauth2", "OAuth2")
+        _check_add(tools, content, "actix-identity", "Actix Identity")
+        _check_add(tools, content, "axum-login", "axum-login")
+
+    return sorted(tools)

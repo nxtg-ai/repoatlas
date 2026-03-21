@@ -68,8 +68,9 @@
 | N-55 | [Monitoring & Observability Detection](#n-55-monitoring--observability-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-56 | [Monitoring & Observability Intelligence](#n-56-monitoring--observability-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-57 | [Markdown Badge Generation](#n-57-markdown-badge-generation) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-58 | [Authentication & Auth Detection](#n-58-authentication--auth-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 54/57 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 55/58 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -92,7 +93,8 @@
 - Build & task runner detection: Make, Taskfile, Just, tox, nox, Invoke, doit, npm scripts, Gradle, Maven, CMake, Meson, Bazel, Rake, Earthly
 - API specification detection: OpenAPI/Swagger, GraphQL, gRPC/Protobuf, AsyncAPI, JSON Schema, tRPC, WSDL/SOAP
 - Monitoring & observability: Sentry, Datadog, New Relic, OpenTelemetry, Prometheus, Bugsnag, Rollbar, Honeycomb, Loguru, structlog, Winston, Pino, LogRocket, Logtail, tracing (Rust), Elastic APM
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55
+- Authentication & authorization: NextAuth.js, Auth.js, Passport.js, Clerk, Auth0, Firebase Auth, Supabase Auth, Lucia, Keycloak, Flask-Login, django-allauth, FastAPI-Users, Authlib, PyJWT, golang-jwt, Casbin
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -319,6 +321,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: New `atlas badge` command and `generate_badges()` function in cli.py. Generates shields.io-style markdown badge strings for portfolio READMEs: health grade (color-coded A=brightgreen through F=red), project count, test file count (color-coded by threshold), LOC (formatted as K/M for readability), and primary language (most common across portfolio). Supports `--output`/`-o` flag for file export. 7 CLI integration tests + 10 unit tests.
 **Shipped**: 2026-03-21. Total test count: 1074 → 1091. First DISTRIBUTION-adjacent EXPERIENCE feature — helps users showcase portfolio metrics.
+
+### N-58: Authentication & Auth Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_auth_tools()` in detector.py. Detects authentication and authorization frameworks across ecosystems: Python (Flask-Login, Flask-Security, django-allauth, DRF SimpleJWT, Authlib, PyJWT, python-jose, Passlib, FastAPI-Users, Auth0, Firebase Admin, Clerk, Supabase), JavaScript/TypeScript (NextAuth.js, Auth.js, Passport.js, express-session, jsonwebtoken, Clerk, Auth0, Firebase, Supabase Auth, Lucia, Keycloak, bcrypt, OIDC, Grant), Go (golang-jwt, Casbin, Authelia, OIDC), Rust (jsonwebtoken, OAuth2, Actix Identity, axum-login). Added `auth_tools` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py), markdown/JSON/CSV export. `_project_has_tech()` searches auth_tools. 25 detection tests.
+**Shipped**: 2026-03-21. Total test count: 1091 → 1116. 16th detection category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

@@ -379,6 +379,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         mon_parts = [f"{mt} ({count})" for mt, count in top_mon]
         lines.append(f"  [bold]Monitoring:[/bold]   {has_mon}/{n} projects \u00b7 {', '.join(mon_parts)}")
 
+    # Auth tools
+    has_auth = sum(1 for p in projects if p.tech_stack.auth_tools)
+    if has_auth:
+        auth_counter: Counter[str] = Counter()
+        for p in projects:
+            for at in p.tech_stack.auth_tools:
+                auth_counter[at] += 1
+        top_auth = auth_counter.most_common(6)
+        auth_parts = [f"{at} ({count})" for at, count in top_auth]
+        lines.append(f"  [bold]Auth:[/bold]         {has_auth}/{n} projects \u00b7 {', '.join(auth_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -559,6 +570,10 @@ def show_project_card(project: Project):
     if project.tech_stack.monitoring_tools:
         mon = ", ".join(project.tech_stack.monitoring_tools[:8])
         lines.append(f"  [bold]Monitoring:[/bold] {mon}")
+
+    if project.tech_stack.auth_tools:
+        auth = ", ".join(project.tech_stack.auth_tools[:8])
+        lines.append(f"  [bold]Auth:[/bold]       {auth}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

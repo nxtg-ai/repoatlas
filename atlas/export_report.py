@@ -195,6 +195,17 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         mon_names = ", ".join(t for t, _ in top_mon)
         lines.append(f"**Monitoring**: {has_mon}/{n} projects \u00b7 {mon_names}")
 
+    # Auth tools
+    has_auth = sum(1 for p in projects if p.tech_stack.auth_tools)
+    if has_auth:
+        auth_counter: Counter[str] = Counter()
+        for p in projects:
+            for at in p.tech_stack.auth_tools:
+                auth_counter[at] += 1
+        top_auth = auth_counter.most_common(6)
+        auth_names = ", ".join(t for t, _ in top_auth)
+        lines.append(f"**Auth**: {has_auth}/{n} projects \u00b7 {auth_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -257,6 +268,8 @@ def _project_details(projects: list[Project]) -> list[str]:
             lines.append(f"- **API Specs**: {', '.join(p.tech_stack.api_specs[:8])}")
         if p.tech_stack.monitoring_tools:
             lines.append(f"- **Monitoring**: {', '.join(p.tech_stack.monitoring_tools[:8])}")
+        if p.tech_stack.auth_tools:
+            lines.append(f"- **Auth**: {', '.join(p.tech_stack.auth_tools[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -496,6 +509,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             mon_counter[mt] += 1
     has_mon = sum(1 for p in projects if p.tech_stack.monitoring_tools)
 
+    # Auth tools
+    auth_counter: Counter[str] = Counter()
+    for p in projects:
+        for at in p.tech_stack.auth_tools:
+            auth_counter[at] += 1
+    has_auth = sum(1 for p in projects if p.tech_stack.auth_tools)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -523,6 +543,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "build_tools": {"coverage": f"{has_build}/{n}", "tools": dict(bt_counter.most_common(10))},
         "api_specs": {"coverage": f"{has_api}/{n}", "specs": dict(api_counter.most_common(10))},
         "monitoring": {"coverage": f"{has_mon}/{n}", "tools": dict(mon_counter.most_common(10))},
+        "auth": {"coverage": f"{has_auth}/{n}", "tools": dict(auth_counter.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -540,7 +561,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Infrastructure", "Security Tools", "Quality Tools",
         "Testing Frameworks", "Package Managers", "AI/ML Tools",
         "Docs Artifacts", "CI Config", "Runtime Versions", "Build Tools", "API Specs",
-        "Monitoring Tools",
+        "Monitoring Tools", "Auth Tools",
         "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
@@ -577,6 +598,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.build_tools),
             "; ".join(ts.api_specs),
             "; ".join(ts.monitoring_tools),
+            "; ".join(ts.auth_tools),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",
