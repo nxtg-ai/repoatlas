@@ -60,8 +60,9 @@
 | N-47 | [Runtime Version Detection](#n-47-runtime-version-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-48 | [Runtime Version Intelligence](#n-48-runtime-version-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-49 | [CSV Export](#n-49-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-50 | [Build & Task Runner Detection](#n-50-build--task-runner-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 46/49 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 47/50 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -81,7 +82,8 @@
 - Documentation artifacts: README, CHANGELOG, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, LICENSE, docs/, API specs (OpenAPI/Swagger), .editorconfig
 - CI/CD configuration: GitHub Actions workflows (release/deploy detection), GitLab CI, PR templates, issue templates, CODEOWNERS, Dependabot/Renovate config, pre-commit, git hooks (.husky/.githooks), .gitattributes
 - Runtime version detection: .python-version, .node-version, .nvmrc, .ruby-version, .java-version, go.mod, rust-toolchain, .tool-versions (asdf), pyproject.toml requires-python, package.json engines
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47
+- Build & task runner detection: Make, Taskfile, Just, tox, nox, Invoke, doit, npm scripts, Gradle, Maven, CMake, Meson, Bazel, Rake, Earthly
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -273,6 +275,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_runtime_versions()` in detector.py. Detects pinned runtime/language versions from config files: Python (.python-version, pyproject.toml requires-python), Node.js (.node-version, .nvmrc, package.json engines.node), Ruby (.ruby-version), Go (go.mod go directive), Rust (rust-toolchain.toml channel, rust-toolchain plain file), Java (.java-version), and multi-runtime via asdf (.tool-versions with language mapping). Priority rules: specific version files override asdf entries; .node-version overrides .nvmrc; rust-toolchain.toml overrides plain rust-toolchain. Returns `dict[str, str]` (language → version). Added `runtime_versions` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py and export_report.py), markdown export project details, and JSON export portfolio_summary. `_project_has_tech()` searches runtime version keys. 17 detection tests.
 **Shipped**: 2026-03-21. Total test count: 903 → 920. 12th detection category.
+
+### N-50: Build & Task Runner Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_build_tools()` in detector.py. Detects build tools and task runners across ecosystems: generic (Make, Taskfile/go-task, Just, Earthly), Python (tox, nox, Invoke, doit), JavaScript (npm scripts via package.json scripts section), Java/JVM (Gradle, Maven), C/C++ (CMake, Meson), polyglot (Bazel), Ruby (Rake). Returns sorted list. Added `build_tools` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py), markdown export project details and summary, JSON export portfolio_summary, and CSV export. `_project_has_tech()` searches build_tools. 24 detection tests.
+**Shipped**: 2026-03-21. Total test count: 942 → 966. 13th detection category.
 
 ### N-49: CSV Export
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1

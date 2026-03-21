@@ -18,6 +18,7 @@ from atlas.detector import (
     detect_license,
     detect_package_managers,
     detect_runtime_versions,
+    detect_build_tools,
     walk_files,
 )
 
@@ -1492,3 +1493,134 @@ class TestDetectRuntimeVersions:
         assert result["Python"] == "3.12"
         assert result["Node"] == "20"
         assert result["Go"] == "1.22"
+
+
+# ---------------------------------------------------------------------------
+# detect_build_tools
+# ---------------------------------------------------------------------------
+class TestDetectBuildTools:
+    def test_makefile(self, tmp_path):
+        (tmp_path / "Makefile").write_text("all:\n\techo hello\n")
+        result = detect_build_tools(tmp_path)
+        assert "Make" in result
+
+    def test_makefile_lowercase(self, tmp_path):
+        (tmp_path / "makefile").write_text("all:\n\techo hello\n")
+        result = detect_build_tools(tmp_path)
+        assert "Make" in result
+
+    def test_taskfile(self, tmp_path):
+        (tmp_path / "Taskfile.yml").write_text("version: '3'\ntasks:\n  build:\n")
+        result = detect_build_tools(tmp_path)
+        assert "Taskfile" in result
+
+    def test_taskfile_dist(self, tmp_path):
+        (tmp_path / "Taskfile.dist.yml").write_text("version: '3'\n")
+        result = detect_build_tools(tmp_path)
+        assert "Taskfile" in result
+
+    def test_justfile(self, tmp_path):
+        (tmp_path / "justfile").write_text("build:\n  cargo build\n")
+        result = detect_build_tools(tmp_path)
+        assert "Just" in result
+
+    def test_justfile_capitalized(self, tmp_path):
+        (tmp_path / "Justfile").write_text("build:\n  cargo build\n")
+        result = detect_build_tools(tmp_path)
+        assert "Just" in result
+
+    def test_tox(self, tmp_path):
+        (tmp_path / "tox.ini").write_text("[tox]\nenvlist = py312\n")
+        result = detect_build_tools(tmp_path)
+        assert "tox" in result
+
+    def test_nox(self, tmp_path):
+        (tmp_path / "noxfile.py").write_text("import nox\n")
+        result = detect_build_tools(tmp_path)
+        assert "nox" in result
+
+    def test_invoke(self, tmp_path):
+        (tmp_path / "tasks.py").write_text("from invoke import task\n")
+        result = detect_build_tools(tmp_path)
+        assert "Invoke" in result
+
+    def test_doit(self, tmp_path):
+        (tmp_path / "dodo.py").write_text("def task_build():\n")
+        result = detect_build_tools(tmp_path)
+        assert "doit" in result
+
+    def test_npm_scripts(self, tmp_path):
+        (tmp_path / "package.json").write_text(
+            json.dumps({"scripts": {"build": "tsc", "test": "jest"}})
+        )
+        result = detect_build_tools(tmp_path)
+        assert "npm scripts" in result
+
+    def test_npm_no_scripts(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"name": "app"}))
+        result = detect_build_tools(tmp_path)
+        assert "npm scripts" not in result
+
+    def test_gradle(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("apply plugin: 'java'\n")
+        result = detect_build_tools(tmp_path)
+        assert "Gradle" in result
+
+    def test_gradle_kts(self, tmp_path):
+        (tmp_path / "build.gradle.kts").write_text("plugins { id(\"java\") }\n")
+        result = detect_build_tools(tmp_path)
+        assert "Gradle" in result
+
+    def test_maven(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<project></project>\n")
+        result = detect_build_tools(tmp_path)
+        assert "Maven" in result
+
+    def test_cmake(self, tmp_path):
+        (tmp_path / "CMakeLists.txt").write_text("cmake_minimum_required(VERSION 3.20)\n")
+        result = detect_build_tools(tmp_path)
+        assert "CMake" in result
+
+    def test_meson(self, tmp_path):
+        (tmp_path / "meson.build").write_text("project('app', 'c')\n")
+        result = detect_build_tools(tmp_path)
+        assert "Meson" in result
+
+    def test_bazel(self, tmp_path):
+        (tmp_path / "BUILD.bazel").write_text("cc_binary(name='app')\n")
+        result = detect_build_tools(tmp_path)
+        assert "Bazel" in result
+
+    def test_bazel_workspace(self, tmp_path):
+        (tmp_path / "WORKSPACE").write_text("workspace(name='app')\n")
+        result = detect_build_tools(tmp_path)
+        assert "Bazel" in result
+
+    def test_rake(self, tmp_path):
+        (tmp_path / "Rakefile").write_text("task :build do\nend\n")
+        result = detect_build_tools(tmp_path)
+        assert "Rake" in result
+
+    def test_earthly(self, tmp_path):
+        (tmp_path / "Earthfile").write_text("FROM golang:1.22\n")
+        result = detect_build_tools(tmp_path)
+        assert "Earthly" in result
+
+    def test_empty_project(self, tmp_path):
+        result = detect_build_tools(tmp_path)
+        assert result == []
+
+    def test_multiple_tools(self, tmp_path):
+        (tmp_path / "Makefile").write_text("all:\n")
+        (tmp_path / "tox.ini").write_text("[tox]\n")
+        (tmp_path / "package.json").write_text(json.dumps({"scripts": {"build": "tsc"}}))
+        result = detect_build_tools(tmp_path)
+        assert "Make" in result
+        assert "tox" in result
+        assert "npm scripts" in result
+
+    def test_result_sorted(self, tmp_path):
+        (tmp_path / "tox.ini").write_text("[tox]\n")
+        (tmp_path / "Makefile").write_text("all:\n")
+        result = detect_build_tools(tmp_path)
+        assert result == sorted(result)

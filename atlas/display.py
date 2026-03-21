@@ -316,6 +316,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         rv_parts = [f"{rt} ({count})" for rt, count in top_rv]
         lines.append(f"  [bold]Runtimes:[/bold]     {has_runtimes}/{n} projects · {', '.join(rv_parts)}")
 
+    # Build tools
+    has_build = sum(1 for p in projects if p.tech_stack.build_tools)
+    if has_build:
+        bt_counter: Counter[str] = Counter()
+        for p in projects:
+            for bt in p.tech_stack.build_tools:
+                bt_counter[bt] += 1
+        top_bt = bt_counter.most_common(6)
+        bt_parts = [f"{bt} ({count})" for bt, count in top_bt]
+        lines.append(f"  [bold]Build Tools:[/bold]  {has_build}/{n} projects \u00b7 {', '.join(bt_parts)}")
+
     # License distribution
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -464,6 +475,10 @@ def show_project_card(project: Project):
     if project.tech_stack.runtime_versions:
         rv = ", ".join(f"{k} {v}" for k, v in project.tech_stack.runtime_versions.items())
         lines.append(f"  [bold]Runtimes:[/bold]   {rv}")
+
+    if project.tech_stack.build_tools:
+        bt = ", ".join(project.tech_stack.build_tools[:8])
+        lines.append(f"  [bold]Build:[/bold]     {bt}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

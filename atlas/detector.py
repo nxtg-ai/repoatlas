@@ -1182,3 +1182,83 @@ def detect_runtime_versions(project_path: Path) -> dict[str, str]:
                     versions[asdf_map[tool_name]] = parts[1]
 
     return versions
+
+
+def detect_build_tools(project_path: Path) -> list[str]:
+    """Detect build tools, task runners, and project automation."""
+    tools: list[str] = []
+
+    def _add(name: str) -> None:
+        if name not in tools:
+            tools.append(name)
+
+    # Makefile
+    if (project_path / "Makefile").exists() or (project_path / "makefile").exists():
+        _add("Make")
+
+    # Taskfile (go-task)
+    for name in ("Taskfile.yml", "Taskfile.yaml", "Taskfile.dist.yml", "Taskfile.dist.yaml"):
+        if (project_path / name).exists():
+            _add("Taskfile")
+            break
+
+    # Just (justfile)
+    if (project_path / "justfile").exists() or (project_path / "Justfile").exists():
+        _add("Just")
+
+    # Python — tox
+    if (project_path / "tox.ini").exists():
+        _add("tox")
+
+    # Python — nox
+    if (project_path / "noxfile.py").exists():
+        _add("nox")
+
+    # Python — Invoke
+    if (project_path / "tasks.py").exists():
+        _add("Invoke")
+
+    # Python — doit
+    if (project_path / "dodo.py").exists():
+        _add("doit")
+
+    # JavaScript/TypeScript — npm scripts (check package.json for scripts section)
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text(errors="ignore"))
+            scripts = data.get("scripts", {})
+            if scripts:
+                _add("npm scripts")
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    # Gradle
+    if (project_path / "build.gradle").exists() or (project_path / "build.gradle.kts").exists():
+        _add("Gradle")
+
+    # Maven
+    if (project_path / "pom.xml").exists():
+        _add("Maven")
+
+    # CMake
+    if (project_path / "CMakeLists.txt").exists():
+        _add("CMake")
+
+    # Meson
+    if (project_path / "meson.build").exists():
+        _add("Meson")
+
+    # Bazel
+    if (project_path / "BUILD").exists() or (project_path / "BUILD.bazel").exists() or (project_path / "WORKSPACE").exists():
+        _add("Bazel")
+
+    # Rake (Ruby)
+    if (project_path / "Rakefile").exists():
+        _add("Rake")
+
+    # Earthly
+    if (project_path / "Earthfile").exists():
+        _add("Earthly")
+
+    return sorted(tools)

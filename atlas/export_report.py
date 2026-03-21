@@ -163,6 +163,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         top_rv = rv_counter.most_common(6)
         lines.append(f"**Runtimes**: {has_runtimes}/{n} projects · {', '.join(t for t, _ in top_rv)}")
 
+    # Build tools
+    has_build = sum(1 for p in projects if p.tech_stack.build_tools)
+    if has_build:
+        bt_counter: Counter[str] = Counter()
+        for p in projects:
+            for bt in p.tech_stack.build_tools:
+                bt_counter[bt] += 1
+        top_bt = bt_counter.most_common(6)
+        lines.append(f"**Build Tools**: {has_build}/{n} projects · {', '.join(t for t, _ in top_bt)}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -219,6 +229,8 @@ def _project_details(projects: list[Project]) -> list[str]:
         if p.tech_stack.runtime_versions:
             rv = ", ".join(f"{k} {v}" for k, v in p.tech_stack.runtime_versions.items())
             lines.append(f"- **Runtimes**: {rv}")
+        if p.tech_stack.build_tools:
+            lines.append(f"- **Build Tools**: {', '.join(p.tech_stack.build_tools[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -428,6 +440,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             rv_counter[rt] += 1
     has_runtimes = sum(1 for p in projects if p.tech_stack.runtime_versions)
 
+    # Build tools
+    bt_counter: Counter[str] = Counter()
+    for p in projects:
+        for bt in p.tech_stack.build_tools:
+            bt_counter[bt] += 1
+    has_build = sum(1 for p in projects if p.tech_stack.build_tools)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -452,6 +471,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "docs_artifacts": {"coverage": f"{has_docs}/{n}", "artifacts": dict(da_counter.most_common(10))},
         "ci_config": {"coverage": f"{has_ci_config}/{n}", "config": dict(ci_counter.most_common(10))},
         "runtime_versions": {"coverage": f"{has_runtimes}/{n}", "runtimes": dict(rv_counter.most_common(10))},
+        "build_tools": {"coverage": f"{has_build}/{n}", "tools": dict(bt_counter.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -468,7 +488,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Languages", "Frameworks", "Databases",
         "Infrastructure", "Security Tools", "Quality Tools",
         "Testing Frameworks", "Package Managers", "AI/ML Tools",
-        "Docs Artifacts", "CI Config", "Runtime Versions",
+        "Docs Artifacts", "CI Config", "Runtime Versions", "Build Tools",
         "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
@@ -502,6 +522,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.docs_artifacts),
             "; ".join(ts.ci_config),
             "; ".join(f"{k}={v}" for k, v in ts.runtime_versions.items()),
+            "; ".join(ts.build_tools),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",
