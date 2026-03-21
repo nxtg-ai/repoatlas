@@ -702,6 +702,8 @@ def _connections_section(conns: list) -> list[str]:
         "caching_gap": "Caching Gaps",
         "shared_template_engine": "Shared Template Engines",
         "template_engine_divergence": "Template Engine Divergence",
+        "shared_serialization_format": "Shared Serialization Formats",
+        "serialization_divergence": "Serialization Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

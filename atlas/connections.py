@@ -48,6 +48,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_config_tool_patterns(projects))
     connections.extend(_find_caching_patterns(projects))
     connections.extend(_find_template_engine_patterns(projects))
+    connections.extend(_find_serialization_patterns(projects))
     return connections
 
 
@@ -2800,6 +2801,61 @@ def _find_template_engine_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="template_engine_divergence",
             detail=f"Mixed template approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_serialization_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project serialization format patterns."""
+    connections: list[Connection] = []
+
+    # Shared serialization formats — same format used by 2+ projects
+    fmt_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for f in p.tech_stack.serialization_formats:
+            fmt_to_projects[f].append(p.name)
+
+    for f, projs in sorted(fmt_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_serialization_format",
+                detail=f"{f} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Serialization divergence — binary vs text-based formats
+    binary_formats = {"Protocol Buffers", "MessagePack", "Apache Avro", "Apache Thrift",
+                      "FlatBuffers", "CBOR", "Bincode", "Postcard", "Pickle", "Apache Arrow",
+                      "Parquet", "BSON", "Kryo"}
+    text_formats = {"YAML", "TOML", "Jackson", "Gson", "orjson", "ujson", "serde_json",
+                    "simd-json", "go-json", "superjson"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "binary": {}, "text_based": {},
+    }
+    cat_sets = [("binary", binary_formats), ("text_based", text_formats)]
+    for p in projects:
+        for f in p.tech_stack.serialization_formats:
+            for cat_name, cat_set in cat_sets:
+                if f in cat_set:
+                    cat_found[cat_name].setdefault(f, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, fws in active_cats.items():
+            fw_names = ", ".join(sorted(fws.keys())[:3])
+            parts.append(f"{cat_name} ({fw_names})")
+            for ps in fws.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="serialization_divergence",
+            detail=f"Mixed serialization approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

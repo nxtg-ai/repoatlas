@@ -131,8 +131,9 @@
 | N-118 | [Template Engine Intelligence](#n-118-template-engine-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-119 | [Search JSON Export](#n-119-search-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-120 | [Serialization Format Detection](#n-120-serialization-format-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-121 | [Serialization Format Intelligence](#n-121-serialization-format-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 117/120 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 118/121 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -218,7 +219,8 @@
 - Cross-project configuration management intelligence (shared config tools, env-based vs structured paradigm divergence, config tool gaps for backend projects)
 - Cross-project caching intelligence (shared caching tools, Redis-based vs in-memory paradigm divergence, caching gaps for backend projects with databases)
 - Cross-project template engine intelligence (shared template engines, string-based vs component-based paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118
+- Cross-project serialization format intelligence (shared serialization formats, binary vs text-based paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -651,6 +653,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-121: Serialization Format Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project serialization format intelligence: shared serialization formats (shared_serialization_format), binary vs text-based paradigm divergence (serialization_divergence). No gap type (serialization is optional). New CONNECTION_CATEGORIES entry "serialization". Updated display type_labels, icons, stats category mapping, export type_labels, recommendations mapping. 7 tests.
+**Shipped**: 2026-03-21. Total test count: 1931 → 1938. 39th intelligence feature.
 
 ### N-120: Serialization Format Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

@@ -4687,3 +4687,71 @@ class TestFindTemplateEnginePatterns:
         conns = find_connections(projects)
         tpl_types = {c.type for c in conns if "template_engine" in c.type}
         assert "shared_template_engine" in tpl_types
+
+
+# ---------------------------------------------------------------------------
+# Serialization format intelligence
+# ---------------------------------------------------------------------------
+
+
+class TestFindSerializationPatterns:
+    def test_shared_serialization_format(self):
+        projects = [
+            _proj("a", serialization_formats=["Protocol Buffers", "YAML"]),
+            _proj("b", serialization_formats=["Protocol Buffers"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_serialization_format"]
+        assert any("Protocol Buffers" in c.detail for c in shared)
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", serialization_formats=["YAML"]),
+            _proj("b", serialization_formats=["TOML"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_serialization_format"]
+        assert len(shared) == 0
+
+    def test_divergence_binary_vs_text(self):
+        projects = [
+            _proj("a", serialization_formats=["Protocol Buffers"]),
+            _proj("b", serialization_formats=["YAML"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "serialization_divergence"]
+        assert len(div) == 1
+        assert "binary" in div[0].detail
+        assert "text_based" in div[0].detail
+
+    def test_no_divergence_same_category(self):
+        projects = [
+            _proj("a", serialization_formats=["Protocol Buffers"]),
+            _proj("b", serialization_formats=["MessagePack"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "serialization_divergence"]
+        assert len(div) == 0
+
+    def test_empty_serialization(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        ser = [c for c in conns if "serialization" in c.type]
+        assert len(ser) == 0
+
+    def test_cap_at_10(self):
+        projects = [
+            _proj(f"p{i}", serialization_formats=["YAML"]) for i in range(20)
+        ]
+        from atlas.connections import _find_serialization_patterns
+        conns = _find_serialization_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", serialization_formats=["Protocol Buffers", "YAML"]),
+            _proj("b", serialization_formats=["Protocol Buffers", "Jackson"]),
+        ]
+        conns = find_connections(projects)
+        ser_types = {c.type for c in conns if "serialization" in c.type}
+        assert "shared_serialization_format" in ser_types

@@ -350,6 +350,7 @@ CONNECTION_CATEGORIES = {
     "config": {"shared_config_tool", "config_tool_divergence", "config_tool_gap"},
     "caching": {"shared_caching_tool", "caching_divergence", "caching_gap"},
     "templates": {"shared_template_engine", "template_engine_divergence"},
+    "serialization": {"shared_serialization_format", "serialization_divergence"},
 }
 
 

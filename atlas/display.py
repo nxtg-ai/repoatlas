@@ -147,6 +147,8 @@ CONNECTION_ICONS = {
     "caching_gap": "[red]\u29bf[/red]",
     "shared_template_engine": "[green]\u2756[/green]",
     "template_engine_divergence": "[yellow]\u2756[/yellow]",
+    "shared_serialization_format": "[green]\u2b12[/green]",
+    "serialization_divergence": "[yellow]\u2b12[/yellow]",
 }
 
 
@@ -827,6 +829,8 @@ def show_connections(connections: list[Connection]):
         "caching_gap": "Caching Gaps",
         "shared_template_engine": "Shared Template Engines",
         "template_engine_divergence": "Template Engine Divergence",
+        "shared_serialization_format": "Shared Serialization Formats",
+        "serialization_divergence": "Serialization Divergence",
     }
 
     lines = []
@@ -902,6 +906,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_config_tool": "config", "config_tool_divergence": "config", "config_tool_gap": "config",
         "shared_caching_tool": "caching", "caching_divergence": "caching", "caching_gap": "caching",
         "shared_template_engine": "templates", "template_engine_divergence": "templates",
+        "shared_serialization_format": "serialization", "serialization_divergence": "serialization",
     }
 
     for conn in connections:
