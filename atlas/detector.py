@@ -3349,6 +3349,142 @@ def detect_doc_generators(project_path: Path) -> list[str]:
     return sorted(tools)
 
 
+def detect_cli_frameworks(project_path: Path) -> list[str]:
+    """Detect CLI framework libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # Python CLI frameworks
+    py_mapping = {
+        "click": "Click",
+        "typer": "Typer",
+        "fire": "Fire",
+        "rich": "Rich",
+        "cement": "Cement",
+        "cliff": "cliff",
+        "docopt": "docopt",
+        "plac": "plac",
+        "cleo": "Cleo",
+        "textual": "Textual",
+        "prompt-toolkit": "prompt_toolkit",
+        "prompt_toolkit": "prompt_toolkit",
+        "questionary": "Questionary",
+        "inquirer": "InquirerPy",
+        "inquirerpy": "InquirerPy",
+        "trogon": "Trogon",
+    }
+    for dep, name in py_mapping.items():
+        if dep in py_deps:
+            _add(name)
+
+    # JS/TS CLI frameworks — package.json
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            content = pkg_json.read_text().lower()
+            if "\"commander\"" in content:
+                _add("Commander.js")
+            if "\"yargs\"" in content:
+                _add("Yargs")
+            if "\"meow\"" in content:
+                _add("meow")
+            if "\"oclif\"" in content or "\"@oclif/" in content:
+                _add("oclif")
+            if "\"vorpal\"" in content:
+                _add("Vorpal")
+            if "\"caporal\"" in content:
+                _add("Caporal")
+            if "\"inquirer\"" in content or "\"@inquirer/" in content:
+                _add("Inquirer.js")
+            if "\"prompts\"" in content:
+                _add("prompts")
+            if "\"chalk\"" in content:
+                _add("Chalk")
+            if "\"ora\"" in content and "\"ora\":" in content:
+                _add("Ora")
+            if "\"ink\"" in content and "\"ink\":" in content:
+                _add("Ink")
+            if "\"citty\"" in content:
+                _add("citty")
+            if "\"clipanion\"" in content:
+                _add("Clipanion")
+            if "\"gluegun\"" in content:
+                _add("Gluegun")
+        except Exception:
+            pass
+
+    # Go CLI frameworks — go.mod
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            if "spf13/cobra" in content:
+                _add("Cobra")
+            if "urfave/cli" in content:
+                _add("urfave/cli")
+            if "spf13/pflag" in content:
+                _add("pflag")
+            if "alecthomas/kong" in content:
+                _add("Kong")
+            if "charmbracelet/bubbletea" in content:
+                _add("Bubbletea")
+            if "charmbracelet/lipgloss" in content:
+                _add("Lip Gloss")
+            if "charmbracelet/huh" in content:
+                _add("Huh")
+            if "jessevdk/go-flags" in content:
+                _add("go-flags")
+        except Exception:
+            pass
+
+    # Rust CLI frameworks — Cargo.toml
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content = cargo.read_text().lower()
+            if "clap" in content:
+                _add("clap")
+            if "structopt" in content:
+                _add("StructOpt")
+            if "argh" in content:
+                _add("argh")
+            if "dialoguer" in content:
+                _add("dialoguer")
+            if "indicatif" in content:
+                _add("indicatif")
+            if "console" in content and "console =" in content:
+                _add("console")
+            if "ratatui" in content:
+                _add("Ratatui")
+        except Exception:
+            pass
+
+    # Java CLI frameworks — pom.xml / build.gradle
+    for jpath in [project_path / "pom.xml", project_path / "build.gradle", project_path / "build.gradle.kts"]:
+        if jpath.exists():
+            try:
+                content = jpath.read_text().lower()
+                if "picocli" in content:
+                    _add("picocli")
+                if "jcommander" in content:
+                    _add("JCommander")
+                if "airline" in content and "airlift" in content:
+                    _add("Airline")
+                if "spring-shell" in content:
+                    _add("Spring Shell")
+            except Exception:
+                pass
+
+    return sorted(tools)
+
+
 def _collect_python_deps(project_path: Path) -> set[str]:
     """Collect Python dependency names from pyproject.toml and requirements.txt."""
     py_deps: set[str] = set()

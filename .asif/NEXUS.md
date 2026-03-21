@@ -118,8 +118,9 @@
 | N-105 | [Documentation Generation Detection](#n-105-documentation-generation-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-106 | [Documentation Generation Intelligence](#n-106-documentation-generation-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-107 | [Doctor CSV Export](#n-107-doctor-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-108 | [CLI Framework Detection](#n-108-cli-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 104/107 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 105/108 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -159,7 +160,8 @@
 - Feature flag detection: LaunchDarkly, Unleash, Flagsmith, GrowthBook, Split, PostHog, Statsig, OpenFeature, Waffle, ConfigCat, Vercel Flags, HappyKit, Togglz, FF4J, Flipper — across Python, JS/TS, Go, Rust, Java
 - HTTP client detection: Requests, HTTPX, aiohttp, urllib3, httplib2, PycURL, treq, asks, niquests, Uplink (Python), Axios, node-fetch, Got, Ky, SuperAgent, Undici, ofetch, Wretch, Needle, cross-fetch, isomorphic-fetch (JS/TS), Resty, go-retryablehttp, Gentleman, Sling, Heimdall, Req (Go), reqwest, hyper, ureq, surf, isahc, attohttpc (Rust), OkHttp, Apache HttpClient, Retrofit, Unirest, WebClient, RestTemplate, Feign (Java)
 - Documentation generation detection: Sphinx, MkDocs, pdoc, pydoctor (Python), Docusaurus, Storybook, VitePress, TypeDoc, JSDoc, Nextra, GitBook, Docsify, Mintlify, Starlight, documentation.js (JS/TS), mdBook (Rust), Javadoc, Dokka (Java), Doxygen, Swag (Go) — via deps, config files, and directory markers
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105
+- CLI framework detection: Click, Typer, Fire, Rich, Textual, Cement, cliff, docopt, plac, Cleo, prompt_toolkit, Questionary, InquirerPy, Trogon (Python), Commander.js, Yargs, meow, oclif, Vorpal, Caporal, Inquirer.js, prompts, Chalk, Ora, Ink, citty, Clipanion, Gluegun (JS/TS), Cobra, urfave/cli, pflag, Kong, Bubbletea, Lip Gloss, Huh, go-flags (Go), clap, StructOpt, argh, dialoguer, indicatif, console, Ratatui (Rust), picocli, JCommander, Airline, Spring Shell (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -625,6 +627,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-108: CLI Framework Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_cli_frameworks()` in detector.py. Detects CLI framework libraries across ecosystems: Python (Click, Typer, Fire, Rich, Textual, Cement, cliff, docopt, plac, Cleo, prompt_toolkit, Questionary, InquirerPy, Trogon), JS/TS (Commander.js, Yargs, meow, oclif, Vorpal, Caporal, Inquirer.js, prompts, Chalk, Ora, Ink, citty, Clipanion, Gluegun), Go (Cobra, urfave/cli, pflag, Kong, Bubbletea, Lip Gloss, Huh, go-flags), Rust (clap, StructOpt, argh, dialoguer, indicatif, console, Ratatui), Java (picocli, JCommander, Airline, Spring Shell). Added `cli_frameworks` field to TechStack model. Shows in project card, portfolio summary, all exports. 20 detection tests.
+**Shipped**: 2026-03-21. Total test count: 1777 → 1797. 33rd detection category.
 
 ### N-107: Doctor CSV Export
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1

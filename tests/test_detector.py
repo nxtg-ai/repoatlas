@@ -38,6 +38,7 @@ from atlas.detector import (
     detect_feature_flags,
     detect_http_clients,
     detect_doc_generators,
+    detect_cli_frameworks,
     walk_files,
 )
 
@@ -4333,3 +4334,115 @@ class TestDetectDocGenerators:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         assert detect_doc_generators(tmp_path) == []
+
+
+# ---------------------------------------------------------------------------
+# detect_cli_frameworks
+# ---------------------------------------------------------------------------
+
+class TestDetectCliFrameworks:
+    def test_empty_project(self, tmp_path):
+        assert detect_cli_frameworks(tmp_path) == []
+
+    def test_python_click(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("click\n")
+        result = detect_cli_frameworks(tmp_path)
+        assert "Click" in result
+
+    def test_python_typer(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("typer\n")
+        result = detect_cli_frameworks(tmp_path)
+        assert "Typer" in result
+
+    def test_python_fire(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("fire\n")
+        result = detect_cli_frameworks(tmp_path)
+        assert "Fire" in result
+
+    def test_python_rich(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("rich\n")
+        result = detect_cli_frameworks(tmp_path)
+        assert "Rich" in result
+
+    def test_python_textual(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("textual\n")
+        result = detect_cli_frameworks(tmp_path)
+        assert "Textual" in result
+
+    def test_js_commander(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"commander": "^9.0.0"}
+        }))
+        result = detect_cli_frameworks(tmp_path)
+        assert "Commander.js" in result
+
+    def test_js_yargs(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"yargs": "^17.0.0"}
+        }))
+        result = detect_cli_frameworks(tmp_path)
+        assert "Yargs" in result
+
+    def test_js_oclif(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@oclif/core": "^3.0.0"}
+        }))
+        result = detect_cli_frameworks(tmp_path)
+        assert "oclif" in result
+
+    def test_js_ink(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"ink": "^4.0.0"}
+        }))
+        result = detect_cli_frameworks(tmp_path)
+        assert "Ink" in result
+
+    def test_go_cobra(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/spf13/cobra v1.7.0\n")
+        result = detect_cli_frameworks(tmp_path)
+        assert "Cobra" in result
+
+    def test_go_bubbletea(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/charmbracelet/bubbletea v0.24.0\n")
+        result = detect_cli_frameworks(tmp_path)
+        assert "Bubbletea" in result
+
+    def test_go_urfave_cli(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/urfave/cli/v2 v2.25.0\n")
+        result = detect_cli_frameworks(tmp_path)
+        assert "urfave/cli" in result
+
+    def test_rust_clap(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nclap = "4.0"\n')
+        result = detect_cli_frameworks(tmp_path)
+        assert "clap" in result
+
+    def test_rust_ratatui(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nratatui = "0.23"\n')
+        result = detect_cli_frameworks(tmp_path)
+        assert "Ratatui" in result
+
+    def test_java_picocli(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'info.picocli:picocli:4.7.0'\n")
+        result = detect_cli_frameworks(tmp_path)
+        assert "picocli" in result
+
+    def test_multiple_frameworks(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("click\nrich\ntyper\n")
+        result = detect_cli_frameworks(tmp_path)
+        assert len(result) == 3
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("click\n")
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = [\n    "click",\n]\n')
+        result = detect_cli_frameworks(tmp_path)
+        assert result.count("Click") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("typer\nclick\nrich\n")
+        result = detect_cli_frameworks(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        assert detect_cli_frameworks(tmp_path) == []
