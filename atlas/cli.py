@@ -309,6 +309,7 @@ CONNECTION_CATEGORIES = {
 def connections(
     type_filter: Optional[str] = typer.Option(None, "--type", "-t", help="Filter by category (use --type list to see all)"),
     severity: Optional[str] = typer.Option(None, "--severity", "-s", help="Filter by severity (info, warning, critical)"),
+    format: Optional[str] = typer.Option(None, help="Output format: json for structured output"),
 ):
     """Show cross-project intelligence."""
     portfolio = _load_portfolio()
@@ -339,8 +340,9 @@ def connections(
         allowed = CONNECTION_CATEGORIES[cat]
         total = len(conns)
         conns = [c for c in conns if c.type in allowed]
-        console.print()
-        console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (category: {cat})[/dim]")
+        if not (format and format.lower() == "json"):
+            console.print()
+            console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (category: {cat})[/dim]")
 
     if severity:
         sev = severity.lower()
@@ -350,8 +352,30 @@ def connections(
             raise typer.Exit(1)
         total = len(conns)
         conns = [c for c in conns if c.severity == sev]
-        console.print()
-        console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (severity: {sev})[/dim]")
+        if not (format and format.lower() == "json"):
+            console.print()
+            console.print(f"  [dim]Filtered: {len(conns)}/{total} connections (severity: {sev})[/dim]")
+
+    if format and format.lower() == "json":
+        import json as json_mod
+        sev_counts: dict[str, int] = {}
+        for c in conns:
+            sev_counts[c.severity] = sev_counts.get(c.severity, 0) + 1
+        data = {
+            "total": len(conns),
+            "connections": [
+                {
+                    "type": c.type,
+                    "detail": c.detail,
+                    "projects": c.projects,
+                    "severity": c.severity,
+                }
+                for c in conns
+            ],
+            "summary": sev_counts,
+        }
+        print(json_mod.dumps(data, indent=2))
+        return
 
     console.print()
     show_connections(conns)

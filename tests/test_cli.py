@@ -344,6 +344,59 @@ class TestConnections:
         assert result.exit_code == 0
         assert "severity: info" in result.output
 
+    def test_connections_json_format(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert "total" in data
+        assert "connections" in data
+        assert "summary" in data
+        assert isinstance(data["connections"], list)
+        if data["total"] > 0:
+            conn = data["connections"][0]
+            assert "type" in conn
+            assert "detail" in conn
+            assert "projects" in conn
+            assert "severity" in conn
+
+    def test_connections_json_with_type_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--format", "json", "--type", "deps"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert isinstance(data["total"], int)
+        # All connections should be in deps category
+        dep_types = CONNECTION_CATEGORIES["deps"] if "CONNECTION_CATEGORIES" in dir() else {"shared_dep", "shared_framework", "version_mismatch", "reuse_candidate"}
+        for conn in data["connections"]:
+            assert conn["type"] in dep_types
+
+    def test_connections_json_with_severity_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--format", "json", "--severity", "info"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        for conn in data["connections"]:
+            assert conn["severity"] == "info"
+
 
 # ===========================================================================
 # atlas search

@@ -111,8 +111,9 @@
 | N-98 | [Doctor JSON Export](#n-98-doctor-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-99 | [Feature Flag Detection](#n-99-feature-flag-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-100 | [Feature Flag Intelligence](#n-100-feature-flag-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-101 | [Connections JSON Export](#n-101-connections-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 97/100 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 98/101 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -219,7 +220,8 @@
 - Version command: `atlas version` shows installed version
 - Export filtering: `atlas export --grade A --lang Python --has Docker --min-health 80 --max-health 100` filters projects in any export format (markdown/json/csv)
 - Doctor JSON export: `atlas doctor --format json` outputs structured JSON with recommendations array, priority/category summary counts for CI integration
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98
+- Connections JSON export: `atlas connections --format json` outputs structured JSON with connections array (type, detail, projects, severity), total count, severity summary for CI integration
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -611,6 +613,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-101: Connections JSON Export
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--format json` option to `atlas connections` command. Outputs structured JSON with `total` count, `connections` array (type, detail, projects, severity per connection), and `summary` (severity counts: critical/warning/info). Filter messages suppressed in JSON mode. Works with `--type` and `--severity` filters. 3 tests.
+**Shipped**: 2026-03-21. Total test count: 1709 → 1712. 30th experience feature.
 
 ### N-100: Feature Flag Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
