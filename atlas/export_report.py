@@ -494,6 +494,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         dl_names = ", ".join(f"{t} ({c})" for t, c in dl_counter_md.most_common(8))
         lines.append(f"**Date/Time Libs**: {has_dl_md}/{n} projects · {dl_names}")
 
+    # Image processing libs
+    has_il_md = sum(1 for p in projects if p.tech_stack.image_libs)
+    if has_il_md:
+        il_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for il in p.tech_stack.image_libs:
+                il_counter_md[il] += 1
+        il_names = ", ".join(f"{t} ({c})" for t, c in il_counter_md.most_common(8))
+        lines.append(f"**Image Libs**: {has_il_md}/{n} projects · {il_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -636,6 +646,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.date_libs:
             lines.append(f"- **Date/Time**: {', '.join(p.tech_stack.date_libs[:8])}")
+
+        if p.tech_stack.image_libs:
+            lines.append(f"- **Imaging**: {', '.join(p.tech_stack.image_libs[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -1162,6 +1175,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             dl_counter_j[dl] += 1
     has_dl_j = sum(1 for p in projects if p.tech_stack.date_libs)
 
+    # Image processing libs
+    il_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for il in p.tech_stack.image_libs:
+            il_counter_j[il] += 1
+    has_il_j = sum(1 for p in projects if p.tech_stack.image_libs)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1217,6 +1237,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "event_streaming": {"coverage": f"{has_es}/{n}", "tools": dict(es_counter2.most_common(10))},
         "payment_tools": {"coverage": f"{has_pay_j}/{n}", "tools": dict(pay_counter_j.most_common(10))},
         "date_libs": {"coverage": f"{has_dl_j}/{n}", "libs": dict(dl_counter_j.most_common(10))},
+        "image_libs": {"coverage": f"{has_il_j}/{n}", "libs": dict(il_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1237,7 +1258,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1301,6 +1322,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.event_streaming),
             "; ".join(ts.payment_tools),
             "; ".join(ts.date_libs),
+            "; ".join(ts.image_libs),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

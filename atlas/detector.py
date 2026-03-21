@@ -4765,3 +4765,120 @@ def detect_date_libs(project_path: Path) -> list[str]:
             _add(name)
 
     return sorted(tools)
+
+
+def detect_image_libs(project_path: Path) -> list[str]:
+    """Detect image processing libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # --- Python ---
+    py_deps = _collect_python_deps(project_path)
+    py_map = {
+        "pillow": "Pillow",
+        "pil": "Pillow",
+        "opencv-python": "OpenCV",
+        "opencv-python-headless": "OpenCV",
+        "opencv-contrib-python": "OpenCV",
+        "scikit-image": "scikit-image",
+        "imageio": "imageio",
+        "wand": "Wand",
+        "cairosvg": "CairoSVG",
+        "pyvips": "pyvips",
+        "rawpy": "rawpy",
+    }
+    for dep, name in py_map.items():
+        if dep in py_deps:
+            _add(name)
+
+    # --- JS/TS ---
+    pkg_json = project_path / "package.json"
+    all_js: set[str] = set()
+    if pkg_json.exists():
+        try:
+            import json as _json
+            data = _json.loads(pkg_json.read_text())
+            for section in ("dependencies", "devDependencies"):
+                all_js.update(data.get(section, {}).keys())
+        except Exception:
+            pass
+    js_map = {
+        "sharp": "Sharp",
+        "jimp": "Jimp",
+        "canvas": "node-canvas",
+        "@napi-rs/canvas": "napi-canvas",
+        "gm": "GraphicsMagick",
+        "image-size": "image-size",
+        "pngjs": "pngjs",
+        "pixelmatch": "pixelmatch",
+        "blurhash": "BlurHash",
+        "plaiceholder": "Plaiceholder",
+        "@imgly/background-removal-node": "IMG.LY",
+        "cropperjs": "Cropper.js",
+    }
+    for dep, name in js_map.items():
+        if dep in all_js:
+            _add(name)
+
+    # --- Go ---
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text()
+            go_map = {
+                "github.com/disintegration/imaging": "imaging",
+                "github.com/fogleman/gg": "gg",
+                "github.com/nfnt/resize": "nfnt/resize",
+                "github.com/anthonynsimon/bild": "bild",
+                "gocv.io/x/gocv": "GoCV",
+                "golang.org/x/image": "x/image",
+            }
+            for mod, name in go_map.items():
+                if mod in content:
+                    _add(name)
+        except Exception:
+            pass
+
+    # --- Rust ---
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            content = cargo_toml.read_text()
+            rust_map = {
+                "image": "image (Rust)",
+                "imageproc": "imageproc",
+                "resvg": "resvg",
+                "opencv": "OpenCV (Rust)",
+            }
+            for crate, name in rust_map.items():
+                if crate in content:
+                    _add(name)
+        except Exception:
+            pass
+
+    # --- Java ---
+    java_deps = []
+    for build_file in ("build.gradle", "build.gradle.kts", "pom.xml"):
+        bf = project_path / build_file
+        if bf.exists():
+            try:
+                java_deps.append(bf.read_text())
+            except Exception:
+                pass
+    java_content = " ".join(java_deps)
+    java_map = {
+        "thumbnailator": "Thumbnailator",
+        "imgscalr": "imgscalr",
+        "twelvemonkeys": "TwelveMonkeys",
+        "scrimage": "Scrimage",
+    }
+    for dep, name in java_map.items():
+        if dep in java_content:
+            _add(name)
+
+    return sorted(tools)

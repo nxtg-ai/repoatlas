@@ -49,6 +49,7 @@ from atlas.detector import (
     detect_event_streaming,
     detect_payment_tools,
     detect_date_libs,
+    detect_image_libs,
     walk_files,
 )
 
@@ -5567,3 +5568,108 @@ class TestDetectDateLibs:
         assert "Day.js" in result
         assert "date-fns" in result
         assert "Luxon" in result
+
+
+# ---------------------------------------------------------------------------
+# detect_image_libs
+# ---------------------------------------------------------------------------
+class TestDetectImageLibs:
+    def test_empty(self, tmp_path):
+        assert detect_image_libs(tmp_path) == []
+
+    def test_python_pillow(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pillow>=10.0\n")
+        result = detect_image_libs(tmp_path)
+        assert "Pillow" in result
+
+    def test_python_opencv(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("opencv-python>=4.0\n")
+        result = detect_image_libs(tmp_path)
+        assert "OpenCV" in result
+
+    def test_python_opencv_headless(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("opencv-python-headless>=4.0\n")
+        result = detect_image_libs(tmp_path)
+        assert "OpenCV" in result
+
+    def test_python_scikit_image(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("scikit-image>=0.20\n")
+        result = detect_image_libs(tmp_path)
+        assert "scikit-image" in result
+
+    def test_python_wand(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("wand>=0.6\n")
+        result = detect_image_libs(tmp_path)
+        assert "Wand" in result
+
+    def test_python_imageio(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("imageio>=2.0\n")
+        result = detect_image_libs(tmp_path)
+        assert "imageio" in result
+
+    def test_js_sharp(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"sharp": "^0.33"}}')
+        result = detect_image_libs(tmp_path)
+        assert "Sharp" in result
+
+    def test_js_jimp(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"jimp": "^0.22"}}')
+        result = detect_image_libs(tmp_path)
+        assert "Jimp" in result
+
+    def test_js_canvas(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"canvas": "^2.0"}}')
+        result = detect_image_libs(tmp_path)
+        assert "node-canvas" in result
+
+    def test_js_blurhash(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"blurhash": "^2.0"}}')
+        result = detect_image_libs(tmp_path)
+        assert "BlurHash" in result
+
+    def test_js_cropperjs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"cropperjs": "^1.0"}}')
+        result = detect_image_libs(tmp_path)
+        assert "Cropper.js" in result
+
+    def test_go_imaging(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire github.com/disintegration/imaging v1.6\n")
+        result = detect_image_libs(tmp_path)
+        assert "imaging" in result
+
+    def test_go_gocv(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire gocv.io/x/gocv v0.35\n")
+        result = detect_image_libs(tmp_path)
+        assert "GoCV" in result
+
+    def test_rust_image(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nimage = "0.24"\n')
+        result = detect_image_libs(tmp_path)
+        assert "image (Rust)" in result
+
+    def test_rust_resvg(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nresvg = "0.35"\n')
+        result = detect_image_libs(tmp_path)
+        assert "resvg" in result
+
+    def test_java_thumbnailator(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'net.coobird:thumbnailator:0.4'\n")
+        result = detect_image_libs(tmp_path)
+        assert "Thumbnailator" in result
+
+    def test_sorted(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pillow>=10.0\nopencv-python>=4.0\n")
+        result = detect_image_libs(tmp_path)
+        assert result == sorted(result)
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("opencv-python>=4.0\nopencv-python-headless>=4.0\n")
+        result = detect_image_libs(tmp_path)
+        assert result.count("OpenCV") == 1
+
+    def test_multiple_libs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"sharp": "^0.33", "jimp": "^0.22", "blurhash": "^2.0"}}')
+        result = detect_image_libs(tmp_path)
+        assert "Sharp" in result
+        assert "Jimp" in result
+        assert "BlurHash" in result

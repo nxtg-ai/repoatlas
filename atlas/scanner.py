@@ -53,6 +53,7 @@ from atlas.detector import (
     detect_event_streaming,
     detect_payment_tools,
     detect_date_libs,
+    detect_image_libs,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -108,6 +109,7 @@ def scan_project(project_path: Path) -> Project:
     event_streaming = detect_event_streaming(path)
     payment_tools = detect_payment_tools(path)
     date_libs = detect_date_libs(path)
+    image_libs = detect_image_libs(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -158,6 +160,7 @@ def scan_project(project_path: Path) -> Project:
         event_streaming=event_streaming,
         payment_tools=payment_tools,
         date_libs=date_libs,
+        image_libs=image_libs,
     )
 
     project = Project(

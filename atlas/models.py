@@ -51,6 +51,7 @@ class TechStack:
     event_streaming: list[str] = field(default_factory=list)
     payment_tools: list[str] = field(default_factory=list)
     date_libs: list[str] = field(default_factory=list)
+    image_libs: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -183,6 +184,7 @@ class Project:
                 "event_streaming": self.tech_stack.event_streaming,
                 "payment_tools": self.tech_stack.payment_tools,
                 "date_libs": self.tech_stack.date_libs,
+                "image_libs": self.tech_stack.image_libs,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -260,6 +262,7 @@ class Project:
                 event_streaming=ts.get("event_streaming", []),
                 payment_tools=ts.get("payment_tools", []),
                 date_libs=ts.get("date_libs", []),
+                image_libs=ts.get("image_libs", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

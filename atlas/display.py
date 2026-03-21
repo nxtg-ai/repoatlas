@@ -755,6 +755,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         dl_parts = [f"{dl} ({count})" for dl, count in top_dl]
         lines.append(f"  [bold]Date/Time:[/bold]  {has_dl}/{n} projects · {', '.join(dl_parts)}")
 
+    # Image processing libs
+    has_il = sum(1 for p in projects if p.tech_stack.image_libs)
+    if has_il:
+        il_counter: Counter[str] = Counter()
+        for p in projects:
+            for il in p.tech_stack.image_libs:
+                il_counter[il] += 1
+        top_il = il_counter.most_common(6)
+        il_parts = [f"{il} ({count})" for il, count in top_il]
+        lines.append(f"  [bold]Imaging:[/bold]    {has_il}/{n} projects · {', '.join(il_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1216,6 +1227,10 @@ def show_project_card(project: Project):
     if project.tech_stack.date_libs:
         dl = ", ".join(project.tech_stack.date_libs[:8])
         lines.append(f"  [bold]Date/Time:[/bold]  {dl}")
+
+    if project.tech_stack.image_libs:
+        il = ", ".join(project.tech_stack.image_libs[:8])
+        lines.append(f"  [bold]Imaging:[/bold]    {il}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

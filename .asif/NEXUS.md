@@ -151,8 +151,9 @@
 | N-138 | [Date & Time Library Detection](#n-138-date--time-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-139 | [Payment & Billing Intelligence](#n-139-payment--billing-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-140 | [Top Projects CSV Export](#n-140-top-projects-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-141 | [Image Processing Library Detection](#n-141-image-processing-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 137/140 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 138/141 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -203,7 +204,8 @@
 - Event streaming detection: Confluent Kafka, kafka-python, aiokafka, RabbitMQ (pika/aio-pika), Kombu, NATS, Apache Pulsar, Faust (Python), KafkaJS, RabbitMQ (amqplib), NATS, BullMQ, Google Pub/Sub, AWS SQS/SNS/Kinesis, Azure Event Hubs/Service Bus (JS/TS), kafka-go, Sarama, Watermill, NATS (Go), rdkafka, RabbitMQ (lapin), NATS (Rust), Spring Kafka/AMQP, Kafka Clients (Java)
 - Payment & billing detection: Stripe, PayPal, Braintree, Square, Adyen, Paddle, Razorpay, Mollie, Coinbase Commerce, GoCardless, Paystack, Flutterwave, Lemon Squeezy (Python), Stripe, PayPal, Braintree, Square, Adyen, Paddle, Razorpay, Mollie, Recurly, Chargebee, Lemon Squeezy (JS/TS), Stripe, PayPal, Braintree, Adyen, Razorpay (Go), async-stripe (Rust), Stripe, PayPal, Braintree, Adyen, Square, Razorpay (Java)
 - Date & time library detection: Arrow, Pendulum, python-dateutil, pytz, humanize, dateparser, iso8601, ciso8601 (Python), Day.js, date-fns, Luxon, Moment.js, Spacetime, Temporal, timeago.js, chrono-node (JS/TS), jinzhu/now, dateparse (Go), chrono, time (Rust), Joda-Time, ThreeTen-Extra, PrettyTime (Java)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138
+- Image processing library detection: Pillow, OpenCV, scikit-image, imageio, Wand, CairoSVG, pyvips, rawpy (Python), Sharp, Jimp, node-canvas, napi-canvas, GraphicsMagick, image-size, pngjs, pixelmatch, BlurHash, Plaiceholder, IMG.LY, Cropper.js (JS/TS), imaging, gg, nfnt/resize, bild, GoCV, x/image (Go), image, imageproc, resvg, OpenCV (Rust), Thumbnailator, imgscalr, TwelveMonkeys, Scrimage (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -691,6 +693,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-141: Image Processing Library Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects image processing libraries across Python (Pillow, OpenCV, scikit-image, imageio, Wand, CairoSVG, pyvips, rawpy), JS/TS (Sharp, Jimp, node-canvas, napi-canvas, GraphicsMagick, image-size, pngjs, pixelmatch, BlurHash, Plaiceholder, IMG.LY, Cropper.js), Go (imaging, gg, nfnt/resize, bild, GoCV, x/image), Rust (image, imageproc, resvg, OpenCV), Java (Thumbnailator, imgscalr, TwelveMonkeys, Scrimage). TechStack field, portfolio summary, project card, CSV/MD/JSON export, CLI search. 21 tests.
+**Shipped**: 2026-03-21. Total test count: 2125 → 2145. 44th detection category.
 
 ### N-140: Top Projects CSV Export
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
