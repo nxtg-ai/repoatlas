@@ -863,6 +863,71 @@ class TestExport:
         result = runner.invoke(app, ["export", "-o", str(out)])
         assert "(json)" in result.output
 
+    def _setup_two_projects(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init", "--name", "Filter Test"])
+        d1 = tmp_path / "alpha"
+        d1.mkdir()
+        hs1 = HealthScore(tests=1.0, git_hygiene=1.0, documentation=1.0, structure=1.0)
+        hs1.compute()
+        p1 = Project(name="alpha", path=str(d1),
+                     tech_stack=TechStack(languages={"Python": 10}, frameworks=["FastAPI"]),
+                     git_info=GitInfo(branch="main", total_commits=50, has_remote=True),
+                     health=hs1, test_file_count=5, source_file_count=20, total_file_count=30, loc=1000)
+        d2 = tmp_path / "beta"
+        d2.mkdir()
+        hs2 = HealthScore(tests=0.2, git_hygiene=0.2, documentation=0.2, structure=0.2)
+        hs2.compute()
+        p2 = Project(name="beta", path=str(d2),
+                     tech_stack=TechStack(languages={"TypeScript": 10}, frameworks=["Express"]),
+                     git_info=GitInfo(branch="main", total_commits=10, has_remote=True),
+                     health=hs2, test_file_count=1, source_file_count=10, total_file_count=15, loc=500)
+        with patch("atlas.cli.scan_project", side_effect=[p1, p2]):
+            runner.invoke(app, ["add", str(d1)])
+            runner.invoke(app, ["add", str(d2)])
+
+    def test_export_filter_grade(self, portfolio_dir, tmp_path):
+        self._setup_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["export", "--format", "json", "--grade", "A"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        names = [p["name"] for p in data["projects"]]
+        assert "alpha" in names
+        assert "beta" not in names
+
+    def test_export_filter_lang(self, portfolio_dir, tmp_path):
+        self._setup_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["export", "--format", "json", "--lang", "TypeScript"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        names = [p["name"] for p in data["projects"]]
+        assert "beta" in names
+        assert "alpha" not in names
+
+    def test_export_filter_has(self, portfolio_dir, tmp_path):
+        self._setup_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["export", "--format", "json", "--has", "FastAPI"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        names = [p["name"] for p in data["projects"]]
+        assert "alpha" in names
+        assert "beta" not in names
+
+    def test_export_filter_min_health(self, portfolio_dir, tmp_path):
+        self._setup_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["export", "--format", "json", "--min-health", "80"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        names = [p["name"] for p in data["projects"]]
+        assert "alpha" in names
+        assert "beta" not in names
+
+    def test_export_no_filter_includes_all(self, portfolio_dir, tmp_path):
+        self._setup_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["export", "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert len(data["projects"]) == 2
+
 
 # ===========================================================================
 # atlas config

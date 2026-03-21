@@ -105,8 +105,9 @@
 | N-92 | [Top Projects & Version Commands](#n-92-top-projects--version-commands) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-93 | [Task Queue & Background Job Detection](#n-93-task-queue--background-job-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-94 | [Task Queue Intelligence](#n-94-task-queue-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-95 | [Export Filtering](#n-95-export-filtering) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 91/94 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 92/95 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -207,7 +208,8 @@
 - Rename project: `atlas rename <old> <new>` renames a project in the portfolio. Prevents name collisions
 - Top projects command: `atlas top --by health|loc|tests|commits -n 5` shows top N projects ranked by metric
 - Version command: `atlas version` shows installed version
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92
+- Export filtering: `atlas export --grade A --lang Python --has Docker --min-health 80 --max-health 100` filters projects in any export format (markdown/json/csv)
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -579,6 +581,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project task queue intelligence: shared task queues (shared_task_queue), traditional vs workflow vs cron paradigm divergence (task_queue_divergence), task queue gaps for backend projects without background jobs (task_queue_gap). New CONNECTION_CATEGORIES entry "queues". 10 tests.
 **Shipped**: 2026-03-21. Total test count: 1630 → 1640. 30th intelligence feature.
+
+### N-95: Export Filtering
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--grade`, `--lang`, `--has`, `--min-health`, `--max-health` filter options to `atlas export` command. Matches the same filter flags from `atlas status`. Works with all export formats (markdown, json, csv). Enables exporting targeted subsets of the portfolio. 5 tests.
+**Shipped**: 2026-03-21. Total test count: 1640 → 1645. 28th experience feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

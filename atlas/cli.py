@@ -795,9 +795,39 @@ def batch_add(
 def export(
     format: Optional[str] = typer.Option(None, help="Export format: markdown, json, csv (auto-detected from -o extension)"),
     output: Optional[str] = typer.Option(None, "-o", help="Output file path (.md/.json/.csv auto-detects format)"),
+    grade: Optional[str] = typer.Option(None, help="Filter by health grade (A, B+, B, C, D, F)"),
+    lang: Optional[str] = typer.Option(None, help="Filter by language (e.g. Python, TypeScript)"),
+    has: Optional[str] = typer.Option(None, help="Filter by tech (e.g. Docker, FastAPI, pytest)"),
+    min_health: Optional[int] = typer.Option(None, help="Filter projects with health >= N%"),
+    max_health: Optional[int] = typer.Option(None, help="Filter projects with health <= N%"),
 ):
     """Export portfolio report."""
     portfolio = _load_portfolio()
+
+    # Apply filters
+    filtered = portfolio.projects
+    if grade:
+        grade_upper = grade.upper()
+        filtered = [p for p in filtered if p.health.grade == grade_upper]
+    if lang:
+        lang_lower = lang.lower()
+        filtered = [p for p in filtered
+                    if any(name.lower() == lang_lower for name in p.tech_stack.languages)]
+    if has:
+        has_lower = has.lower()
+        filtered = [p for p in filtered if _project_has_tech(p, has_lower)]
+    if min_health is not None:
+        filtered = [p for p in filtered if p.health.percent >= min_health]
+    if max_health is not None:
+        filtered = [p for p in filtered if p.health.percent <= max_health]
+
+    if len(filtered) != len(portfolio.projects):
+        portfolio = Portfolio(
+            name=portfolio.name,
+            projects=filtered,
+            created=portfolio.created,
+            last_scan=portfolio.last_scan,
+        )
 
     # Auto-detect format from output file extension
     ext_map = {".json": "json", ".csv": "csv", ".md": "markdown"}
