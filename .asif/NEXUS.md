@@ -56,8 +56,9 @@
 | N-43 | [CI/CD Configuration Detection](#n-43-cicd-configuration-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-44 | [Filterable Project List](#n-44-filterable-project-list) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-45 | [CI/CD Configuration Intelligence](#n-45-cicd-configuration-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-46 | [Dashboard Quick Insights](#n-46-dashboard-quick-insights) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 42/45 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 43/46 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -108,7 +109,8 @@
 - License distribution in portfolio summary panel and markdown export
 - Comprehensive JSON export with connections, recommendations, and portfolio aggregates
 - Filterable dashboard: `atlas status --grade A --lang Python --has Docker --min-health 80`
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44
+- Quick insights: top 3 actionable recommendations shown inline in `atlas status` dashboard
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -255,6 +257,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added 5 filter options to `atlas status`: `--grade` (filter by health grade A/B+/B/C/D/F), `--lang` (filter by language), `--has` (filter by any tech — searches all TechStack fields including frameworks, databases, infrastructure, security, quality, testing, package managers, docs artifacts, CI config), `--min-health` (minimum health %), `--max-health` (maximum health %). Filters compose (AND logic). When filters active, shows "Filtered: ..." header and creates a temporary Portfolio with only matching projects. Cross-project intelligence runs on filtered set. No match shows friendly message. Helper `_project_has_tech()` does case-insensitive search across all 11 TechStack list fields. 6 new CLI integration tests.
 **Shipped**: 2026-03-21. Total test count: 871 → 877. First interactive UX feature since N-16 (config).
+
+### N-46: Dashboard Quick Insights
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Top 3 critical/high-priority recommendations shown inline in `atlas status` dashboard via new `show_quick_insights()` function in display.py. Surfaces actionable intelligence directly in the main command without requiring a separate `atlas doctor` invocation. Shows project names, recommendation icons, and a "run atlas doctor for full report" hint with remaining count. Panel hidden when no critical/high recommendations exist (healthy portfolio). Works with both filtered and unfiltered views. 7 display unit tests + 2 CLI integration tests.
+**Shipped**: 2026-03-21. Total test count: 894 → 903. Bridges the gap between dashboard overview and actionable doctor recommendations.
 
 ### N-45: CI/CD Configuration Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

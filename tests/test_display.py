@@ -6,7 +6,8 @@ from unittest.mock import patch
 
 from rich.console import Console
 
-from atlas.display import _show_portfolio_summary, show_status
+from atlas.display import _show_portfolio_summary, show_quick_insights, show_status
+from atlas.recommendations import Recommendation
 from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
 
@@ -401,3 +402,74 @@ class TestShowStatusSummaryPanel:
         portfolio = Portfolio(name="Test", projects=[], last_scan="2026-03-13T12:00:00")
         output = _capture_status(portfolio)
         assert "Portfolio Summary" not in output
+
+
+def _capture_quick_insights(recs: list) -> str:
+    """Capture rendered output from show_quick_insights."""
+    buf = StringIO()
+    test_console = Console(file=buf, force_terminal=False, width=120)
+    with patch("atlas.display.console", test_console):
+        show_quick_insights(recs)
+    return buf.getvalue()
+
+
+class TestQuickInsights:
+    def test_shows_critical_recs(self):
+        recs = [
+            Recommendation("critical", "tests", "Zero tests in app1", ["app1"]),
+        ]
+        output = _capture_quick_insights(recs)
+        assert "Zero tests in app1" in output
+        assert "Quick Insights" in output
+
+    def test_shows_high_recs(self):
+        recs = [
+            Recommendation("high", "security", "No security tooling in app2", ["app2"]),
+        ]
+        output = _capture_quick_insights(recs)
+        assert "No security tooling" in output
+
+    def test_hides_medium_low_only(self):
+        recs = [
+            Recommendation("medium", "docs", "Sparse docs in app1", ["app1"]),
+            Recommendation("low", "structure", "Minor structure issue", ["app1"]),
+        ]
+        output = _capture_quick_insights(recs)
+        assert output == ""
+
+    def test_max_three_shown(self):
+        recs = [
+            Recommendation("critical", "tests", "Issue 1", ["a"]),
+            Recommendation("critical", "tests", "Issue 2", ["b"]),
+            Recommendation("high", "security", "Issue 3", ["c"]),
+            Recommendation("high", "quality", "Issue 4", ["d"]),
+        ]
+        output = _capture_quick_insights(recs)
+        assert "Issue 1" in output
+        assert "Issue 2" in output
+        assert "Issue 3" in output
+        assert "Issue 4" not in output
+        assert "1 more" in output
+
+    def test_shows_remaining_count(self):
+        recs = [
+            Recommendation("critical", "tests", "Fix tests", ["a"]),
+            Recommendation("medium", "docs", "Improve docs", ["b"]),
+            Recommendation("medium", "quality", "Add linter", ["c"]),
+        ]
+        output = _capture_quick_insights(recs)
+        assert "Fix tests" in output
+        assert "2 more suggestions" in output
+        assert "atlas doctor" in output
+
+    def test_empty_recs(self):
+        output = _capture_quick_insights([])
+        assert output == ""
+
+    def test_project_names_shown(self):
+        recs = [
+            Recommendation("critical", "tests", "Zero tests", ["app1", "app2"]),
+        ]
+        output = _capture_quick_insights(recs)
+        assert "app1" in output
+        assert "app2" in output

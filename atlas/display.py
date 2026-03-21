@@ -671,6 +671,38 @@ def _health_icon(score: float) -> str:
         return "[dim red]\u25cf[/dim red]"
 
 
+def show_quick_insights(recs: list) -> None:
+    """Show top critical/high recommendations inline after dashboard."""
+    top = [r for r in recs if r.priority in ("critical", "high")][:3]
+    if not top:
+        return
+
+    lines = []
+    for r in top:
+        proj_list = ", ".join(r.projects[:3])
+        if len(r.projects) > 3:
+            proj_list += f" +{len(r.projects) - 3}"
+        lines.append(f"  {r.icon} {r.message}")
+        lines.append(f"     [dim]{proj_list}[/dim]")
+
+    remaining = len([r for r in recs if r.priority in ("critical", "high")]) - len(top)
+    if remaining > 0:
+        lines.append(f"  [dim]... and {remaining} more — run [bold]atlas doctor[/bold] for full report[/dim]")
+    else:
+        total = len(recs)
+        extra = total - len(top)
+        if extra > 0:
+            lines.append(f"  [dim]{extra} more suggestions — run [bold]atlas doctor[/bold] for full report[/dim]")
+
+    content = "\n".join(lines)
+    console.print(Panel(
+        content,
+        title="[bold white] Quick Insights [/bold white]",
+        border_style="yellow",
+        padding=(0, 2),
+    ))
+
+
 def _mini_bar(value: float, width: int = 15) -> str:
     """Create a mini progress bar."""
     filled = int(value * width)

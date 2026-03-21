@@ -842,3 +842,56 @@ class TestStatusFilters:
         assert "a" in result.output
         assert "b" in result.output
         assert "Filtered" not in result.output
+
+
+# ===========================================================================
+# atlas status — quick insights
+# ===========================================================================
+
+
+class TestQuickInsights:
+    def test_status_shows_quick_insights_for_unhealthy(self, portfolio_dir, tmp_path):
+        """Projects missing security/quality tools should trigger quick insights."""
+        runner.invoke(app, ["init"])
+        # No security_tools, no quality_tools → recommendations generated
+        proj = _make_project("app1", str(tmp_path / "app1"))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            d = tmp_path / "app1"
+            d.mkdir()
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status"])
+        assert result.exit_code == 0
+        assert "Quick Insights" in result.output
+
+    def test_status_hides_quick_insights_when_healthy(self, portfolio_dir, tmp_path):
+        """Fully healthy project should not show quick insights."""
+        runner.invoke(app, ["init"])
+        hs = HealthScore(tests=0.9, git_hygiene=1.0, documentation=0.8, structure=0.9)
+        hs.compute()
+        proj = Project(
+            name="healthy",
+            path=str(tmp_path / "healthy"),
+            tech_stack=TechStack(
+                languages={"Python": 10},
+                frameworks=["FastAPI"],
+                security_tools=["Dependabot", "Gitleaks"],
+                quality_tools=["Ruff", "mypy"],
+                infrastructure=["GitHub Actions"],
+                testing_frameworks=["pytest"],
+                docs_artifacts=["README", "CHANGELOG", "CONTRIBUTING"],
+                ci_config=["PR template", "pre-commit"],
+            ),
+            git_info=GitInfo(branch="main", total_commits=50, has_remote=True),
+            health=hs,
+            test_file_count=10,
+            source_file_count=15,
+            loc=1000,
+            license="MIT",
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            d = tmp_path / "healthy"
+            d.mkdir()
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status"])
+        assert result.exit_code == 0
+        assert "Quick Insights" not in result.output

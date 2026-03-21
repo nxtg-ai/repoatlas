@@ -11,7 +11,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskPr
 
 from atlas.config import get_value, load_config, set_value, valid_keys
 from atlas.connections import find_connections
-from atlas.display import console, show_comparison, show_connections, show_project_card, show_scan_complete, show_status
+from atlas.display import console, show_comparison, show_connections, show_project_card, show_quick_insights, show_scan_complete, show_status
 from atlas.export_report import build_json_report, build_markdown_report
 from atlas.history import build_scan_entry, compute_trends, load_history, save_scan
 from atlas.license_manager import activate as activate_license, get_status as get_license_status
@@ -218,6 +218,18 @@ def status(
         if conns:
             console.print()
             show_connections(conns)
+
+    # Quick insights — top actionable recommendations
+    display_portfolio = Portfolio(
+        name=portfolio.name,
+        projects=display_projects,
+        created=portfolio.created,
+        last_scan=portfolio.last_scan,
+    ) if active_filters else portfolio
+    recs = generate_recommendations(display_portfolio)
+    if recs:
+        console.print()
+        show_quick_insights(recs)
 
 
 def _project_has_tech(project, term: str) -> bool:
