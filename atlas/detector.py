@@ -4401,3 +4401,126 @@ def detect_graphql_libs(project_path: Path) -> list[str]:
             break
 
     return sorted(tools)
+
+
+def detect_event_streaming(project_path: Path) -> list[str]:
+    """Detect event streaming and message broker libraries."""
+    import json as _json
+
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # --- Python ---
+    py_map = {
+        "confluent-kafka": "Confluent Kafka",
+        "kafka-python": "kafka-python",
+        "aiokafka": "aiokafka",
+        "pika": "RabbitMQ (pika)",
+        "aio-pika": "RabbitMQ (aio-pika)",
+        "kombu": "Kombu",
+        "nats-py": "NATS",
+        "pulsar-client": "Apache Pulsar",
+        "faust-streaming": "Faust",
+        "faust": "Faust",
+    }
+    for dep, name in py_map.items():
+        if dep in py_deps:
+            _add(name)
+
+    # --- JS/TS ---
+    pkg_json_path = project_path / "package.json"
+    pkg_json: dict = {}
+    if pkg_json_path.exists():
+        try:
+            pkg_json = _json.loads(pkg_json_path.read_text())
+        except Exception:
+            pass
+    all_js = set(pkg_json.get("dependencies", {}).keys()) | set(pkg_json.get("devDependencies", {}).keys())
+    js_map = {
+        "kafkajs": "KafkaJS",
+        "amqplib": "RabbitMQ (amqplib)",
+        "rhea": "AMQP (rhea)",
+        "nats": "NATS",
+        "pulsar-client": "Apache Pulsar",
+        "bullmq": "BullMQ",
+        "@google-cloud/pubsub": "Google Pub/Sub",
+        "@aws-sdk/client-sqs": "AWS SQS",
+        "@aws-sdk/client-sns": "AWS SNS",
+        "@aws-sdk/client-kinesis": "AWS Kinesis",
+        "@azure/event-hubs": "Azure Event Hubs",
+        "@azure/service-bus": "Azure Service Bus",
+    }
+    for dep, name in js_map.items():
+        if dep in all_js:
+            _add(name)
+
+    # --- Go ---
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text()
+            go_map = {
+                "github.com/segmentio/kafka-go": "kafka-go",
+                "github.com/confluentinc/confluent-kafka-go": "Confluent Kafka (Go)",
+                "github.com/Shopify/sarama": "Sarama",
+                "github.com/IBM/sarama": "Sarama",
+                "github.com/streadway/amqp": "RabbitMQ (Go)",
+                "github.com/rabbitmq/amqp091-go": "RabbitMQ (Go)",
+                "github.com/nats-io/nats.go": "NATS (Go)",
+                "github.com/apache/pulsar-client-go": "Apache Pulsar (Go)",
+                "github.com/ThreeDotsLabs/watermill": "Watermill",
+            }
+            for mod, name in go_map.items():
+                if mod in content:
+                    _add(name)
+        except Exception:
+            pass
+
+    # --- Rust ---
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            content = cargo_toml.read_text()
+            rust_map = {
+                "rdkafka": "rdkafka",
+                "lapin": "RabbitMQ (lapin)",
+                "async-nats": "NATS (Rust)",
+                "pulsar": "Apache Pulsar (Rust)",
+            }
+            for crate, name in rust_map.items():
+                if crate in content:
+                    _add(name)
+        except Exception:
+            pass
+
+    # --- Java ---
+    java_deps = []
+    for build_file in ("build.gradle", "build.gradle.kts", "pom.xml"):
+        bf = project_path / build_file
+        if bf.exists():
+            try:
+                java_deps.append(bf.read_text())
+            except Exception:
+                pass
+    java_content = " ".join(java_deps)
+    java_map = {
+        "spring-kafka": "Spring Kafka",
+        "kafka-clients": "Kafka Clients",
+        "spring-amqp": "Spring AMQP",
+        "spring-rabbit": "Spring RabbitMQ",
+        "nats-client": "NATS (Java)",
+        "azure-messaging-eventhubs": "Azure Event Hubs",
+        "azure-messaging-servicebus": "Azure Service Bus",
+    }
+    for dep, name in java_map.items():
+        if dep in java_content:
+            _add(name)
+
+    return sorted(tools)

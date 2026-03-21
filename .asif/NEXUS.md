@@ -142,8 +142,9 @@
 | N-129 | [GraphQL Library Detection](#n-129-graphql-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-130 | [Doctor Priority Filter](#n-130-doctor-priority-filter) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-131 | [GraphQL Intelligence](#n-131-graphql-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-132 | [Event Streaming Detection](#n-132-event-streaming-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 128/131 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 129/132 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -191,7 +192,8 @@
 - Dependency injection detection: dependency-injector, python-inject, Lagom, punq, wireup, svcs, dishka, FastAPI Depends (Python), InversifyJS, tsyringe, TypeDI, Awilix, BottleJS, injection-js, Angular DI, NestJS DI (JS/TS), Uber Fx, Uber Dig, Wire, do (Go), Shaku, inject (Rust), Spring DI, Google Guice, Dagger, CDI, Micronaut DI, Quarkus CDI (Java)
 - WebSocket library detection: websockets, python-socketio, Django Channels, Starlette WebSocket, Tornado WebSocket, Autobahn, aiohttp WebSocket, wsproto (Python), Socket.IO, ws, SockJS, Primus, tRPC WebSocket, graphql-ws, Pusher, Ably, Action Cable, Centrifugo (JS/TS), Gorilla WebSocket, nhooyr/websocket, gobwas/ws, Melody (Go), Tungstenite, Axum/Actix/Warp WebSocket (Rust), Spring WebSocket, Jakarta WebSocket, Tyrus, Netty WebSocket (Java)
 - GraphQL library detection: Graphene, Graphene-Django, Ariadne, Strawberry, sgqlc, gql, graphql-core, Tartiflette (Python), graphql-js, Apollo Server, Apollo Client, GraphQL Yoga, TypeGraphQL, Nexus, GraphQL Code Generator, graphql-request, URQL, Relay, Mercurius, Pothos, graphql-tools, graphql-tag (JS/TS), gqlgen, graphql-go, graph-gophers, Thunder, genqlient (Go), Juniper, async-graphql, graphql-client, Cynic (Rust), graphql-java, GraphQL Spring, Netflix DGS, SmallRye GraphQL, graphql-kotlin (Java) — also detects .graphql/.gql schema files
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129
+- Event streaming detection: Confluent Kafka, kafka-python, aiokafka, RabbitMQ (pika/aio-pika), Kombu, NATS, Apache Pulsar, Faust (Python), KafkaJS, RabbitMQ (amqplib), NATS, BullMQ, Google Pub/Sub, AWS SQS/SNS/Kinesis, Azure Event Hubs/Service Bus (JS/TS), kafka-go, Sarama, Watermill, NATS (Go), rdkafka, RabbitMQ (lapin), NATS (Rust), Spring Kafka/AMQP, Kafka Clients (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -673,6 +675,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-132: Event Streaming Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_event_streaming()` in detector.py. Detects event streaming/message broker libraries across ecosystems: Python (Confluent Kafka, kafka-python, aiokafka, RabbitMQ pika/aio-pika, Kombu, NATS, Apache Pulsar, Faust), JS/TS (KafkaJS, RabbitMQ amqplib, AMQP rhea, NATS, BullMQ, Google Pub/Sub, AWS SQS/SNS/Kinesis, Azure Event Hubs/Service Bus), Go (kafka-go, Sarama, RabbitMQ, NATS, Apache Pulsar, Watermill), Rust (rdkafka, lapin, async-nats, pulsar), Java (Spring Kafka/AMQP/RabbitMQ, Kafka Clients, NATS, Azure). Added `event_streaming` field to TechStack model. Shows in project card, portfolio summary, all exports. 24 detection tests.
+**Shipped**: 2026-03-21. Total test count: 2026 → 2050. 41st detection category.
 
 ### N-131: GraphQL Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

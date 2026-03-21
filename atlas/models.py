@@ -48,6 +48,7 @@ class TechStack:
     di_frameworks: list[str] = field(default_factory=list)
     websocket_libs: list[str] = field(default_factory=list)
     graphql_libs: list[str] = field(default_factory=list)
+    event_streaming: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -177,6 +178,7 @@ class Project:
                 "di_frameworks": self.tech_stack.di_frameworks,
                 "websocket_libs": self.tech_stack.websocket_libs,
                 "graphql_libs": self.tech_stack.graphql_libs,
+                "event_streaming": self.tech_stack.event_streaming,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -251,6 +253,7 @@ class Project:
                 di_frameworks=ts.get("di_frameworks", []),
                 websocket_libs=ts.get("websocket_libs", []),
                 graphql_libs=ts.get("graphql_libs", []),
+                event_streaming=ts.get("event_streaming", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

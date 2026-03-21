@@ -718,6 +718,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         gql_parts = [f"{gl} ({count})" for gl, count in top_gql]
         lines.append(f"  [bold]GraphQL:[/bold]      {has_gql}/{n} projects · {', '.join(gql_parts)}")
 
+    # Event streaming
+    has_es = sum(1 for p in projects if p.tech_stack.event_streaming)
+    if has_es:
+        es_counter: Counter[str] = Counter()
+        for p in projects:
+            for es in p.tech_stack.event_streaming:
+                es_counter[es] += 1
+        top_es = es_counter.most_common(6)
+        es_parts = [f"{es} ({count})" for es, count in top_es]
+        lines.append(f"  [bold]Streaming:[/bold]  {has_es}/{n} projects · {', '.join(es_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1161,6 +1172,10 @@ def show_project_card(project: Project):
     if project.tech_stack.graphql_libs:
         gql = ", ".join(project.tech_stack.graphql_libs[:8])
         lines.append(f"  [bold]GraphQL:[/bold]    {gql}")
+
+    if project.tech_stack.event_streaming:
+        es = ", ".join(project.tech_stack.event_streaming[:8])
+        lines.append(f"  [bold]Streaming:[/bold]  {es}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

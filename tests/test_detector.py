@@ -46,6 +46,7 @@ from atlas.detector import (
     detect_di_frameworks,
     detect_websocket_libs,
     detect_graphql_libs,
+    detect_event_streaming,
     walk_files,
 )
 
@@ -5193,3 +5194,125 @@ class TestDetectGraphqlLibs:
         (tmp_path / "package.json").write_text('{"dependencies": {"apollo-server": "^3.0", "@apollo/server": "^4.0"}}')
         result = detect_graphql_libs(tmp_path)
         assert result.count("Apollo Server") == 1
+
+
+class TestDetectEventStreaming:
+    def test_empty(self, tmp_path):
+        assert detect_event_streaming(tmp_path) == []
+
+    def test_python_confluent_kafka(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("confluent-kafka>=2.0\n")
+        result = detect_event_streaming(tmp_path)
+        assert "Confluent Kafka" in result
+
+    def test_python_kafka_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("kafka-python>=2.0\n")
+        result = detect_event_streaming(tmp_path)
+        assert "kafka-python" in result
+
+    def test_python_pika_rabbitmq(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pika>=1.3\n")
+        result = detect_event_streaming(tmp_path)
+        assert "RabbitMQ (pika)" in result
+
+    def test_python_nats(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("nats-py>=2.0\n")
+        result = detect_event_streaming(tmp_path)
+        assert "NATS" in result
+
+    def test_python_pulsar(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pulsar-client>=3.0\n")
+        result = detect_event_streaming(tmp_path)
+        assert "Apache Pulsar" in result
+
+    def test_python_faust(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("faust-streaming>=0.10\n")
+        result = detect_event_streaming(tmp_path)
+        assert "Faust" in result
+
+    def test_python_kombu(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("kombu>=5.0\n")
+        result = detect_event_streaming(tmp_path)
+        assert "Kombu" in result
+
+    def test_js_kafkajs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"kafkajs": "^2.0"}}')
+        result = detect_event_streaming(tmp_path)
+        assert "KafkaJS" in result
+
+    def test_js_amqplib(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"amqplib": "^0.10"}}')
+        result = detect_event_streaming(tmp_path)
+        assert "RabbitMQ (amqplib)" in result
+
+    def test_js_bullmq(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"bullmq": "^4.0"}}')
+        result = detect_event_streaming(tmp_path)
+        assert "BullMQ" in result
+
+    def test_js_google_pubsub(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@google-cloud/pubsub": "^4.0"}}')
+        result = detect_event_streaming(tmp_path)
+        assert "Google Pub/Sub" in result
+
+    def test_js_aws_sqs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@aws-sdk/client-sqs": "^3.0"}}')
+        result = detect_event_streaming(tmp_path)
+        assert "AWS SQS" in result
+
+    def test_js_azure_event_hubs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@azure/event-hubs": "^5.0"}}')
+        result = detect_event_streaming(tmp_path)
+        assert "Azure Event Hubs" in result
+
+    def test_go_kafka_go(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire github.com/segmentio/kafka-go v0.4\n")
+        result = detect_event_streaming(tmp_path)
+        assert "kafka-go" in result
+
+    def test_go_sarama(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire github.com/IBM/sarama v1.41\n")
+        result = detect_event_streaming(tmp_path)
+        assert "Sarama" in result
+
+    def test_go_nats(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire github.com/nats-io/nats.go v1.30\n")
+        result = detect_event_streaming(tmp_path)
+        assert "NATS (Go)" in result
+
+    def test_go_watermill(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire github.com/ThreeDotsLabs/watermill v1.3\n")
+        result = detect_event_streaming(tmp_path)
+        assert "Watermill" in result
+
+    def test_rust_rdkafka(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nrdkafka = "0.36"\n')
+        result = detect_event_streaming(tmp_path)
+        assert "rdkafka" in result
+
+    def test_rust_lapin(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nlapin = "2.3"\n')
+        result = detect_event_streaming(tmp_path)
+        assert "RabbitMQ (lapin)" in result
+
+    def test_java_spring_kafka(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.springframework.kafka:spring-kafka:3.0'\n")
+        result = detect_event_streaming(tmp_path)
+        assert "Spring Kafka" in result
+
+    def test_java_spring_amqp(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.springframework.amqp:spring-amqp:3.0'\n")
+        result = detect_event_streaming(tmp_path)
+        assert "Spring AMQP" in result
+
+    def test_sorted(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pika>=1.3\nconfluent-kafka>=2.0\nkombu>=5.0\n")
+        result = detect_event_streaming(tmp_path)
+        assert result == sorted(result)
+
+    def test_multiple_libs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"kafkajs": "^2.0", "amqplib": "^0.10", "bullmq": "^4.0"}}')
+        result = detect_event_streaming(tmp_path)
+        assert "KafkaJS" in result
+        assert "RabbitMQ (amqplib)" in result
+        assert "BullMQ" in result
