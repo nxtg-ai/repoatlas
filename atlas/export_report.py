@@ -305,6 +305,17 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         log_names = ", ".join(t for t, _ in top_log)
         lines.append(f"**Logging**: {has_log}/{n} projects \u00b7 {log_names}")
 
+    # Container orchestration
+    has_co = sum(1 for p in projects if p.tech_stack.container_orchestration)
+    if has_co:
+        co_counter: Counter[str] = Counter()
+        for p in projects:
+            for co in p.tech_stack.container_orchestration:
+                co_counter[co] += 1
+        top_co = co_counter.most_common(6)
+        co_names = ", ".join(t for t, _ in top_co)
+        lines.append(f"**Containers**: {has_co}/{n} projects \u00b7 {co_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -393,6 +404,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.logging_tools:
             lines.append(f"- **Logging**: {', '.join(p.tech_stack.logging_tools[:8])}")
+
+        if p.tech_stack.container_orchestration:
+            lines.append(f"- **Containers**: {', '.join(p.tech_stack.container_orchestration[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -750,6 +764,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             log_counter2[lt] += 1
     has_log = sum(1 for p in projects if p.tech_stack.logging_tools)
 
+    # Container orchestration
+    co_counter2: Counter[str] = Counter()
+    for p in projects:
+        for co in p.tech_stack.container_orchestration:
+            co_counter2[co] += 1
+    has_co = sum(1 for p in projects if p.tech_stack.container_orchestration)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -787,6 +808,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "i18n_tools": {"coverage": f"{has_i18n}/{n}", "tools": dict(i18n_counter2.most_common(10))},
         "validation_tools": {"coverage": f"{has_val}/{n}", "tools": dict(val_counter2.most_common(10))},
         "logging_tools": {"coverage": f"{has_log}/{n}", "tools": dict(log_counter2.most_common(10))},
+        "container_orchestration": {"coverage": f"{has_co}/{n}", "tools": dict(co_counter2.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -806,6 +828,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Docs Artifacts", "CI Config", "Runtime Versions", "Build Tools", "API Specs",
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
+        "Container Orchestration",
         "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
@@ -852,6 +875,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.i18n_tools),
             "; ".join(ts.validation_tools),
             "; ".join(ts.logging_tools),
+            "; ".join(ts.container_orchestration),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

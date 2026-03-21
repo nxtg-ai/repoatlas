@@ -33,6 +33,7 @@ class TechStack:
     i18n_tools: list[str] = field(default_factory=list)
     validation_tools: list[str] = field(default_factory=list)
     logging_tools: list[str] = field(default_factory=list)
+    container_orchestration: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -147,6 +148,7 @@ class Project:
                 "i18n_tools": self.tech_stack.i18n_tools,
                 "validation_tools": self.tech_stack.validation_tools,
                 "logging_tools": self.tech_stack.logging_tools,
+                "container_orchestration": self.tech_stack.container_orchestration,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -206,6 +208,7 @@ class Project:
                 i18n_tools=ts.get("i18n_tools", []),
                 validation_tools=ts.get("validation_tools", []),
                 logging_tools=ts.get("logging_tools", []),
+                container_orchestration=ts.get("container_orchestration", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

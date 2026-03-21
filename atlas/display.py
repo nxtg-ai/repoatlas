@@ -514,6 +514,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         log_parts = [f"{lt} ({count})" for lt, count in top_log]
         lines.append(f"  [bold]Logging:[/bold]     {has_log}/{n} projects \u00b7 {', '.join(log_parts)}")
 
+    # Container orchestration
+    has_co = sum(1 for p in projects if p.tech_stack.container_orchestration)
+    if has_co:
+        co_counter: Counter[str] = Counter()
+        for p in projects:
+            for co in p.tech_stack.container_orchestration:
+                co_counter[co] += 1
+        top_co = co_counter.most_common(6)
+        co_parts = [f"{co} ({count})" for co, count in top_co]
+        lines.append(f"  [bold]Containers:[/bold]  {has_co}/{n} projects \u00b7 {', '.join(co_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -843,6 +854,10 @@ def show_project_card(project: Project):
     if project.tech_stack.logging_tools:
         log = ", ".join(project.tech_stack.logging_tools[:8])
         lines.append(f"  [bold]Logging:[/bold]    {log}")
+
+    if project.tech_stack.container_orchestration:
+        co = ", ".join(project.tech_stack.container_orchestration[:8])
+        lines.append(f"  [bold]Containers:[/bold] {co}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

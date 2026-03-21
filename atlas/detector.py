@@ -2510,3 +2510,88 @@ def detect_logging_tools(project_path: Path) -> list[str]:
             pass
 
     return sorted(tools)
+
+
+def detect_container_orchestration(project_path: Path) -> list[str]:
+    """Detect container orchestration and infrastructure-as-code tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str):
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Docker Compose
+    for name in ("docker-compose.yml", "docker-compose.yaml",
+                 "compose.yml", "compose.yaml"):
+        if (project_path / name).exists():
+            _add("Docker Compose")
+            break
+
+    # Kubernetes manifests
+    k8s_dirs = ("k8s", "kubernetes", "kube", "manifests", "deploy")
+    for d in k8s_dirs:
+        if (project_path / d).is_dir():
+            _add("Kubernetes")
+            break
+
+    # Helm charts
+    if (project_path / "Chart.yaml").exists() or (project_path / "charts").is_dir():
+        _add("Helm")
+
+    # Kustomize
+    if (project_path / "kustomization.yaml").exists() or (project_path / "kustomization.yml").exists():
+        _add("Kustomize")
+
+    # Skaffold
+    if (project_path / "skaffold.yaml").exists() or (project_path / "skaffold.yml").exists():
+        _add("Skaffold")
+
+    # Tilt
+    if (project_path / "Tiltfile").exists():
+        _add("Tilt")
+
+    # Terraform
+    for f in project_path.iterdir():
+        if f.suffix == ".tf" and f.is_file():
+            _add("Terraform")
+            break
+
+    # Pulumi
+    if (project_path / "Pulumi.yaml").exists() or (project_path / "Pulumi.yml").exists():
+        _add("Pulumi")
+
+    # Ansible
+    for name in ("ansible.cfg", "playbook.yml", "playbook.yaml"):
+        if (project_path / name).exists():
+            _add("Ansible")
+            break
+    if (project_path / "playbooks").is_dir() or (project_path / "roles").is_dir():
+        _add("Ansible")
+
+    # Nomad
+    for f in project_path.iterdir():
+        if f.suffix == ".nomad" and f.is_file():
+            _add("Nomad")
+            break
+    if (project_path / "nomad").is_dir():
+        _add("Nomad")
+
+    # Docker Swarm (docker-stack.yml)
+    for name in ("docker-stack.yml", "docker-stack.yaml"):
+        if (project_path / name).exists():
+            _add("Docker Swarm")
+            break
+
+    # Vagrant
+    if (project_path / "Vagrantfile").exists():
+        _add("Vagrant")
+
+    # Packer
+    for f in project_path.iterdir():
+        if f.name.endswith(".pkr.hcl") and f.is_file():
+            _add("Packer")
+            break
+
+    return sorted(tools)

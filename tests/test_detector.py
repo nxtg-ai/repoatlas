@@ -31,6 +31,7 @@ from atlas.detector import (
     detect_i18n_tools,
     detect_validation_tools,
     detect_logging_tools,
+    detect_container_orchestration,
     walk_files,
 )
 
@@ -3550,3 +3551,112 @@ class TestDetectLoggingTools:
         (tmp_path / "package.json").write_text("not json")
         result = detect_logging_tools(tmp_path)
         assert result == []
+
+
+# ---------------------------------------------------------------------------
+# detect_container_orchestration
+# ---------------------------------------------------------------------------
+class TestDetectContainerOrchestration:
+    def test_empty_project(self, tmp_path):
+        assert detect_container_orchestration(tmp_path) == []
+
+    def test_docker_compose(self, tmp_path):
+        (tmp_path / "docker-compose.yml").write_text("version: '3'")
+        assert "Docker Compose" in detect_container_orchestration(tmp_path)
+
+    def test_docker_compose_yaml(self, tmp_path):
+        (tmp_path / "docker-compose.yaml").write_text("version: '3'")
+        assert "Docker Compose" in detect_container_orchestration(tmp_path)
+
+    def test_kubernetes_dir(self, tmp_path):
+        (tmp_path / "k8s").mkdir()
+        (tmp_path / "k8s" / "deployment.yaml").write_text("kind: Deployment")
+        assert "Kubernetes" in detect_container_orchestration(tmp_path)
+
+    def test_kubernetes_manifests_dir(self, tmp_path):
+        (tmp_path / "manifests").mkdir()
+        (tmp_path / "manifests" / "service.yaml").write_text("kind: Service")
+        assert "Kubernetes" in detect_container_orchestration(tmp_path)
+
+    def test_kubernetes_deploy_dir(self, tmp_path):
+        (tmp_path / "deploy").mkdir()
+        (tmp_path / "deploy" / "pod.yaml").write_text("kind: Pod")
+        assert "Kubernetes" in detect_container_orchestration(tmp_path)
+
+    def test_helm_chart_yaml(self, tmp_path):
+        (tmp_path / "Chart.yaml").write_text("apiVersion: v2")
+        assert "Helm" in detect_container_orchestration(tmp_path)
+
+    def test_helm_charts_dir(self, tmp_path):
+        (tmp_path / "charts").mkdir()
+        (tmp_path / "charts" / "myapp").mkdir()
+        assert "Helm" in detect_container_orchestration(tmp_path)
+
+    def test_kustomize(self, tmp_path):
+        (tmp_path / "kustomization.yaml").write_text("resources: []")
+        assert "Kustomize" in detect_container_orchestration(tmp_path)
+
+    def test_skaffold(self, tmp_path):
+        (tmp_path / "skaffold.yaml").write_text("apiVersion: skaffold/v2beta")
+        assert "Skaffold" in detect_container_orchestration(tmp_path)
+
+    def test_tilt(self, tmp_path):
+        (tmp_path / "Tiltfile").write_text("docker_build('myapp', '.')")
+        assert "Tilt" in detect_container_orchestration(tmp_path)
+
+    def test_terraform(self, tmp_path):
+        (tmp_path / "main.tf").write_text('provider "aws" {}')
+        assert "Terraform" in detect_container_orchestration(tmp_path)
+
+    def test_pulumi(self, tmp_path):
+        (tmp_path / "Pulumi.yaml").write_text("name: myproject")
+        assert "Pulumi" in detect_container_orchestration(tmp_path)
+
+    def test_ansible_cfg(self, tmp_path):
+        (tmp_path / "ansible.cfg").write_text("[defaults]")
+        assert "Ansible" in detect_container_orchestration(tmp_path)
+
+    def test_ansible_playbook(self, tmp_path):
+        (tmp_path / "playbook.yml").write_text("- hosts: all")
+        assert "Ansible" in detect_container_orchestration(tmp_path)
+
+    def test_nomad(self, tmp_path):
+        (tmp_path / "app.nomad").write_text("job 'app' {}")
+        assert "Nomad" in detect_container_orchestration(tmp_path)
+
+    def test_docker_swarm(self, tmp_path):
+        (tmp_path / "docker-stack.yml").write_text("version: '3'")
+        assert "Docker Swarm" in detect_container_orchestration(tmp_path)
+
+    def test_vagrant(self, tmp_path):
+        (tmp_path / "Vagrantfile").write_text("Vagrant.configure('2') do |config|")
+        assert "Vagrant" in detect_container_orchestration(tmp_path)
+
+    def test_packer(self, tmp_path):
+        (tmp_path / "image.pkr.hcl").write_text('source "amazon-ebs" {}')
+        assert "Packer" in detect_container_orchestration(tmp_path)
+
+    def test_multiple_tools(self, tmp_path):
+        (tmp_path / "docker-compose.yml").write_text("version: '3'")
+        (tmp_path / "k8s").mkdir()
+        (tmp_path / "k8s" / "deploy.yaml").write_text("kind: Deployment")
+        (tmp_path / "main.tf").write_text('provider "aws" {}')
+        result = detect_container_orchestration(tmp_path)
+        assert "Docker Compose" in result
+        assert "Kubernetes" in result
+        assert "Terraform" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "docker-compose.yml").write_text("version: '3'")
+        (tmp_path / "Vagrantfile").write_text("config")
+        (tmp_path / "main.tf").write_text("provider")
+        result = detect_container_orchestration(tmp_path)
+        assert result == sorted(result)
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "k8s").mkdir()
+        (tmp_path / "k8s" / "a.yaml").write_text("kind: Deployment")
+        (tmp_path / "kubernetes").mkdir()
+        (tmp_path / "kubernetes" / "b.yaml").write_text("kind: Service")
+        result = detect_container_orchestration(tmp_path)
+        assert result.count("Kubernetes") == 1
