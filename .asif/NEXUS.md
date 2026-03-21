@@ -41,8 +41,9 @@
 | N-28 | [Testing Framework Detection](#n-28-testing-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 | N-29 | [Testing Intelligence](#n-29-testing-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-30 | [Testing Summary Panel](#n-30-testing-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
+| N-31 | [Enhanced Database Detection](#n-31-enhanced-database-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 27/30 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 28/31 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -56,7 +57,8 @@
 - AI/ML tooling: Anthropic, OpenAI, LangChain, LlamaIndex, Transformers, PyTorch, TensorFlow, Vercel AI SDK, MLflow, W&B, DVC, Jupyter
 - Code quality tooling: Ruff, Flake8, Pylint, ESLint, Biome, Black, Prettier, mypy, Pyright, TypeScript, golangci-lint, Clippy
 - Testing frameworks: pytest, Jest, Vitest, Mocha, Cypress, Playwright, go test, cargo test, tox, nox, Hypothesis, AVA, Testing Library
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28
+- Database & data stores: PostgreSQL, MySQL, SQLite, MongoDB, Redis, Elasticsearch, Neo4j, Cassandra, InfluxDB, DynamoDB, Firestore, Supabase, PlanetScale, CockroachDB, ChromaDB, Pinecone, Qdrant, Weaviate, Kafka, RabbitMQ, Memcached
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -215,6 +217,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Enhanced `atlas doctor` recommendations engine to leverage all detection data from N-17/N-19/N-24/N-25. Per-project: security (no tooling, missing dep scanning, missing secret scanning), quality (no tooling, missing linting, missing type checking), infrastructure (no CI/CD). Cross-project: maps security_gap/security_divergence, quality_gap/quality_divergence, infra_gap/infra_divergence connections to prioritized recommendations. 23 new recommendation tests.
 **Shipped**: 2026-03-13. Total test count: 583 → 606. Surfaces all detection+intelligence data through actionable `atlas doctor` output.
+
+### N-31: Enhanced Database Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Expanded `detect_databases()` from 5 to 21 databases/data stores. New categories: relational (MySQL/MariaDB, CockroachDB, PlanetScale, Supabase), document (Firestore, DynamoDB), search (Elasticsearch/OpenSearch), graph (Neo4j), time-series (InfluxDB), wide-column (Cassandra), cache (Memcached), vector (ChromaDB, Pinecone, Qdrant, Weaviate), message brokers (RabbitMQ/AMQP, Kafka). Expanded search to go.mod, Cargo.toml, Gemfile, pom.xml, build.gradle, requirements-dev.txt, .env.sample. Refactored to use `_add()` helper for deduplication. 21 new database detection tests.
+**Shipped**: 2026-03-13. Total test count: 673 → 694. 4.2x expansion of database detection coverage.
 
 ### N-30: Testing Summary Panel
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1

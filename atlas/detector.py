@@ -152,26 +152,79 @@ def detect_frameworks(project_path: Path) -> list[str]:
 
 
 def detect_databases(project_path: Path) -> list[str]:
-    """Detect database usage."""
+    """Detect database and data store usage."""
     dbs: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            dbs.append(name)
+
     search_files = [
         "pyproject.toml", "package.json", "docker-compose.yml",
-        "docker-compose.yaml", "requirements.txt", ".env.example",
+        "docker-compose.yaml", "requirements.txt", "requirements-dev.txt",
+        ".env.example", ".env.sample", "Cargo.toml", "go.mod",
+        "Gemfile", "pom.xml", "build.gradle",
     ]
     for cfg in search_files:
         path = project_path / cfg
         if path.exists():
             content = path.read_text(errors="ignore").lower()
-            if ("postgresql" in content or "psycopg" in content or "postgres" in content) and "PostgreSQL" not in dbs:
-                dbs.append("PostgreSQL")
-            if "sqlite" in content and "SQLite" not in dbs:
-                dbs.append("SQLite")
-            if "redis" in content and "Redis" not in dbs:
-                dbs.append("Redis")
-            if ("mongodb" in content or "pymongo" in content) and "MongoDB" not in dbs:
-                dbs.append("MongoDB")
-            if "pgvector" in content and "pgvector" not in dbs:
-                dbs.append("pgvector")
+            # Relational
+            if "postgresql" in content or "psycopg" in content or "postgres" in content:
+                _add("PostgreSQL")
+            if "mysql" in content or "mariadb" in content:
+                _add("MySQL")
+            if "sqlite" in content:
+                _add("SQLite")
+            # Document
+            if "mongodb" in content or "pymongo" in content or "mongoose" in content:
+                _add("MongoDB")
+            if "firestore" in content or "firebase" in content:
+                _add("Firestore")
+            if "dynamodb" in content or "boto3" in content and "dynamo" in content:
+                _add("DynamoDB")
+            # Key-value / Cache
+            if "redis" in content:
+                _add("Redis")
+            if "memcached" in content or "pylibmc" in content:
+                _add("Memcached")
+            # Search
+            if "elasticsearch" in content or "opensearch" in content:
+                _add("Elasticsearch")
+            # Graph
+            if "neo4j" in content:
+                _add("Neo4j")
+            # Time-series
+            if "influxdb" in content or "influx" in content and "client" in content:
+                _add("InfluxDB")
+            # Wide-column
+            if "cassandra" in content:
+                _add("Cassandra")
+            # Vector
+            if "pgvector" in content:
+                _add("pgvector")
+            if "chromadb" in content or "chroma" in content and "vector" in content:
+                _add("ChromaDB")
+            if "pinecone" in content:
+                _add("Pinecone")
+            if "qdrant" in content:
+                _add("Qdrant")
+            if "weaviate" in content:
+                _add("Weaviate")
+            # Cloud-native
+            if "supabase" in content:
+                _add("Supabase")
+            if "planetscale" in content:
+                _add("PlanetScale")
+            if "cockroachdb" in content or "cockroach" in content:
+                _add("CockroachDB")
+            # Message brokers (data infrastructure)
+            if "rabbitmq" in content or "amqp" in content:
+                _add("RabbitMQ")
+            if "kafka" in content:
+                _add("Kafka")
     return dbs
 
 
