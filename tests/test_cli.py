@@ -559,6 +559,23 @@ class TestExport:
         assert out.exists()
         assert "Portfolio Report" in out.read_text()
 
+    def test_export_csv(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["export", "--format", "csv"])
+        assert result.exit_code == 0
+        assert "Name" in result.output
+        assert "proj" in result.output
+
+    def test_export_csv_to_file(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        out = tmp_path / "report.csv"
+        result = runner.invoke(app, ["export", "--format", "csv", "-o", str(out)])
+        assert result.exit_code == 0
+        assert out.exists()
+        content = out.read_text()
+        assert "Name" in content
+        assert "proj" in content
+
 
 # ===========================================================================
 # atlas config

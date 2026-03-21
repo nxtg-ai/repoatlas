@@ -1,6 +1,8 @@
-"""Portfolio report generation — markdown and JSON formats."""
+"""Portfolio report generation — markdown, JSON, and CSV formats."""
 from __future__ import annotations
 
+import csv
+import io
 import json as json_mod
 from collections import Counter
 
@@ -452,3 +454,58 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "runtime_versions": {"coverage": f"{has_runtimes}/{n}", "runtimes": dict(rv_counter.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
+
+
+def build_csv_report(portfolio: Portfolio) -> str:
+    """Build a CSV portfolio report — one row per project."""
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+
+    headers = [
+        "Name", "Path", "Health %", "Grade",
+        "Tests", "Git", "Docs", "Structure",
+        "Source Files", "Test Files", "Total Files", "LOC",
+        "Languages", "Frameworks", "Databases",
+        "Infrastructure", "Security Tools", "Quality Tools",
+        "Testing Frameworks", "Package Managers", "AI/ML Tools",
+        "Docs Artifacts", "CI Config", "Runtime Versions",
+        "License", "Branch", "Last Commit", "Commits",
+    ]
+    writer.writerow(headers)
+
+    for p in portfolio.projects:
+        ts = p.tech_stack
+        h = p.health
+        gi = p.git_info
+        writer.writerow([
+            p.name,
+            p.path,
+            h.percent,
+            h.grade,
+            round(h.tests * 100),
+            round(h.git_hygiene * 100),
+            round(h.documentation * 100),
+            round(h.structure * 100),
+            p.source_file_count,
+            p.test_file_count,
+            p.total_file_count,
+            p.loc,
+            "; ".join(ts.primary_languages),
+            "; ".join(ts.frameworks),
+            "; ".join(ts.databases),
+            "; ".join(ts.infrastructure),
+            "; ".join(ts.security_tools),
+            "; ".join(ts.quality_tools),
+            "; ".join(ts.testing_frameworks),
+            "; ".join(ts.package_managers),
+            "; ".join(ts.ai_tools),
+            "; ".join(ts.docs_artifacts),
+            "; ".join(ts.ci_config),
+            "; ".join(f"{k}={v}" for k, v in ts.runtime_versions.items()),
+            p.license,
+            gi.branch if gi else "",
+            gi.last_commit_date if gi else "",
+            gi.total_commits if gi else 0,
+        ])
+
+    return buf.getvalue()

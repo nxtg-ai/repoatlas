@@ -12,7 +12,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskPr
 from atlas.config import get_value, load_config, set_value, valid_keys
 from atlas.connections import find_connections
 from atlas.display import console, show_comparison, show_connections, show_project_card, show_quick_insights, show_scan_complete, show_status
-from atlas.export_report import build_json_report, build_markdown_report
+from atlas.export_report import build_csv_report, build_json_report, build_markdown_report
 from atlas.history import build_scan_entry, compute_trends, load_history, save_scan
 from atlas.license_manager import activate as activate_license, get_status as get_license_status
 from atlas.models import Portfolio
@@ -603,7 +603,7 @@ def batch_add(
 
 @app.command()
 def export(
-    format: str = typer.Option("markdown", help="Export format: markdown, json"),
+    format: str = typer.Option("markdown", help="Export format: markdown, json, csv"),
     output: Optional[str] = typer.Option(None, "-o", help="Output file path"),
 ):
     """Export portfolio report."""
@@ -611,13 +611,15 @@ def export(
 
     if format == "json":
         content = build_json_report(portfolio)
+    elif format == "csv":
+        content = build_csv_report(portfolio)
     else:
         content = build_markdown_report(portfolio)
 
     if output:
         Path(output).write_text(content)
         console.print(f"  [green]\u2713[/green] Exported to [bold]{output}[/bold]")
-    elif format == "json":
+    elif format in ("json", "csv"):
         print(content)
     else:
         console.print(content)

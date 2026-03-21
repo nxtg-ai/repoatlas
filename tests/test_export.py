@@ -1,16 +1,19 @@
-"""Tests for portfolio export (markdown + JSON)."""
+"""Tests for portfolio export (markdown, JSON, and CSV)."""
 from __future__ import annotations
 
+import csv
+import io
 import json
 
-from atlas.export_report import build_json_report, build_markdown_report
+from atlas.export_report import build_csv_report, build_json_report, build_markdown_report
 from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
 
 def _proj(name: str, languages=None, frameworks=None, databases=None,
           infrastructure=None, security_tools=None, ai_tools=None,
           quality_tools=None, testing_frameworks=None, package_managers=None,
-          docs_artifacts=None, ci_config=None, project_license="",
+          docs_artifacts=None, ci_config=None, runtime_versions=None,
+          project_license="",
           test_files=5, source_files=20, loc=500) -> Project:
     return Project(
         name=name,
@@ -27,6 +30,7 @@ def _proj(name: str, languages=None, frameworks=None, databases=None,
             package_managers=package_managers or [],
             docs_artifacts=docs_artifacts or [],
             ci_config=ci_config or [],
+            runtime_versions=runtime_versions or {},
         ),
         git_info=GitInfo(
             branch="main",
@@ -462,3 +466,85 @@ class TestJsonReport:
         # Should be parseable JSON
         data = json.loads(result)
         assert isinstance(data, dict)
+
+
+class TestCsvExport:
+    """Tests for build_csv_report()."""
+
+    def test_header_row(self):
+        result = build_csv_report(_portfolio(_proj("a")))
+        reader = csv.reader(io.StringIO(result))
+        headers = next(reader)
+        assert "Name" in headers
+        assert "Health %" in headers
+        assert "Grade" in headers
+        assert "Languages" in headers
+        assert "License" in headers
+        assert "Runtime Versions" in headers
+
+    def test_project_row(self):
+        p = _proj("myapp", frameworks=["FastAPI"], databases=["PostgreSQL"],
+                  project_license="MIT", runtime_versions={"Python": "3.12"})
+        result = build_csv_report(_portfolio(p))
+        reader = csv.reader(io.StringIO(result))
+        next(reader)  # skip header
+        row = next(reader)
+        assert row[0] == "myapp"
+        assert "FastAPI" in row[13]  # frameworks column
+        assert "PostgreSQL" in row[14]  # databases column
+        assert "MIT" in row[24]  # license column
+        assert "Python=3.12" in row[23]  # runtime versions column
+
+    def test_multiple_projects(self):
+        result = build_csv_report(_portfolio(
+            _proj("alpha"), _proj("beta"), _proj("gamma"),
+        ))
+        reader = csv.reader(io.StringIO(result))
+        rows = list(reader)
+        assert len(rows) == 4  # header + 3 projects
+
+    def test_semicolon_delimited_lists(self):
+        p = _proj("x", frameworks=["FastAPI", "React"],
+                  databases=["PostgreSQL", "Redis"])
+        result = build_csv_report(_portfolio(p))
+        reader = csv.reader(io.StringIO(result))
+        next(reader)
+        row = next(reader)
+        assert "FastAPI; React" in row[13]
+        assert "PostgreSQL; Redis" in row[14]
+
+    def test_empty_portfolio(self):
+        result = build_csv_report(_portfolio())
+        reader = csv.reader(io.StringIO(result))
+        rows = list(reader)
+        assert len(rows) == 1  # header only
+
+    def test_health_scores(self):
+        p = _proj("x")
+        result = build_csv_report(_portfolio(p))
+        reader = csv.reader(io.StringIO(result))
+        next(reader)
+        row = next(reader)
+        assert row[2] == "80"  # health percent
+        assert row[3] == "B"  # grade
+
+    def test_git_info(self):
+        p = _proj("x")
+        result = build_csv_report(_portfolio(p))
+        reader = csv.reader(io.StringIO(result))
+        next(reader)
+        row = next(reader)
+        assert row[25] == "main"  # branch
+        assert row[27] == "50"  # commits
+
+    def test_valid_csv(self):
+        result = build_csv_report(_portfolio(
+            _proj("a", frameworks=["FastAPI"]),
+            _proj("b", frameworks=["Django"]),
+        ))
+        reader = csv.reader(io.StringIO(result))
+        rows = list(reader)
+        # All rows should have same number of columns
+        col_count = len(rows[0])
+        for row in rows:
+            assert len(row) == col_count

@@ -59,8 +59,9 @@
 | N-46 | [Dashboard Quick Insights](#n-46-dashboard-quick-insights) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-47 | [Runtime Version Detection](#n-47-runtime-version-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-48 | [Runtime Version Intelligence](#n-48-runtime-version-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-49 | [CSV Export](#n-49-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 45/48 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 46/49 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -114,7 +115,8 @@
 - Comprehensive JSON export with connections, recommendations, and portfolio aggregates
 - Filterable dashboard: `atlas status --grade A --lang Python --has Docker --min-health 80`
 - Quick insights: top 3 actionable recommendations shown inline in `atlas status` dashboard
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46
+- CSV export: `atlas export --format csv` for spreadsheet-friendly portfolio data
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -271,6 +273,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_runtime_versions()` in detector.py. Detects pinned runtime/language versions from config files: Python (.python-version, pyproject.toml requires-python), Node.js (.node-version, .nvmrc, package.json engines.node), Ruby (.ruby-version), Go (go.mod go directive), Rust (rust-toolchain.toml channel, rust-toolchain plain file), Java (.java-version), and multi-runtime via asdf (.tool-versions with language mapping). Priority rules: specific version files override asdf entries; .node-version overrides .nvmrc; rust-toolchain.toml overrides plain rust-toolchain. Returns `dict[str, str]` (language → version). Added `runtime_versions` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py and export_report.py), markdown export project details, and JSON export portfolio_summary. `_project_has_tech()` searches runtime version keys. 17 detection tests.
 **Shipped**: 2026-03-21. Total test count: 903 → 920. 12th detection category.
+
+### N-49: CSV Export
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: New `build_csv_report()` in export_report.py. Generates CSV portfolio reports — one row per project with 28 columns: Name, Path, Health % and Grade, 4 health dimension scores (Tests/Git/Docs/Structure as 0-100), file counts (source/test/total/LOC), all 12 tech stack fields (semicolon-delimited lists), runtime versions (key=value pairs), license, and git info (branch/last commit/commits). Added `--format csv` option to `atlas export` command. CSV stdout uses `print()` to avoid Rich markup. Ideal for importing into spreadsheets or data analysis tools. 8 CSV export unit tests + 2 CLI integration tests.
+**Shipped**: 2026-03-21. Total test count: 932 → 942. Third export format alongside markdown and JSON.
 
 ### N-48: Runtime Version Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
