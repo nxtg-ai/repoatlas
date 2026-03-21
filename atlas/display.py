@@ -149,6 +149,8 @@ CONNECTION_ICONS = {
     "template_engine_divergence": "[yellow]\u2756[/yellow]",
     "shared_serialization_format": "[green]\u2b12[/green]",
     "serialization_divergence": "[yellow]\u2b12[/yellow]",
+    "shared_di_framework": "[green]\u2b19[/green]",
+    "di_divergence": "[yellow]\u2b19[/yellow]",
 }
 
 
@@ -842,6 +844,8 @@ def show_connections(connections: list[Connection]):
         "template_engine_divergence": "Template Engine Divergence",
         "shared_serialization_format": "Shared Serialization Formats",
         "serialization_divergence": "Serialization Divergence",
+        "shared_di_framework": "Shared DI Frameworks",
+        "di_divergence": "DI Approach Divergence",
     }
 
     lines = []
@@ -918,6 +922,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_caching_tool": "caching", "caching_divergence": "caching", "caching_gap": "caching",
         "shared_template_engine": "templates", "template_engine_divergence": "templates",
         "shared_serialization_format": "serialization", "serialization_divergence": "serialization",
+        "shared_di_framework": "di", "di_divergence": "di",
     }
 
     for conn in connections:

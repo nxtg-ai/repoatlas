@@ -49,6 +49,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_caching_patterns(projects))
     connections.extend(_find_template_engine_patterns(projects))
     connections.extend(_find_serialization_patterns(projects))
+    connections.extend(_find_di_patterns(projects))
     return connections
 
 
@@ -2856,6 +2857,62 @@ def _find_serialization_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="serialization_divergence",
             detail=f"Mixed serialization approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_di_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project dependency injection patterns."""
+    connections: list[Connection] = []
+
+    # Shared DI frameworks — same framework used by 2+ projects
+    fw_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for f in p.tech_stack.di_frameworks:
+            fw_to_projects[f].append(p.name)
+
+    for f, projs in sorted(fw_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_di_framework",
+                detail=f"{f} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # DI divergence — container-based vs implicit/manual
+    container_based = {"dependency-injector", "InversifyJS", "tsyringe", "TypeDI", "Awilix",
+                       "BottleJS", "injection-js", "Angular DI", "NestJS DI", "Spring DI",
+                       "Google Guice", "Dagger", "CDI", "Micronaut DI", "Quarkus CDI",
+                       "Uber Fx", "Uber Dig", "Shaku"}
+    implicit_based = {"FastAPI Depends", "python-inject", "Lagom", "punq", "wireup",
+                      "svcs", "dishka", "Wire", "do", "inject"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "container_based": {}, "implicit": {},
+    }
+    cat_sets = [("container_based", container_based), ("implicit", implicit_based)]
+    for p in projects:
+        for f in p.tech_stack.di_frameworks:
+            for cat_name, cat_set in cat_sets:
+                if f in cat_set:
+                    cat_found[cat_name].setdefault(f, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, fws in active_cats.items():
+            fw_names = ", ".join(sorted(fws.keys())[:3])
+            parts.append(f"{cat_name} ({fw_names})")
+            for ps in fws.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="di_divergence",
+            detail=f"Mixed DI approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

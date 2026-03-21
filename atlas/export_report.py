@@ -717,6 +717,8 @@ def _connections_section(conns: list) -> list[str]:
         "template_engine_divergence": "Template Engine Divergence",
         "shared_serialization_format": "Shared Serialization Formats",
         "serialization_divergence": "Serialization Divergence",
+        "shared_di_framework": "Shared DI Frameworks",
+        "di_divergence": "DI Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

@@ -4756,3 +4756,71 @@ class TestFindSerializationPatterns:
         conns = find_connections(projects)
         ser_types = {c.type for c in conns if "serialization" in c.type}
         assert "shared_serialization_format" in ser_types
+
+
+# ---------------------------------------------------------------------------
+# DI framework intelligence
+# ---------------------------------------------------------------------------
+
+
+class TestFindDIPatterns:
+    def test_shared_di_framework(self):
+        projects = [
+            _proj("a", di_frameworks=["Spring DI", "Google Guice"]),
+            _proj("b", di_frameworks=["Spring DI"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_di_framework"]
+        assert any("Spring DI" in c.detail for c in shared)
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", di_frameworks=["InversifyJS"]),
+            _proj("b", di_frameworks=["Awilix"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_di_framework"]
+        assert len(shared) == 0
+
+    def test_divergence_container_vs_implicit(self):
+        projects = [
+            _proj("a", di_frameworks=["Spring DI"]),
+            _proj("b", di_frameworks=["FastAPI Depends"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "di_divergence"]
+        assert len(div) == 1
+        assert "container_based" in div[0].detail
+        assert "implicit" in div[0].detail
+
+    def test_no_divergence_same_category(self):
+        projects = [
+            _proj("a", di_frameworks=["Spring DI"]),
+            _proj("b", di_frameworks=["Google Guice"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "di_divergence"]
+        assert len(div) == 0
+
+    def test_empty_di(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        di = [c for c in conns if "di_" in c.type or c.type == "shared_di_framework"]
+        assert len(di) == 0
+
+    def test_cap_at_10(self):
+        projects = [
+            _proj(f"p{i}", di_frameworks=["Spring DI"]) for i in range(20)
+        ]
+        from atlas.connections import _find_di_patterns
+        conns = _find_di_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", di_frameworks=["InversifyJS", "NestJS DI"]),
+            _proj("b", di_frameworks=["InversifyJS", "FastAPI Depends"]),
+        ]
+        conns = find_connections(projects)
+        di_types = {c.type for c in conns if "di" in c.type}
+        assert "shared_di_framework" in di_types

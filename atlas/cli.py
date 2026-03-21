@@ -352,6 +352,7 @@ CONNECTION_CATEGORIES = {
     "caching": {"shared_caching_tool", "caching_divergence", "caching_gap"},
     "templates": {"shared_template_engine", "template_engine_divergence"},
     "serialization": {"shared_serialization_format", "serialization_divergence"},
+    "di": {"shared_di_framework", "di_divergence"},
 }
 
 
