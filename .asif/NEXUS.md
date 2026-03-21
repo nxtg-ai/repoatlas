@@ -92,8 +92,9 @@
 | N-79 | [i18n & Localization Detection](#n-79-i18n--localization-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-80 | [i18n Intelligence](#n-80-i18n-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-81 | [Project Search Command](#n-81-project-search-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-82 | [Validation & Schema Library Detection](#n-82-validation--schema-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 78/81 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 79/82 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -124,7 +125,8 @@
 - Bundlers & module tools: Webpack, Vite, esbuild, Rollup, Parcel, SWC, Turborepo, Rspack, tsup, unbuild, microbundle, Snowpack, WMR, Turbopack, Bun
 - ORM & database clients: SQLAlchemy, Django ORM, Peewee, Tortoise ORM, SQLModel, Prisma, TypeORM, Sequelize, Drizzle, Knex, Mongoose, Kysely, MikroORM, GORM, sqlx, ent, Diesel, SeaORM, Hibernate, MyBatis, jOOQ, Spring Data JPA
 - i18n & localization: i18next, react-i18next, next-i18next, next-intl, react-intl, FormatJS, vue-i18n, Angular i18n, Lingui, typesafe-i18n, Babel, Flask-Babel, go-i18n, Go x/text, Fluent, rust-i18n, locale directories
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79
+- Validation & schema libraries: Pydantic, marshmallow, Cerberus, attrs, cattrs, Voluptuous, schema, jsonschema, Colander, Schematics, Zod, Yup, Joi, class-validator, Ajv, Superstruct, Valibot, io-ts, TypeBox, Vest, ArkType, Effect Schema, go-playground/validator, ozzo-validation, validator (Rust), garde, Hibernate Validator, Jakarta Validation
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -487,6 +489,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: New `atlas search <term>` command for quick portfolio search. Matches against project name (substring), language (exact), framework (exact), and all tech fields via `_project_has_tech`. Results show health grade, health %, project name, and tech summary. Handles empty portfolios and no matches gracefully. 4 tests.
 **Shipped**: 2026-03-21. Total test count: 1461 → 1465. 24th experience feature.
+
+### N-82: Validation & Schema Library Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects validation and schema libraries across 5 ecosystems via `detect_validation_tools()` in detector.py. Python: Pydantic, marshmallow, Cerberus, attrs, cattrs, Voluptuous, schema, jsonschema, Colander, Schematics. JS/TS: Zod, Yup, Joi, class-validator, class-transformer, Ajv, Superstruct, Valibot, io-ts, TypeBox, Vest, myZod, Effect Schema, ArkType. Go: go-playground/validator, ozzo-validation. Rust: validator, garde. Java: Hibernate Validator, Jakarta Validation. Full pipeline: models.py field, scanner.py import/call, display.py project card + portfolio summary, export_report.py markdown/JSON/CSV, cli.py search integration. 30 tests.
+**Shipped**: 2026-03-21. Total test count: 1465 → 1495. 24th detection feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

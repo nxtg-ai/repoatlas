@@ -2258,3 +2258,128 @@ def detect_i18n_tools(project_path: Path) -> list[str]:
             pass
 
     return sorted(tools)
+
+
+def detect_validation_tools(project_path: Path) -> list[str]:
+    """Detect validation and schema libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Python deps
+    py_deps = {
+        "pydantic": "Pydantic",
+        "marshmallow": "marshmallow",
+        "cerberus": "Cerberus",
+        "attrs": "attrs",
+        "cattrs": "cattrs",
+        "voluptuous": "Voluptuous",
+        "schema": "schema",
+        "jsonschema": "jsonschema",
+        "colander": "Colander",
+        "schematics": "Schematics",
+    }
+    pyproject = project_path / "pyproject.toml"
+    if pyproject.exists():
+        try:
+            content = pyproject.read_text().lower()
+            for dep, name in py_deps.items():
+                if dep in content:
+                    _add(name)
+        except OSError:
+            pass
+
+    for req_file in ("requirements.txt", "requirements-dev.txt"):
+        req_path = project_path / req_file
+        if req_path.exists():
+            try:
+                content = req_path.read_text().lower()
+                for dep, name in py_deps.items():
+                    if dep in content:
+                        _add(name)
+            except OSError:
+                pass
+
+    # package.json dependency detection
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text())
+            all_deps: set[str] = set()
+            for key in ("dependencies", "devDependencies"):
+                all_deps.update(data.get(key, {}).keys())
+
+            js_deps = {
+                "zod": "Zod",
+                "yup": "Yup",
+                "joi": "Joi",
+                "class-validator": "class-validator",
+                "class-transformer": "class-transformer",
+                "ajv": "Ajv",
+                "superstruct": "Superstruct",
+                "valibot": "Valibot",
+                "io-ts": "io-ts",
+                "@sinclair/typebox": "TypeBox",
+                "vest": "Vest",
+                "myzod": "myZod",
+                "@effect/schema": "Effect Schema",
+                "arktype": "ArkType",
+            }
+            for dep, name in js_deps.items():
+                if dep in all_deps:
+                    _add(name)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    # Go modules
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text()
+            if "github.com/go-playground/validator" in content:
+                _add("go-playground/validator")
+            if "github.com/go-ozzo/ozzo-validation" in content:
+                _add("ozzo-validation")
+        except OSError:
+            pass
+
+    # Rust (Cargo.toml)
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content = cargo.read_text().lower()
+            if "validator" in content:
+                _add("validator (Rust)")
+            if "garde" in content:
+                _add("garde")
+        except OSError:
+            pass
+
+    # Java (build.gradle, pom.xml)
+    for gradle_file in ("build.gradle", "build.gradle.kts"):
+        gradle = project_path / gradle_file
+        if gradle.exists():
+            try:
+                content = gradle.read_text().lower()
+                if "hibernate-validator" in content:
+                    _add("Hibernate Validator")
+                if "jakarta.validation" in content or "javax.validation" in content:
+                    _add("Jakarta Validation")
+            except OSError:
+                pass
+    pom = project_path / "pom.xml"
+    if pom.exists():
+        try:
+            content = pom.read_text().lower()
+            if "hibernate-validator" in content:
+                _add("Hibernate Validator")
+            if "jakarta.validation" in content or "javax.validation" in content:
+                _add("Jakarta Validation")
+        except OSError:
+            pass
+
+    return sorted(tools)

@@ -29,6 +29,7 @@ from atlas.detector import (
     detect_bundlers,
     detect_orm_tools,
     detect_i18n_tools,
+    detect_validation_tools,
     walk_files,
 )
 
@@ -3231,4 +3232,192 @@ class TestDetectI18nTools:
     def test_invalid_package_json(self, tmp_path):
         (tmp_path / "package.json").write_text("not json")
         result = detect_i18n_tools(tmp_path)
+        assert result == []
+
+
+# ---------------------------------------------------------------------------
+# detect_validation_tools
+# ---------------------------------------------------------------------------
+class TestDetectValidationTools:
+    def test_empty_project(self, tmp_path):
+        assert detect_validation_tools(tmp_path) == []
+
+    # --- Python ---
+    def test_pydantic_from_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["pydantic>=2.0"]\n')
+        result = detect_validation_tools(tmp_path)
+        assert "Pydantic" in result
+
+    def test_marshmallow_from_requirements(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("marshmallow>=3.0\n")
+        result = detect_validation_tools(tmp_path)
+        assert "marshmallow" in result
+
+    def test_cerberus_from_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["cerberus"]\n')
+        result = detect_validation_tools(tmp_path)
+        assert "Cerberus" in result
+
+    def test_attrs_from_requirements(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("attrs>=23.0\n")
+        result = detect_validation_tools(tmp_path)
+        assert "attrs" in result
+
+    def test_jsonschema_from_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["jsonschema"]\n')
+        result = detect_validation_tools(tmp_path)
+        assert "jsonschema" in result
+
+    def test_voluptuous_from_requirements(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("voluptuous>=0.14\n")
+        result = detect_validation_tools(tmp_path)
+        assert "Voluptuous" in result
+
+    def test_colander_from_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["colander"]\n')
+        result = detect_validation_tools(tmp_path)
+        assert "Colander" in result
+
+    def test_schematics_from_requirements(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("schematics>=2.0\n")
+        result = detect_validation_tools(tmp_path)
+        assert "Schematics" in result
+
+    # --- JavaScript / TypeScript ---
+    def test_zod_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"zod": "^3.0.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert "Zod" in result
+
+    def test_yup_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"yup": "^1.0.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert "Yup" in result
+
+    def test_joi_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"joi": "^17.0.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert "Joi" in result
+
+    def test_class_validator_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"class-validator": "^0.14.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert "class-validator" in result
+
+    def test_ajv_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"ajv": "^8.0.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert "Ajv" in result
+
+    def test_superstruct_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"superstruct": "^1.0.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert "Superstruct" in result
+
+    def test_valibot_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"valibot": "^0.30.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert "Valibot" in result
+
+    def test_typebox_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@sinclair/typebox": "^0.32.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert "TypeBox" in result
+
+    def test_vest_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"vest": "^5.0.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert "Vest" in result
+
+    def test_arktype_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"arktype": "^2.0.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert "ArkType" in result
+
+    def test_io_ts_from_dev_deps(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"io-ts": "^2.0.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert "io-ts" in result
+
+    # --- Go ---
+    def test_go_validator_from_go_mod(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/go-playground/validator/v10 v10.0.0\n")
+        result = detect_validation_tools(tmp_path)
+        assert "go-playground/validator" in result
+
+    def test_ozzo_validation_from_go_mod(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/go-ozzo/ozzo-validation v4.0.0\n")
+        result = detect_validation_tools(tmp_path)
+        assert "ozzo-validation" in result
+
+    # --- Rust ---
+    def test_rust_validator_from_cargo(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nvalidator = "0.18"\n')
+        result = detect_validation_tools(tmp_path)
+        assert "validator (Rust)" in result
+
+    def test_garde_from_cargo(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ngarde = "0.18"\n')
+        result = detect_validation_tools(tmp_path)
+        assert "garde" in result
+
+    # --- Java ---
+    def test_hibernate_validator_from_gradle(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.hibernate.validator:hibernate-validator:8.0'\n")
+        result = detect_validation_tools(tmp_path)
+        assert "Hibernate Validator" in result
+
+    def test_jakarta_validation_from_pom(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><groupId>jakarta.validation</groupId></dependency>\n")
+        result = detect_validation_tools(tmp_path)
+        assert "Jakarta Validation" in result
+
+    # --- Edge cases ---
+    def test_multiple_tools(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["pydantic>=2.0"]\n')
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"zod": "^3.0.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert "Pydantic" in result
+        assert "Zod" in result
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["pydantic>=2.0"]\n')
+        (tmp_path / "requirements.txt").write_text("pydantic>=2.0\n")
+        result = detect_validation_tools(tmp_path)
+        assert result.count("Pydantic") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"zod": "^3.0.0", "yup": "^1.0.0", "joi": "^17.0.0"}
+        }))
+        result = detect_validation_tools(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        result = detect_validation_tools(tmp_path)
         assert result == []

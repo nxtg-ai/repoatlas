@@ -487,6 +487,16 @@ def _show_portfolio_summary(portfolio: Portfolio):
         i18n_parts = [f"{i18n} ({count})" for i18n, count in top_i18n]
         lines.append(f"  [bold]i18n:[/bold]        {has_i18n}/{n} projects \u00b7 {', '.join(i18n_parts)}")
 
+    has_val = sum(1 for p in projects if p.tech_stack.validation_tools)
+    if has_val:
+        val_counter: Counter[str] = Counter()
+        for p in projects:
+            for val in p.tech_stack.validation_tools:
+                val_counter[val] += 1
+        top_val = val_counter.most_common(6)
+        val_parts = [f"{val} ({count})" for val, count in top_val]
+        lines.append(f"  [bold]Validation:[/bold]  {has_val}/{n} projects \u00b7 {', '.join(val_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -800,6 +810,10 @@ def show_project_card(project: Project):
     if project.tech_stack.i18n_tools:
         i18n = ", ".join(project.tech_stack.i18n_tools[:8])
         lines.append(f"  [bold]i18n:[/bold]       {i18n}")
+
+    if project.tech_stack.validation_tools:
+        val = ", ".join(project.tech_stack.validation_tools[:8])
+        lines.append(f"  [bold]Validation:[/bold] {val}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

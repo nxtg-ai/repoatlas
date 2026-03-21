@@ -259,6 +259,7 @@ def _project_has_tech(project, term: str) -> bool:
         + ts.bundlers
         + ts.orm_tools
         + ts.i18n_tools
+        + ts.validation_tools
     )
     return any(term == item.lower() for item in all_items)
 
