@@ -262,6 +262,40 @@ class TestStatus:
         result = runner.invoke(app, ["status", "--grades", "--lang", "Python"])
         assert result.exit_code == 0
 
+    def test_status_csv_format(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--format", "csv"])
+        assert result.exit_code == 0
+        assert "Name,Path,Grade" in result.output
+        assert "proj" in result.output
+
+    def test_status_csv_with_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--format", "csv", "--lang", "Python"])
+        assert result.exit_code == 0
+        assert "proj" in result.output
+
+    def test_status_csv_empty_filter(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--format", "csv", "--lang", "Rust"])
+        assert result.exit_code == 0
+        assert "Name,Path,Grade" in result.output
+
 
 # ===========================================================================
 # atlas connections

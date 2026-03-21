@@ -159,7 +159,7 @@ def status(
     has: Optional[str] = typer.Option(None, help="Filter by tech (e.g. Docker, FastAPI, pytest)"),
     min_health: Optional[int] = typer.Option(None, help="Filter projects with health >= N%"),
     max_health: Optional[int] = typer.Option(None, help="Filter projects with health <= N%"),
-    format: Optional[str] = typer.Option(None, help="Output format: json for structured output"),
+    format: Optional[str] = typer.Option(None, help="Output format: json or csv"),
     grades: bool = typer.Option(False, "--grades", help="Show grade distribution summary"),
 ):
     """Display the portfolio dashboard."""
@@ -200,6 +200,9 @@ def status(
     if active_filters and not filtered:
         if format and format.lower() == "json":
             print('{"projects": [], "total": 0}')
+            return
+        if format and format.lower() == "csv":
+            print("Name,Path,Grade,Health%,Tests%,Git%,Docs%,Structure%,Languages,Frameworks,LOC,Source Files,Test Files,License")
             return
         console.print(f"[yellow]No projects match filters: {', '.join(active_filters)}[/yellow]")
         return
@@ -261,6 +264,24 @@ def status(
             ],
         }
         print(json_mod.dumps(data, indent=2))
+        return
+
+    if format and format.lower() == "csv":
+        import csv as csv_mod
+        import io
+        buf = io.StringIO()
+        writer = csv_mod.writer(buf)
+        writer.writerow(["Name", "Path", "Grade", "Health%", "Tests%", "Git%", "Docs%", "Structure%", "Languages", "Frameworks", "LOC", "Source Files", "Test Files", "License"])
+        for p in display_projects:
+            writer.writerow([
+                p.name, p.path, p.health.grade, p.health.percent,
+                round(p.health.tests * 100), round(p.health.git_hygiene * 100),
+                round(p.health.documentation * 100), round(p.health.structure * 100),
+                "; ".join(p.tech_stack.primary_languages),
+                "; ".join(p.tech_stack.frameworks),
+                p.loc, p.source_file_count, p.test_file_count, p.license,
+            ])
+        print(buf.getvalue(), end="")
         return
 
     if active_filters:

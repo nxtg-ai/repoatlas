@@ -146,8 +146,9 @@
 | N-133 | [Status Grade Distribution](#n-133-status-grade-distribution) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-134 | [Event Streaming Intelligence](#n-134-event-streaming-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-135 | [Payment & Billing Detection](#n-135-payment--billing-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-136 | [Status CSV Export](#n-136-status-csv-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 132/135 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 133/136 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -289,7 +290,8 @@
 - Connections summary mode: `atlas connections --summary` shows compact category-by-count table with severity breakdown. Supports `--format json` for structured output. Works with all filters (--type, --severity, --project)
 - Doctor priority filter: `atlas doctor --priority critical` filters recommendations by priority level (critical, high, medium, low). Works with all output formats (rich, json, csv) and combines with --category filter
 - Status grade distribution: `atlas status --grades` shows compact grade distribution bar chart (A/B+/B/C/D/F counts with Unicode bars). Supports `--format json` for structured output. Works with all existing filters
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130, N-133
+- Status CSV export: `atlas status --format csv` outputs CSV with Name, Path, Grade, Health%, Tests%, Git%, Docs%, Structure%, Languages, Frameworks, LOC, Source Files, Test Files, License columns. Works with all filters
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130, N-133, N-136
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -681,6 +683,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-136: Status CSV Export
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--format csv` to `atlas status` command. Outputs CSV with Name, Path, Grade, Health%, Tests%, Git%, Docs%, Structure%, Languages, Frameworks, LOC, Source Files, Test Files, License columns. Works with all existing filters (--grade, --lang, --has, --min-health, --max-health). Empty filter returns header-only CSV. 3 tests.
+**Shipped**: 2026-03-21. Total test count: 2087 → 2090. 42nd experience feature.
 
 ### N-135: Payment & Billing Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
