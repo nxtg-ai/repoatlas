@@ -7,8 +7,8 @@ from unittest.mock import patch
 import pytest
 from typer.testing import CliRunner
 
-from atlas.cli import app
-from atlas.models import GitInfo, HealthScore, Project, TechStack
+from atlas.cli import app, generate_badges
+from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
 runner = CliRunner()
 
@@ -912,3 +912,144 @@ class TestQuickInsights:
         result = runner.invoke(app, ["status"])
         assert result.exit_code == 0
         assert "Quick Insights" not in result.output
+
+
+# ===========================================================================
+# atlas badge (N-57)
+# ===========================================================================
+
+
+class TestBadge:
+    def _setup_portfolio(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init", "--name", "Badge Test"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+
+    def test_badge_output(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["badge"])
+        assert result.exit_code == 0
+        assert "img.shields.io" in result.output
+        assert "health" in result.output
+        assert "projects" in result.output
+
+    def test_badge_contains_health_grade(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["badge"])
+        assert "health-B" in result.output
+
+    def test_badge_contains_test_count(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["badge"])
+        assert "test%20files" in result.output
+
+    def test_badge_contains_loc(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["badge"])
+        assert "LOC" in result.output
+
+    def test_badge_contains_language(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["badge"])
+        assert "Python" in result.output
+
+    def test_badge_to_file(self, portfolio_dir, tmp_path):
+        self._setup_portfolio(portfolio_dir, tmp_path)
+        out = tmp_path / "badges.md"
+        result = runner.invoke(app, ["badge", "-o", str(out)])
+        assert result.exit_code == 0
+        assert out.exists()
+        content = out.read_text()
+        assert "img.shields.io" in content
+        assert "health" in content
+
+    def test_badge_no_portfolio(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        result = runner.invoke(app, ["badge"])
+        assert result.exit_code == 1
+
+
+# ===========================================================================
+# generate_badges unit tests (N-57)
+# ===========================================================================
+
+
+class TestGenerateBadges:
+    def _portfolio(self, *projects) -> Portfolio:
+        return Portfolio(name="Test", projects=list(projects))
+
+    def test_returns_list_of_strings(self):
+        proj = _make_project()
+        badges = generate_badges(self._portfolio(proj))
+        assert isinstance(badges, list)
+        assert all(isinstance(b, str) for b in badges)
+
+    def test_all_badges_are_markdown_images(self):
+        proj = _make_project()
+        badges = generate_badges(self._portfolio(proj))
+        assert all(b.startswith("![") for b in badges)
+
+    def test_health_grade_a(self):
+        hs = HealthScore(tests=1.0, git_hygiene=1.0, documentation=1.0, structure=1.0)
+        hs.compute()
+        proj = _make_project()
+        proj.health = hs
+        badges = generate_badges(self._portfolio(proj))
+        health_badge = [b for b in badges if "health" in b][0]
+        assert "health-A" in health_badge
+        assert "brightgreen" in health_badge
+
+    def test_health_grade_f(self):
+        hs = HealthScore(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = _make_project()
+        proj.health = hs
+        badges = generate_badges(self._portfolio(proj))
+        health_badge = [b for b in badges if "health" in b][0]
+        assert "health-F" in health_badge
+        assert "red" in health_badge
+
+    def test_loc_formatting_millions(self):
+        proj = _make_project()
+        proj.loc = 1_500_000
+        badges = generate_badges(self._portfolio(proj))
+        loc_badge = [b for b in badges if "LOC" in b][0]
+        assert "1.5M" in loc_badge
+
+    def test_loc_formatting_thousands(self):
+        proj = _make_project()
+        proj.loc = 15_000
+        badges = generate_badges(self._portfolio(proj))
+        loc_badge = [b for b in badges if "LOC" in b][0]
+        assert "15.0K" in loc_badge
+
+    def test_loc_formatting_small(self):
+        proj = _make_project()
+        proj.loc = 500
+        badges = generate_badges(self._portfolio(proj))
+        loc_badge = [b for b in badges if "LOC" in b][0]
+        assert "500" in loc_badge
+
+    def test_project_count(self):
+        p1 = _make_project("a", "/a")
+        p2 = _make_project("b", "/b")
+        badges = generate_badges(self._portfolio(p1, p2))
+        proj_badge = [b for b in badges if "projects" in b][0]
+        assert "projects-2" in proj_badge
+
+    def test_test_color_high(self):
+        proj = _make_project()
+        proj.test_file_count = 100
+        badges = generate_badges(self._portfolio(proj))
+        test_badge = [b for b in badges if "test" in b][0]
+        assert "brightgreen" in test_badge
+
+    def test_test_color_zero(self):
+        proj = _make_project()
+        proj.test_file_count = 0
+        badges = generate_badges(self._portfolio(proj))
+        test_badge = [b for b in badges if "test" in b][0]
+        assert "red" in test_badge

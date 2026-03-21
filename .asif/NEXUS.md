@@ -67,8 +67,9 @@
 | N-54 | [Health Trend Sparklines](#n-54-health-trend-sparklines) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-55 | [Monitoring & Observability Detection](#n-55-monitoring--observability-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-56 | [Monitoring & Observability Intelligence](#n-56-monitoring--observability-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-57 | [Markdown Badge Generation](#n-57-markdown-badge-generation) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 53/56 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 54/57 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -130,7 +131,8 @@
 - Quick insights: top 3 actionable recommendations shown inline in `atlas status` dashboard
 - CSV export: `atlas export --format csv` for spreadsheet-friendly portfolio data
 - Health trend sparklines: Unicode mini-charts in `atlas status` showing per-project health history
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54
+- Markdown badge generation: shields.io badges for portfolio README (health grade, project count, test files, LOC, primary language)
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -312,6 +314,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project monitoring pattern detection via `_find_monitoring_patterns()` in connections.py. Analyzes monitoring_tools data from N-55 across the portfolio to detect: shared monitoring tools (Sentry/Datadog across 2+ projects, info), error tracker divergence (Sentry vs Bugsnag vs Rollbar vs Elastic APM across portfolio, warning), APM divergence (Datadog vs New Relic vs Elastic APM vs Honeycomb across portfolio, warning), and monitoring gaps (projects with 10+ source files but no monitoring/observability tooling, warning). New connection types (`shared_monitoring`, `monitoring_divergence`, `monitoring_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps monitoring_gap and monitoring_divergence to `infra` recommendation categories. 16 monitoring pattern tests.
 **Shipped**: 2026-03-21. Total test count: 1058 → 1074. Completes N-55 detection→intelligence pipeline. All 16 detection→intelligence pipelines complete.
+
+### N-57: Markdown Badge Generation
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: New `atlas badge` command and `generate_badges()` function in cli.py. Generates shields.io-style markdown badge strings for portfolio READMEs: health grade (color-coded A=brightgreen through F=red), project count, test file count (color-coded by threshold), LOC (formatted as K/M for readability), and primary language (most common across portfolio). Supports `--output`/`-o` flag for file export. 7 CLI integration tests + 10 unit tests.
+**Shipped**: 2026-03-21. Total test count: 1074 → 1091. First DISTRIBUTION-adjacent EXPERIENCE feature — helps users showcase portfolio metrics.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

@@ -720,6 +720,85 @@ def activate(key: str = typer.Argument(help="Pro license key (ATLAS-XXXX-XXXX-XX
 
 
 @app.command()
+def badge(
+    output: Optional[str] = typer.Option(None, "-o", help="Output file path"),
+):
+    """Generate markdown badges for your portfolio README."""
+    portfolio = _load_portfolio()
+
+    if not portfolio.projects:
+        console.print("[yellow]No projects scanned yet. Run `atlas scan` first.[/yellow]")
+        raise typer.Exit(1)
+
+    badges = generate_badges(portfolio)
+    content = "\n".join(badges)
+
+    if output:
+        Path(output).write_text(content + "\n")
+        console.print(f"  [green]\u2713[/green] Badges exported to [bold]{output}[/bold]")
+    else:
+        console.print()
+        for line in badges:
+            console.print(f"  {line}")
+        console.print()
+        console.print("  [dim]Copy the lines above into your README.md[/dim]")
+
+
+def generate_badges(portfolio: Portfolio) -> list[str]:
+    """Generate shields.io-style markdown badge strings for a portfolio."""
+    badges: list[str] = []
+
+    # Health grade badge
+    grade = portfolio.avg_grade
+    pct = int(portfolio.avg_health * 100)
+    grade_colors = {"A": "brightgreen", "B+": "green", "B": "blue",
+                    "C": "yellow", "D": "orange", "F": "red"}
+    color = grade_colors.get(grade, "lightgrey")
+    badges.append(
+        f"![Health](https://img.shields.io/badge/health-{grade}%20({pct}%25)-{color})"
+    )
+
+    # Projects count
+    n = len(portfolio.projects)
+    badges.append(
+        f"![Projects](https://img.shields.io/badge/projects-{n}-blue)"
+    )
+
+    # Test files count
+    tests = portfolio.total_tests
+    test_color = "brightgreen" if tests > 50 else "green" if tests > 10 else "yellow" if tests > 0 else "red"
+    badges.append(
+        f"![Tests](https://img.shields.io/badge/test%20files-{tests:,}-{test_color})"
+    )
+
+    # LOC
+    loc = portfolio.total_loc
+    if loc >= 1_000_000:
+        loc_label = f"{loc / 1_000_000:.1f}M"
+    elif loc >= 1_000:
+        loc_label = f"{loc / 1_000:.1f}K"
+    else:
+        loc_label = str(loc)
+    badges.append(
+        f"![LOC](https://img.shields.io/badge/LOC-{loc_label}-informational)"
+    )
+
+    # Top languages
+    from collections import Counter
+    lang_counter: Counter[str] = Counter()
+    for p in portfolio.projects:
+        for lang in p.tech_stack.primary_languages:
+            lang_counter[lang] += 1
+    if lang_counter:
+        top_lang = lang_counter.most_common(1)[0][0]
+        badges.append(
+            f"![Language](https://img.shields.io/badge/primary-{top_lang}-blueviolet)"
+        )
+
+    return badges
+
+
+@app.command()
 def reset():
     """Reset the portfolio (delete all data)."""
     if DEFAULT_PORTFOLIO_FILE.exists():
