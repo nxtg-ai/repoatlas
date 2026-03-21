@@ -250,6 +250,7 @@ def _project_has_tech(project, term: str) -> bool:
         + list(ts.runtime_versions.keys())
         + ts.build_tools
         + ts.api_specs
+        + ts.monitoring_tools
     )
     return any(term == item.lower() for item in all_items)
 

@@ -65,8 +65,9 @@
 | N-52 | [API Specification Detection](#n-52-api-specification-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-53 | [API Specification Intelligence](#n-53-api-specification-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-54 | [Health Trend Sparklines](#n-54-health-trend-sparklines) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-55 | [Monitoring & Observability Detection](#n-55-monitoring--observability-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 51/54 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 52/55 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -88,7 +89,8 @@
 - Runtime version detection: .python-version, .node-version, .nvmrc, .ruby-version, .java-version, go.mod, rust-toolchain, .tool-versions (asdf), pyproject.toml requires-python, package.json engines
 - Build & task runner detection: Make, Taskfile, Just, tox, nox, Invoke, doit, npm scripts, Gradle, Maven, CMake, Meson, Bazel, Rake, Earthly
 - API specification detection: OpenAPI/Swagger, GraphQL, gRPC/Protobuf, AsyncAPI, JSON Schema, tRPC, WSDL/SOAP
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52
+- Monitoring & observability: Sentry, Datadog, New Relic, OpenTelemetry, Prometheus, Bugsnag, Rollbar, Honeycomb, Loguru, structlog, Winston, Pino, LogRocket, Logtail, tracing (Rust), Elastic APM
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -298,6 +300,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Unicode sparkline mini-charts in the `atlas status` dashboard showing per-project health trends over time. New `sparkline()` utility function in display.py renders float values (0.0–1.0) as Unicode block characters (▁▂▃▄▅▆▇█). `show_status()` accepts optional scan history, builds per-project health time series, and renders a "Trend" column when 2+ scan entries exist. Column hidden gracefully when no history available. CLI passes `load_history()` to `show_status()`. 10 sparkline unit tests + 7 dashboard integration tests.
 **Shipped**: 2026-03-21. Total test count: 1015 → 1032. Leverages N-13 scan history data for visual trend display.
+
+### N-55: Monitoring & Observability Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: New `detect_monitoring_tools()` in detector.py. Detects monitoring, observability, error tracking, and logging tools from Python deps (sentry-sdk, ddtrace, newrelic, opentelemetry, prometheus-client, elastic-apm, bugsnag, rollbar, honeycomb, loguru, structlog), JS deps (@sentry/node, @sentry/browser, @sentry/react, @sentry/nextjs, dd-trace, newrelic, @opentelemetry/api, prom-client, @bugsnag/js, rollbar, @honeycombio/opentelemetry-node, pino, winston, @logtail/node, logrocket), Go deps (sentry-go, opentelemetry, prometheus, datadog), Rust deps (sentry, opentelemetry, tracing, prometheus), and config files (sentry.properties, .sentryclirc, newrelic.yml, datadog.yaml, prometheus.yml, otel-collector-config.yaml). Added `monitoring_tools` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py), markdown/JSON/CSV export. `_project_has_tech()` searches monitoring_tools. 26 detection tests.
+**Shipped**: 2026-03-21. Total test count: 1032 → 1058. 15th detection category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

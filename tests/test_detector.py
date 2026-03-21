@@ -20,6 +20,7 @@ from atlas.detector import (
     detect_runtime_versions,
     detect_build_tools,
     detect_api_specs,
+    detect_monitoring_tools,
     walk_files,
 )
 
@@ -1742,4 +1743,153 @@ class TestDetectApiSpecs:
         (tmp_path / "schema.graphql").write_text("type Query {}\n")
         (tmp_path / "openapi.json").write_text('{"openapi": "3.0.0"}')
         result = detect_api_specs(tmp_path)
+        assert result == sorted(result)
+
+
+# ---------------------------------------------------------------------------
+# detect_monitoring_tools (N-55)
+# ---------------------------------------------------------------------------
+class TestDetectMonitoringTools:
+    def test_empty_project(self, tmp_path):
+        result = detect_monitoring_tools(tmp_path)
+        assert result == []
+
+    def test_sentry_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sentry-sdk==1.0.0\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "Sentry" in result
+
+    def test_sentry_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@sentry/node": "^7.0"}
+        }))
+        result = detect_monitoring_tools(tmp_path)
+        assert "Sentry" in result
+
+    def test_sentry_config_file(self, tmp_path):
+        (tmp_path / ".sentryclirc").write_text("[defaults]\norg=myorg\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "Sentry" in result
+
+    def test_datadog_python(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[project]\ndependencies = ["ddtrace"]\n')
+        result = detect_monitoring_tools(tmp_path)
+        assert "Datadog" in result
+
+    def test_datadog_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"dd-trace": "^4.0"}
+        }))
+        result = detect_monitoring_tools(tmp_path)
+        assert "Datadog" in result
+
+    def test_datadog_config_file(self, tmp_path):
+        (tmp_path / "datadog.yaml").write_text("api_key: xxx\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "Datadog" in result
+
+    def test_new_relic_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("newrelic\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "New Relic" in result
+
+    def test_new_relic_config_file(self, tmp_path):
+        (tmp_path / "newrelic.yml").write_text("license_key: xxx\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "New Relic" in result
+
+    def test_opentelemetry_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("opentelemetry-sdk\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "OpenTelemetry" in result
+
+    def test_opentelemetry_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@opentelemetry/api": "^1.0"}
+        }))
+        result = detect_monitoring_tools(tmp_path)
+        assert "OpenTelemetry" in result
+
+    def test_opentelemetry_config_file(self, tmp_path):
+        (tmp_path / "otel-collector-config.yaml").write_text("receivers:\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "OpenTelemetry" in result
+
+    def test_prometheus_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("prometheus-client\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "Prometheus" in result
+
+    def test_prometheus_config_file(self, tmp_path):
+        (tmp_path / "prometheus.yml").write_text("scrape_configs:\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "Prometheus" in result
+
+    def test_bugsnag_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"@bugsnag/js": "^7.0"}
+        }))
+        result = detect_monitoring_tools(tmp_path)
+        assert "Bugsnag" in result
+
+    def test_rollbar_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("rollbar\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "Rollbar" in result
+
+    def test_winston_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"winston": "^3.0"}
+        }))
+        result = detect_monitoring_tools(tmp_path)
+        assert "Winston" in result
+
+    def test_pino_js(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "dependencies": {"pino": "^8.0"}
+        }))
+        result = detect_monitoring_tools(tmp_path)
+        assert "Pino" in result
+
+    def test_structlog_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("structlog\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "structlog" in result
+
+    def test_loguru_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("loguru\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "Loguru" in result
+
+    def test_go_sentry(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire github.com/getsentry/sentry-go v0.1\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "Sentry" in result
+
+    def test_go_opentelemetry(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module myapp\nrequire go.opentelemetry.io/otel v1.0\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "OpenTelemetry" in result
+
+    def test_rust_tracing(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ntracing = "0.1"\n')
+        result = detect_monitoring_tools(tmp_path)
+        assert "tracing" in result
+
+    def test_multiple_tools(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sentry-sdk\nopentelemetry-sdk\nprometheus-client\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert "Sentry" in result
+        assert "OpenTelemetry" in result
+        assert "Prometheus" in result
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sentry-sdk\nsentry_sdk\n")
+        (tmp_path / ".sentryclirc").write_text("[defaults]\n")
+        result = detect_monitoring_tools(tmp_path)
+        assert result.count("Sentry") == 1
+
+    def test_result_sorted(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sentry-sdk\nopentelemetry-sdk\nprometheus-client\n")
+        result = detect_monitoring_tools(tmp_path)
         assert result == sorted(result)

@@ -183,6 +183,18 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         top_api = api_counter.most_common(6)
         lines.append(f"**API Specs**: {has_api}/{n} projects · {', '.join(t for t, _ in top_api)}")
 
+
+    # Monitoring & observability
+    has_mon = sum(1 for p in projects if p.tech_stack.monitoring_tools)
+    if has_mon:
+        mon_counter: Counter[str] = Counter()
+        for p in projects:
+            for mt in p.tech_stack.monitoring_tools:
+                mon_counter[mt] += 1
+        top_mon = mon_counter.most_common(6)
+        mon_names = ", ".join(t for t, _ in top_mon)
+        lines.append(f"**Monitoring**: {has_mon}/{n} projects \u00b7 {mon_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -243,6 +255,8 @@ def _project_details(projects: list[Project]) -> list[str]:
             lines.append(f"- **Build Tools**: {', '.join(p.tech_stack.build_tools[:8])}")
         if p.tech_stack.api_specs:
             lines.append(f"- **API Specs**: {', '.join(p.tech_stack.api_specs[:8])}")
+        if p.tech_stack.monitoring_tools:
+            lines.append(f"- **Monitoring**: {', '.join(p.tech_stack.monitoring_tools[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -472,6 +486,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             api_counter[spec] += 1
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
 
+    # Monitoring
+    mon_counter: Counter[str] = Counter()
+    for p in projects:
+        for mt in p.tech_stack.monitoring_tools:
+            mon_counter[mt] += 1
+    has_mon = sum(1 for p in projects if p.tech_stack.monitoring_tools)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -498,6 +519,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "runtime_versions": {"coverage": f"{has_runtimes}/{n}", "runtimes": dict(rv_counter.most_common(10))},
         "build_tools": {"coverage": f"{has_build}/{n}", "tools": dict(bt_counter.most_common(10))},
         "api_specs": {"coverage": f"{has_api}/{n}", "specs": dict(api_counter.most_common(10))},
+        "monitoring": {"coverage": f"{has_mon}/{n}", "tools": dict(mon_counter.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -515,6 +537,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Infrastructure", "Security Tools", "Quality Tools",
         "Testing Frameworks", "Package Managers", "AI/ML Tools",
         "Docs Artifacts", "CI Config", "Runtime Versions", "Build Tools", "API Specs",
+        "Monitoring Tools",
         "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
@@ -550,6 +573,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(f"{k}={v}" for k, v in ts.runtime_versions.items()),
             "; ".join(ts.build_tools),
             "; ".join(ts.api_specs),
+            "; ".join(ts.monitoring_tools),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

@@ -22,6 +22,7 @@ class TechStack:
     runtime_versions: dict[str, str] = field(default_factory=dict)
     build_tools: list[str] = field(default_factory=list)
     api_specs: list[str] = field(default_factory=list)
+    monitoring_tools: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -125,6 +126,7 @@ class Project:
                 "runtime_versions": self.tech_stack.runtime_versions,
                 "build_tools": self.tech_stack.build_tools,
                 "api_specs": self.tech_stack.api_specs,
+                "monitoring_tools": self.tech_stack.monitoring_tools,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -173,6 +175,7 @@ class Project:
                 runtime_versions=ts.get("runtime_versions", {}),
                 build_tools=ts.get("build_tools", []),
                 api_specs=ts.get("api_specs", []),
+                monitoring_tools=ts.get("monitoring_tools", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

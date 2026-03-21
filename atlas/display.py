@@ -365,6 +365,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         bt_parts = [f"{bt} ({count})" for bt, count in top_bt]
         lines.append(f"  [bold]Build Tools:[/bold]  {has_build}/{n} projects \u00b7 {', '.join(bt_parts)}")
 
+    # Monitoring & observability
+    has_mon = sum(1 for p in projects if p.tech_stack.monitoring_tools)
+    if has_mon:
+        mon_counter: Counter[str] = Counter()
+        for p in projects:
+            for mt in p.tech_stack.monitoring_tools:
+                mon_counter[mt] += 1
+        top_mon = mon_counter.most_common(6)
+        mon_parts = [f"{mt} ({count})" for mt, count in top_mon]
+        lines.append(f"  [bold]Monitoring:[/bold]   {has_mon}/{n} projects \u00b7 {', '.join(mon_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -538,6 +549,10 @@ def show_project_card(project: Project):
     if project.tech_stack.api_specs:
         api = ", ".join(project.tech_stack.api_specs[:8])
         lines.append(f"  [bold]API Specs:[/bold] {api}")
+
+    if project.tech_stack.monitoring_tools:
+        mon = ", ".join(project.tech_stack.monitoring_tools[:8])
+        lines.append(f"  [bold]Monitoring:[/bold] {mon}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

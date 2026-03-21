@@ -1356,3 +1356,96 @@ def detect_api_specs(project_path: Path) -> list[str]:
         break
 
     return sorted(specs)
+
+
+def detect_monitoring_tools(project_path: Path) -> list[str]:
+    """Detect monitoring, observability, and error tracking tools."""
+    tools: list[str] = []
+
+    def _add(name: str) -> None:
+        if name not in tools:
+            tools.append(name)
+
+    # Python dependencies
+    for cfg in ("pyproject.toml", "requirements.txt", "requirements-dev.txt"):
+        path = project_path / cfg
+        if path.exists():
+            content = path.read_text(errors="ignore").lower()
+            _check_add(tools, content, "sentry-sdk", "Sentry")
+            _check_add(tools, content, "sentry_sdk", "Sentry")
+            _check_add(tools, content, "ddtrace", "Datadog")
+            _check_add(tools, content, "datadog", "Datadog")
+            _check_add(tools, content, "newrelic", "New Relic")
+            _check_add(tools, content, "opentelemetry", "OpenTelemetry")
+            _check_add(tools, content, "prometheus-client", "Prometheus")
+            _check_add(tools, content, "prometheus_client", "Prometheus")
+            _check_add(tools, content, "grafana", "Grafana")
+            _check_add(tools, content, "elastic-apm", "Elastic APM")
+            _check_add(tools, content, "bugsnag", "Bugsnag")
+            _check_add(tools, content, "rollbar", "Rollbar")
+            _check_add(tools, content, "honeycomb", "Honeycomb")
+            _check_add(tools, content, "loguru", "Loguru")
+            _check_add(tools, content, "structlog", "structlog")
+
+    # JavaScript/TypeScript dependencies
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text(errors="ignore"))
+            all_deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
+            js_monitoring = {
+                "@sentry/node": "Sentry",
+                "@sentry/browser": "Sentry",
+                "@sentry/react": "Sentry",
+                "@sentry/nextjs": "Sentry",
+                "dd-trace": "Datadog",
+                "newrelic": "New Relic",
+                "@opentelemetry/api": "OpenTelemetry",
+                "@opentelemetry/sdk-node": "OpenTelemetry",
+                "prom-client": "Prometheus",
+                "@bugsnag/js": "Bugsnag",
+                "@bugsnag/node": "Bugsnag",
+                "rollbar": "Rollbar",
+                "@honeycombio/opentelemetry-node": "Honeycomb",
+                "pino": "Pino",
+                "winston": "Winston",
+                "@logtail/node": "Logtail",
+                "logrocket": "LogRocket",
+            }
+            for dep, name in js_monitoring.items():
+                if dep in all_deps:
+                    _add(name)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    # Go dependencies
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        content = go_mod.read_text(errors="ignore").lower()
+        _check_add(tools, content, "sentry-go", "Sentry")
+        _check_add(tools, content, "opentelemetry", "OpenTelemetry")
+        _check_add(tools, content, "prometheus", "Prometheus")
+        _check_add(tools, content, "datadog", "Datadog")
+
+    # Rust dependencies
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        content = cargo_toml.read_text(errors="ignore").lower()
+        _check_add(tools, content, "sentry", "Sentry")
+        _check_add(tools, content, "opentelemetry", "OpenTelemetry")
+        _check_add(tools, content, "tracing", "tracing")
+        _check_add(tools, content, "prometheus", "Prometheus")
+
+    # Config files for monitoring services
+    if (project_path / "sentry.properties").exists() or (project_path / ".sentryclirc").exists():
+        _add("Sentry")
+    if (project_path / "newrelic.yml").exists() or (project_path / "newrelic.js").exists():
+        _add("New Relic")
+    if (project_path / "datadog.yaml").exists() or (project_path / "dd-conf.yaml").exists():
+        _add("Datadog")
+    if (project_path / "prometheus.yml").exists() or (project_path / "prometheus.yaml").exists():
+        _add("Prometheus")
+    if (project_path / "otel-collector-config.yaml").exists():
+        _add("OpenTelemetry")
+
+    return sorted(tools)
