@@ -268,6 +268,49 @@ class TestConnections:
             result = runner.invoke(app, ["connections", "--type", cat])
             assert result.exit_code == 0, f"Category '{cat}' failed"
 
+    def test_connections_type_list(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--type", "list"])
+        assert result.exit_code == 0
+        assert "Available connection categories" in result.output
+        assert "deps" in result.output
+        assert "security" in result.output
+        assert "css" in result.output
+        assert "state_mgmt" in result.output
+
+    def test_connections_type_list_shows_count(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--type", "list"])
+        assert result.exit_code == 0
+        assert "21 categories" in result.output
+
+    def test_connections_type_list_shows_types(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--type", "list"])
+        assert result.exit_code == 0
+        # Each category should show its connection types
+        assert "shared_dep" in result.output
+        assert "shared_css" in result.output
+
+    def test_connections_type_list_no_portfolio(self, portfolio_dir):
+        result = runner.invoke(app, ["connections", "--type", "list"])
+        assert result.exit_code == 1
+
 
 # ===========================================================================
 # atlas doctor

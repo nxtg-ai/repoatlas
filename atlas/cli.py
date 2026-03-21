@@ -287,7 +287,7 @@ CONNECTION_CATEGORIES = {
 
 @app.command()
 def connections(
-    type_filter: Optional[str] = typer.Option(None, "--type", "-t", help="Filter by category: deps, health, infra, security, quality, ai, testing, database, packages, license, docs, ci, runtime, build, api, monitoring, auth, messaging, deploy"),
+    type_filter: Optional[str] = typer.Option(None, "--type", "-t", help="Filter by category (use --type list to see all)"),
 ):
     """Show cross-project intelligence."""
     portfolio = _load_portfolio()
@@ -300,6 +300,17 @@ def connections(
 
     if type_filter:
         cat = type_filter.lower()
+        if cat == "list":
+            console.print()
+            console.print("  [bold]Available connection categories:[/bold]")
+            console.print()
+            for name in sorted(CONNECTION_CATEGORIES):
+                types = ", ".join(sorted(CONNECTION_CATEGORIES[name]))
+                console.print(f"  [cyan]{name:12s}[/cyan] {types}")
+            console.print()
+            console.print(f"  [dim]{len(CONNECTION_CATEGORIES)} categories available[/dim]")
+            console.print()
+            return
         if cat not in CONNECTION_CATEGORIES:
             valid = ", ".join(sorted(CONNECTION_CATEGORIES))
             console.print(f"[red]Unknown category '{type_filter}'. Valid: {valid}[/red]")

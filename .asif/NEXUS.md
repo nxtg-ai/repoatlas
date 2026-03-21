@@ -82,8 +82,9 @@
 | N-69 | [Doctor Category Summary](#n-69-doctor-category-summary) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-70 | [CSS & Styling Framework Detection](#n-70-css--styling-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-71 | [CSS & Styling Intelligence](#n-71-css--styling-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-72 | [Connection Category List Command](#n-72-connection-category-list-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 68/71 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 69/72 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -160,7 +161,8 @@
 - Connection statistics panel: summary of total connections, severity breakdown (critical/warning/info), top categories by count
 - Export format auto-detection: `atlas export -o report.json` auto-detects format from file extension (.md/.json/.csv)
 - Doctor category summary: `atlas doctor` shows recommendation category breakdown (e.g., "3 security, 2 testing, 1 infra") after priority summary
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69
+- Connection category list: `atlas connections --type list` shows all 21 available categories with their connection types
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -417,6 +419,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project CSS/styling pattern detection via `_find_css_framework_patterns()` in connections.py. Analyzes css_frameworks data from N-70 across the portfolio to detect: shared CSS frameworks (Tailwind/Bootstrap across 2+ projects, info), paradigm divergence (utility-first vs CSS-in-JS vs component library families, warning), and CSS gaps (frontend projects with React/Vue/Angular/etc. frameworks and 10+ source files but no CSS framework, warning). New connection types (`shared_css`, `css_divergence`, `css_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps css_gap and css_divergence to `frontend` recommendation category. 21 categories in CONNECTION_CATEGORIES. 14 intelligence tests.
 **Shipped**: 2026-03-21. Total test count: 1316 → 1330. Completes N-70 detection→intelligence pipeline.
+
+### N-72: Connection Category List Command
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: `atlas connections --type list` shows all available connection categories with their connection types. Displays category name, associated connection type names, and total category count. Updated help text from hardcoded category list to "use --type list to see all". Handles `list` as a special value before category lookup. Shows "21 categories available" footer. 4 tests.
+**Shipped**: 2026-03-21. Total test count: 1330 → 1334. 21st experience feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
