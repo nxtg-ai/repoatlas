@@ -4271,3 +4271,97 @@ class TestFindHttpClientPatterns:
         conns = find_connections(projects)
         http_types = {c.type for c in conns if "http_client" in c.type}
         assert "shared_http_client" in http_types
+
+
+class TestFindDocGeneratorPatterns:
+    def test_no_doc_generators(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        doc_conns = [c for c in conns if "doc_generator" in c.type]
+        assert len(doc_conns) == 0
+
+    def test_shared_doc_generator(self):
+        projects = [
+            _proj("a", doc_generators=["Sphinx"]),
+            _proj("b", doc_generators=["Sphinx"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_doc_generator"]
+        assert len(shared) == 1
+        assert "Sphinx" in shared[0].detail
+
+    def test_doc_generator_divergence(self):
+        projects = [
+            _proj("a", doc_generators=["Docusaurus"]),
+            _proj("b", doc_generators=["TypeDoc"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "doc_generator_divergence"]
+        assert len(div) == 1
+        assert div[0].severity == "warning"
+
+    def test_doc_generator_gap(self):
+        projects = [
+            _proj("a", doc_generators=["Sphinx"], source_files=30),
+            _proj("b", source_files=30),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "doc_generator_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+
+    def test_no_gap_when_no_one_has_generators(self):
+        projects = [
+            _proj("a", source_files=30),
+            _proj("b", source_files=30),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "doc_generator_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_for_small_projects(self):
+        projects = [
+            _proj("a", doc_generators=["Sphinx"], source_files=30),
+            _proj("b", source_files=5),
+        ]
+        conns = find_connections(projects)
+        gaps = [c for c in conns if c.type == "doc_generator_gap"]
+        assert len(gaps) == 0
+
+    def test_no_divergence_single_paradigm(self):
+        projects = [
+            _proj("a", doc_generators=["Sphinx"]),
+            _proj("b", doc_generators=["TypeDoc"]),
+            _proj("c", doc_generators=["JSDoc"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "doc_generator_divergence"]
+        assert len(div) == 0
+
+    def test_multiple_shared(self):
+        projects = [
+            _proj("a", doc_generators=["Sphinx", "MkDocs"]),
+            _proj("b", doc_generators=["Sphinx", "MkDocs"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_doc_generator"]
+        assert len(shared) == 2
+
+    def test_capped_at_10(self):
+        gens = [f"Gen{i}" for i in range(20)]
+        projects = [
+            _proj("a", doc_generators=gens),
+            _proj("b", doc_generators=gens),
+        ]
+        conns = find_connections(projects)
+        doc_conns = [c for c in conns if "doc_generator" in c.type]
+        assert len(doc_conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", doc_generators=["Sphinx"]),
+            _proj("b", doc_generators=["Sphinx", "Docusaurus"]),
+        ]
+        conns = find_connections(projects)
+        doc_types = {c.type for c in conns if "doc_generator" in c.type}
+        assert "shared_doc_generator" in doc_types

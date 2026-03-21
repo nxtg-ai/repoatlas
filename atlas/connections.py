@@ -43,6 +43,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_search_engine_patterns(projects))
     connections.extend(_find_feature_flag_patterns(projects))
     connections.extend(_find_http_client_patterns(projects))
+    connections.extend(_find_doc_generator_patterns(projects))
     return connections
 
 
@@ -2463,6 +2464,81 @@ def _find_http_client_patterns(projects: list[Project]) -> list[Connection]:
                 type="http_client_gap",
                 detail=f"{len(no_clients)} backend project(s) have no HTTP client library detected",
                 projects=sorted(no_clients),
+                severity="info",
+            ))
+
+    return connections[:10]
+
+
+def _find_doc_generator_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project documentation generator patterns."""
+    connections: list[Connection] = []
+
+    # Shared doc generators — same tool used by 2+ projects
+    gen_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for g in p.tech_stack.doc_generators:
+            gen_to_projects[g].append(p.name)
+
+    for g, projs in sorted(gen_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_doc_generator",
+                detail=f"{g} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Doc generator divergence — different paradigms
+    static_site = {"Docusaurus", "VitePress", "Nextra", "GitBook", "Docsify",
+                   "Mintlify", "Starlight", "mdBook"}
+    api_docs = {"Sphinx", "TypeDoc", "JSDoc", "pdoc", "pydoctor", "Javadoc",
+                "Dokka", "Doxygen", "Swag", "rustdoc", "documentation.js"}
+    component_docs = {"Storybook"}
+    config_docs = {"MkDocs"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "static_site": {}, "api_docs": {}, "component_docs": {}, "config_docs": {},
+    }
+    cat_sets = [
+        ("static_site", static_site),
+        ("api_docs", api_docs),
+        ("component_docs", component_docs),
+        ("config_docs", config_docs),
+    ]
+    for p in projects:
+        for g in p.tech_stack.doc_generators:
+            for cat_name, cat_set in cat_sets:
+                if g in cat_set:
+                    cat_found[cat_name].setdefault(g, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, gens in active_cats.items():
+            gen_names = ", ".join(sorted(gens.keys())[:3])
+            parts.append(f"{cat_name} ({gen_names})")
+            for ps in gens.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="doc_generator_divergence",
+            detail=f"Mixed doc generation approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # Doc generator gap — projects with 20+ source files but no doc generator
+    has_docs = {p.name for p in projects if p.tech_stack.doc_generators}
+    if has_docs:
+        no_docs = [p.name for p in projects
+                   if not p.tech_stack.doc_generators
+                   and p.source_file_count > 20]
+        if no_docs:
+            connections.append(Connection(
+                type="doc_generator_gap",
+                detail=f"{len(no_docs)} project(s) with 20+ source files have no documentation generation tooling",
+                projects=sorted(no_docs),
                 severity="info",
             ))
 

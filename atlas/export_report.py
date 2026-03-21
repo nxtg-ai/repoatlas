@@ -622,6 +622,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_http_client": "Shared HTTP Clients",
         "http_client_divergence": "HTTP Client Divergence",
         "http_client_gap": "HTTP Client Gaps",
+        "shared_doc_generator": "Shared Doc Generators",
+        "doc_generator_divergence": "Doc Generator Divergence",
+        "doc_generator_gap": "Doc Generator Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

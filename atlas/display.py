@@ -134,6 +134,9 @@ CONNECTION_ICONS = {
     "shared_http_client": "[green]\u21c4[/green]",
     "http_client_divergence": "[yellow]\u21c4[/yellow]",
     "http_client_gap": "[red]\u21c4[/red]",
+    "shared_doc_generator": "[green]\u2261[/green]",
+    "doc_generator_divergence": "[yellow]\u2261[/yellow]",
+    "doc_generator_gap": "[red]\u2261[/red]",
 }
 
 
@@ -746,6 +749,9 @@ def show_connections(connections: list[Connection]):
         "shared_http_client": "Shared HTTP Clients",
         "http_client_divergence": "HTTP Client Divergence",
         "http_client_gap": "HTTP Client Gaps",
+        "shared_doc_generator": "Shared Doc Generators",
+        "doc_generator_divergence": "Doc Generator Divergence",
+        "doc_generator_gap": "Doc Generator Gaps",
     }
 
     lines = []
@@ -816,6 +822,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_search": "search", "search_divergence": "search", "search_gap": "search",
         "shared_feature_flag": "flags", "feature_flag_divergence": "flags", "feature_flag_gap": "flags",
         "shared_http_client": "http", "http_client_divergence": "http", "http_client_gap": "http",
+        "shared_doc_generator": "docgen", "doc_generator_divergence": "docgen", "doc_generator_gap": "docgen",
     }
 
     for conn in connections:

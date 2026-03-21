@@ -305,6 +305,7 @@ CONNECTION_CATEGORIES = {
     "search": {"shared_search", "search_divergence", "search_gap"},
     "flags": {"shared_feature_flag", "feature_flag_divergence", "feature_flag_gap"},
     "http": {"shared_http_client", "http_client_divergence", "http_client_gap"},
+    "docgen": {"shared_doc_generator", "doc_generator_divergence", "doc_generator_gap"},
 }
 
 
