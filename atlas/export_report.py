@@ -250,6 +250,17 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         css_names = ", ".join(t for t, _ in top_css)
         lines.append(f"**CSS/Style**: {has_css}/{n} projects \u00b7 {css_names}")
 
+    # Bundlers
+    has_bnd = sum(1 for p in projects if p.tech_stack.bundlers)
+    if has_bnd:
+        bnd_counter: Counter[str] = Counter()
+        for p in projects:
+            for bnd in p.tech_stack.bundlers:
+                bnd_counter[bnd] += 1
+        top_bnd = bnd_counter.most_common(6)
+        bnd_names = ", ".join(t for t, _ in top_bnd)
+        lines.append(f"**Bundlers**: {has_bnd}/{n} projects \u00b7 {bnd_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -323,6 +334,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.css_frameworks:
             lines.append(f"- **CSS/Style**: {', '.join(p.tech_stack.css_frameworks[:8])}")
+
+        if p.tech_stack.bundlers:
+            lines.append(f"- **Bundlers**: {', '.join(p.tech_stack.bundlers[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -612,6 +626,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             css_counter[css] += 1
     has_css = sum(1 for p in projects if p.tech_stack.css_frameworks)
 
+    # Bundlers
+    bnd_counter2: Counter[str] = Counter()
+    for p in projects:
+        for bnd in p.tech_stack.bundlers:
+            bnd_counter2[bnd] += 1
+    has_bnd = sum(1 for p in projects if p.tech_stack.bundlers)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -644,6 +665,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "deploy_targets": {"coverage": f"{has_deploy}/{n}", "targets": dict(dt_counter.most_common(10))},
         "state_management": {"coverage": f"{has_sm}/{n}", "tools": dict(sm_counter.most_common(10))},
         "css_frameworks": {"coverage": f"{has_css}/{n}", "frameworks": dict(css_counter.most_common(10))},
+        "bundlers": {"coverage": f"{has_bnd}/{n}", "tools": dict(bnd_counter2.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -662,7 +684,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Testing Frameworks", "Package Managers", "AI/ML Tools",
         "Docs Artifacts", "CI Config", "Runtime Versions", "Build Tools", "API Specs",
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
-        "CSS Frameworks",
+        "CSS Frameworks", "Bundlers",
         "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
@@ -704,6 +726,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.deploy_targets),
             "; ".join(ts.state_management),
             "; ".join(ts.css_frameworks),
+            "; ".join(ts.bundlers),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

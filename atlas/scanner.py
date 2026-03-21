@@ -30,6 +30,7 @@ from atlas.detector import (
     detect_deploy_targets,
     detect_state_management,
     detect_css_frameworks,
+    detect_bundlers,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -62,6 +63,7 @@ def scan_project(project_path: Path) -> Project:
     deploy_targets = detect_deploy_targets(path)
     state_management = detect_state_management(path)
     css_frameworks = detect_css_frameworks(path)
+    bundlers = detect_bundlers(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -89,6 +91,7 @@ def scan_project(project_path: Path) -> Project:
         deploy_targets=deploy_targets,
         state_management=state_management,
         css_frameworks=css_frameworks,
+        bundlers=bundlers,
     )
 
     project = Project(

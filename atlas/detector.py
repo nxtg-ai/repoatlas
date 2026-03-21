@@ -1890,3 +1890,76 @@ def detect_css_frameworks(project_path: Path) -> list[str]:
             pass
 
     return sorted(tools)
+
+
+def detect_bundlers(project_path: Path) -> list[str]:
+    """Detect JavaScript/TypeScript bundlers and module tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Config file detection
+    config_files = {
+        "webpack.config.js": "Webpack",
+        "webpack.config.ts": "Webpack",
+        "webpack.config.cjs": "Webpack",
+        "webpack.config.mjs": "Webpack",
+        "vite.config.js": "Vite",
+        "vite.config.ts": "Vite",
+        "vite.config.mjs": "Vite",
+        "rollup.config.js": "Rollup",
+        "rollup.config.ts": "Rollup",
+        "rollup.config.mjs": "Rollup",
+        ".parcelrc": "Parcel",
+        "turbo.json": "Turborepo",
+        ".swcrc": "SWC",
+        "rspack.config.js": "Rspack",
+        "rspack.config.ts": "Rspack",
+        "tsup.config.ts": "tsup",
+        "tsup.config.js": "tsup",
+    }
+    for filename, name in config_files.items():
+        if (project_path / filename).exists():
+            _add(name)
+
+    # package.json dependency detection
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            data = json.loads(pkg_json.read_text())
+            all_deps: set[str] = set()
+            for key in ("dependencies", "devDependencies"):
+                all_deps.update(data.get(key, {}).keys())
+
+            js_bundlers = {
+                "webpack": "Webpack",
+                "webpack-cli": "Webpack",
+                "vite": "Vite",
+                "esbuild": "esbuild",
+                "rollup": "Rollup",
+                "parcel": "Parcel",
+                "parcel-bundler": "Parcel",
+                "@swc/core": "SWC",
+                "@swc/cli": "SWC",
+                "turbopack": "Turbopack",
+                "@rspack/core": "Rspack",
+                "@rspack/cli": "Rspack",
+                "tsup": "tsup",
+                "unbuild": "unbuild",
+                "microbundle": "microbundle",
+                "bun": "Bun",
+                "rome": "Rome",
+                "snowpack": "Snowpack",
+                "wmr": "WMR",
+            }
+            for dep, name in js_bundlers.items():
+                if dep in all_deps:
+                    _add(name)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    return sorted(tools)

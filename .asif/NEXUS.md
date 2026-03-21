@@ -83,8 +83,9 @@
 | N-70 | [CSS & Styling Framework Detection](#n-70-css--styling-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-71 | [CSS & Styling Intelligence](#n-71-css--styling-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-72 | [Connection Category List Command](#n-72-connection-category-list-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-73 | [Bundler & Module Tool Detection](#n-73-bundler--module-tool-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 69/72 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 70/73 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -112,7 +113,8 @@
 - Deployment targets: Vercel, Netlify, Fly.io, Railway, Render, Heroku, Firebase Hosting, AWS Amplify, Serverless Framework, Google App Engine, DigitalOcean App Platform, Cloudflare Workers, GitHub Pages
 - Frontend state management: Redux, Zustand, Recoil, Jotai, Valtio, MobX, XState, Pinia, Vuex, NgRx, Signals, Effector, Nanostores, Legend State
 - CSS & styling frameworks: Tailwind CSS, Styled Components, Emotion, Sass, Less, PostCSS, CSS Modules, Vanilla Extract, Linaria, Panda CSS, UnoCSS, Windi CSS, Bootstrap, Bulma, Chakra UI, Mantine, Material UI, Vuetify, Ant Design, Radix UI, shadcn/ui, Stitches, Twin Macro, Stylelint
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70
+- Bundlers & module tools: Webpack, Vite, esbuild, Rollup, Parcel, SWC, Turborepo, Rspack, tsup, unbuild, microbundle, Snowpack, WMR, Turbopack, Bun
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -424,6 +426,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: `atlas connections --type list` shows all available connection categories with their connection types. Displays category name, associated connection type names, and total category count. Updated help text from hardcoded category list to "use --type list to see all". Handles `list` as a special value before category lookup. Shows "21 categories available" footer. 4 tests.
 **Shipped**: 2026-03-21. Total test count: 1330 → 1334. 21st experience feature.
+
+### N-73: Bundler & Module Tool Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: `detect_bundlers()` in detector.py identifies JavaScript/TypeScript bundlers and module tools from config files and package.json dependencies. Config files: webpack.config.{js,ts,cjs,mjs}, vite.config.{js,ts,mjs}, rollup.config.{js,ts,mjs}, .parcelrc, turbo.json, .swcrc, rspack.config.{js,ts}, tsup.config.{ts,js}. Package.json: Webpack, Vite, esbuild, Rollup, Parcel, SWC, Turbopack, Rspack, tsup, unbuild, microbundle, Bun, Snowpack, WMR. Returns sorted deduplicated list. Integrated across models.py (TechStack field + to_dict/from_dict), scanner.py, display.py (project card + portfolio summary), export_report.py (CSV column + markdown detail + markdown summary + JSON summary), and cli.py (_project_has_tech). 24 tests.
+**Shipped**: 2026-03-21. Total test count: 1334 → 1358. 22nd detection category.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

@@ -26,6 +26,7 @@ from atlas.detector import (
     detect_deploy_targets,
     detect_state_management,
     detect_css_frameworks,
+    detect_bundlers,
     walk_files,
 )
 
@@ -2713,3 +2714,158 @@ class TestDetectCssFrameworks:
         }))
         result = detect_css_frameworks(tmp_path)
         assert "Radix UI" in result
+
+
+class TestDetectBundlers:
+    def test_empty_project(self, tmp_path):
+        result = detect_bundlers(tmp_path)
+        assert result == []
+
+    def test_webpack_config(self, tmp_path):
+        (tmp_path / "webpack.config.js").write_text("module.exports = {}")
+        result = detect_bundlers(tmp_path)
+        assert "Webpack" in result
+
+    def test_webpack_config_ts(self, tmp_path):
+        (tmp_path / "webpack.config.ts").write_text("export default {}")
+        result = detect_bundlers(tmp_path)
+        assert "Webpack" in result
+
+    def test_vite_config(self, tmp_path):
+        (tmp_path / "vite.config.ts").write_text("export default {}")
+        result = detect_bundlers(tmp_path)
+        assert "Vite" in result
+
+    def test_rollup_config(self, tmp_path):
+        (tmp_path / "rollup.config.js").write_text("export default {}")
+        result = detect_bundlers(tmp_path)
+        assert "Rollup" in result
+
+    def test_parcelrc(self, tmp_path):
+        (tmp_path / ".parcelrc").write_text("{}")
+        result = detect_bundlers(tmp_path)
+        assert "Parcel" in result
+
+    def test_turbo_json(self, tmp_path):
+        (tmp_path / "turbo.json").write_text("{}")
+        result = detect_bundlers(tmp_path)
+        assert "Turborepo" in result
+
+    def test_swcrc(self, tmp_path):
+        (tmp_path / ".swcrc").write_text("{}")
+        result = detect_bundlers(tmp_path)
+        assert "SWC" in result
+
+    def test_rspack_config(self, tmp_path):
+        (tmp_path / "rspack.config.js").write_text("module.exports = {}")
+        result = detect_bundlers(tmp_path)
+        assert "Rspack" in result
+
+    def test_tsup_config(self, tmp_path):
+        (tmp_path / "tsup.config.ts").write_text("export default {}")
+        result = detect_bundlers(tmp_path)
+        assert "tsup" in result
+
+    def test_webpack_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"webpack": "^5.0.0", "webpack-cli": "^5.0.0"}
+        }))
+        result = detect_bundlers(tmp_path)
+        assert "Webpack" in result
+
+    def test_vite_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"vite": "^5.0.0"}
+        }))
+        result = detect_bundlers(tmp_path)
+        assert "Vite" in result
+
+    def test_esbuild(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"esbuild": "^0.20.0"}
+        }))
+        result = detect_bundlers(tmp_path)
+        assert "esbuild" in result
+
+    def test_parcel_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"parcel": "^2.0.0"}
+        }))
+        result = detect_bundlers(tmp_path)
+        assert "Parcel" in result
+
+    def test_swc_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"@swc/core": "^1.0.0"}
+        }))
+        result = detect_bundlers(tmp_path)
+        assert "SWC" in result
+
+    def test_rspack_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"@rspack/core": "^0.5.0"}
+        }))
+        result = detect_bundlers(tmp_path)
+        assert "Rspack" in result
+
+    def test_tsup_from_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"tsup": "^8.0.0"}
+        }))
+        result = detect_bundlers(tmp_path)
+        assert "tsup" in result
+
+    def test_unbuild(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"unbuild": "^2.0.0"}
+        }))
+        result = detect_bundlers(tmp_path)
+        assert "unbuild" in result
+
+    def test_snowpack(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"snowpack": "^3.0.0"}
+        }))
+        result = detect_bundlers(tmp_path)
+        assert "Snowpack" in result
+
+    def test_multiple_bundlers(self, tmp_path):
+        (tmp_path / "vite.config.ts").write_text("{}")
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"esbuild": "^0.20.0", "@swc/core": "^1.0.0"}
+        }))
+        result = detect_bundlers(tmp_path)
+        assert "Vite" in result
+        assert "esbuild" in result
+        assert "SWC" in result
+
+    def test_no_duplicates(self, tmp_path):
+        (tmp_path / "vite.config.ts").write_text("{}")
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"vite": "^5.0.0"}
+        }))
+        result = detect_bundlers(tmp_path)
+        assert result.count("Vite") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {
+                "webpack": "^5.0.0",
+                "esbuild": "^0.20.0",
+                "rollup": "^4.0.0",
+            }
+        }))
+        result = detect_bundlers(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        result = detect_bundlers(tmp_path)
+        assert result == []
+
+    def test_microbundle(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({
+            "devDependencies": {"microbundle": "^0.15.0"}
+        }))
+        result = detect_bundlers(tmp_path)
+        assert "microbundle" in result

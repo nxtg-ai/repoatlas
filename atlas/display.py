@@ -448,6 +448,16 @@ def _show_portfolio_summary(portfolio: Portfolio):
         css_parts = [f"{css} ({count})" for css, count in top_css]
         lines.append(f"  [bold]CSS/Style:[/bold]   {has_css}/{n} projects \u00b7 {', '.join(css_parts)}")
 
+    has_bnd = sum(1 for p in projects if p.tech_stack.bundlers)
+    if has_bnd:
+        bnd_counter: Counter[str] = Counter()
+        for p in projects:
+            for bnd in p.tech_stack.bundlers:
+                bnd_counter[bnd] += 1
+        top_bnd = bnd_counter.most_common(6)
+        bnd_parts = [f"{bnd} ({count})" for bnd, count in top_bnd]
+        lines.append(f"  [bold]Bundlers:[/bold]    {has_bnd}/{n} projects \u00b7 {', '.join(bnd_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -737,6 +747,10 @@ def show_project_card(project: Project):
     if project.tech_stack.css_frameworks:
         css = ", ".join(project.tech_stack.css_frameworks[:8])
         lines.append(f"  [bold]CSS/Style:[/bold]  {css}")
+
+    if project.tech_stack.bundlers:
+        bnd = ", ".join(project.tech_stack.bundlers[:8])
+        lines.append(f"  [bold]Bundlers:[/bold]   {bnd}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")
