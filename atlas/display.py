@@ -155,6 +155,8 @@ CONNECTION_ICONS = {
     "websocket_divergence": "[yellow]⇌[/yellow]",
     "shared_graphql_lib": "[green]⇔[/green]",
     "graphql_divergence": "[yellow]⇔[/yellow]",
+    "shared_event_streaming": "[green]⇆[/green]",
+    "event_streaming_divergence": "[yellow]⇆[/yellow]",
 }
 
 
@@ -887,6 +889,8 @@ def show_connections(connections: list[Connection]):
         "websocket_divergence": "WebSocket Approach Divergence",
         "shared_graphql_lib": "Shared GraphQL Libs",
         "graphql_divergence": "GraphQL Approach Divergence",
+        "shared_event_streaming": "Shared Event Streaming",
+        "event_streaming_divergence": "Streaming Approach Divergence",
     }
 
     lines = []
@@ -966,6 +970,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_di_framework": "di", "di_divergence": "di",
         "shared_websocket_lib": "websocket", "websocket_divergence": "websocket",
         "shared_graphql_lib": "graphql", "graphql_divergence": "graphql",
+        "shared_event_streaming": "streaming", "event_streaming_divergence": "streaming",
     }
 
     for conn in connections:

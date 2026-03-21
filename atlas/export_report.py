@@ -762,6 +762,8 @@ def _connections_section(conns: list) -> list[str]:
         "websocket_divergence": "WebSocket Approach Divergence",
         "shared_graphql_lib": "Shared GraphQL Libs",
         "graphql_divergence": "GraphQL Approach Divergence",
+        "shared_event_streaming": "Shared Event Streaming",
+        "event_streaming_divergence": "Streaming Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

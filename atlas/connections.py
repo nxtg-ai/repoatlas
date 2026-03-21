@@ -52,6 +52,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_di_patterns(projects))
     connections.extend(_find_websocket_patterns(projects))
     connections.extend(_find_graphql_patterns(projects))
+    connections.extend(_find_event_streaming_patterns(projects))
     return connections
 
 
@@ -3029,6 +3030,65 @@ def _find_graphql_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="graphql_divergence",
             detail=f"Mixed GraphQL approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_event_streaming_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project event streaming patterns."""
+    connections: list[Connection] = []
+
+    # Shared event streaming tools — same tool used by 2+ projects
+    tool_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for tool in p.tech_stack.event_streaming:
+            tool_to_projects[tool].append(p.name)
+
+    for tool, projs in sorted(tool_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_event_streaming",
+                detail=f"{tool} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Event streaming divergence — kafka-based vs amqp-based vs cloud-managed
+    kafka_tools = {"Confluent Kafka", "kafka-python", "aiokafka", "KafkaJS", "kafka-go",
+                   "Confluent Kafka (Go)", "Sarama", "rdkafka", "Spring Kafka", "Kafka Clients",
+                   "Faust"}
+    amqp_tools = {"RabbitMQ (pika)", "RabbitMQ (aio-pika)", "Kombu", "RabbitMQ (amqplib)",
+                  "AMQP (rhea)", "RabbitMQ (Go)", "RabbitMQ (lapin)", "Spring AMQP",
+                  "Spring RabbitMQ", "BullMQ"}
+    cloud_tools = {"Google Pub/Sub", "AWS SQS", "AWS SNS", "AWS Kinesis",
+                   "Azure Event Hubs", "Azure Service Bus", "AWS SQS (Java)",
+                   "AWS Kinesis (Java)"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "kafka_based": {}, "amqp_based": {}, "cloud_managed": {},
+    }
+    cat_sets = [("kafka_based", kafka_tools), ("amqp_based", amqp_tools), ("cloud_managed", cloud_tools)]
+    for p in projects:
+        for tool in p.tech_stack.event_streaming:
+            for cat_name, cat_set in cat_sets:
+                if tool in cat_set:
+                    cat_found[cat_name].setdefault(tool, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="event_streaming_divergence",
+            detail=f"Mixed streaming approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

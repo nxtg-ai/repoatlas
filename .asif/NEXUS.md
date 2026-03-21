@@ -144,8 +144,9 @@
 | N-131 | [GraphQL Intelligence](#n-131-graphql-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-132 | [Event Streaming Detection](#n-132-event-streaming-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-133 | [Status Grade Distribution](#n-133-status-grade-distribution) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-134 | [Event Streaming Intelligence](#n-134-event-streaming-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 130/133 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 131/134 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -239,7 +240,8 @@
 - Cross-project DI framework intelligence (shared DI frameworks, container-based vs implicit paradigm divergence)
 - Cross-project WebSocket intelligence (shared WebSocket libs, managed vs self-hosted paradigm divergence)
 - Cross-project GraphQL intelligence (shared GraphQL libs, server-first vs client-first paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131
+- Cross-project event streaming intelligence (shared streaming tools, kafka-based vs amqp-based vs cloud-managed paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -677,6 +679,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-134: Event Streaming Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project event streaming intelligence. Detects shared streaming tools (shared_event_streaming, info) and paradigm divergence — kafka-based vs amqp-based vs cloud-managed (event_streaming_divergence, warning). Added connection types, display icons/labels, CLI category "streaming", export labels, recommendation mapping. 8 tests.
+**Shipped**: 2026-03-21. Total test count: 2053 → 2061. 43rd intelligence feature.
 
 ### N-133: Status Grade Distribution
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1

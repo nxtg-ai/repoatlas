@@ -4953,3 +4953,77 @@ class TestFindGraphqlPatterns:
         conns = find_connections(projects)
         gql_types = {c.type for c in conns if "graphql" in c.type}
         assert "shared_graphql_lib" in gql_types
+
+
+class TestFindEventStreamingPatterns:
+    def test_shared_event_streaming(self):
+        projects = [
+            _proj("a", event_streaming=["KafkaJS", "BullMQ"]),
+            _proj("b", event_streaming=["KafkaJS"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_event_streaming"]
+        assert any("KafkaJS" in c.detail for c in shared)
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", event_streaming=["KafkaJS"]),
+            _proj("b", event_streaming=["RabbitMQ (amqplib)"]),
+        ]
+        conns = find_connections(projects)
+        shared = [c for c in conns if c.type == "shared_event_streaming"]
+        assert len(shared) == 0
+
+    def test_divergence_kafka_vs_amqp(self):
+        projects = [
+            _proj("a", event_streaming=["Confluent Kafka"]),
+            _proj("b", event_streaming=["RabbitMQ (pika)"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "event_streaming_divergence"]
+        assert len(div) == 1
+        assert "kafka_based" in div[0].detail
+        assert "amqp_based" in div[0].detail
+
+    def test_divergence_kafka_vs_cloud(self):
+        projects = [
+            _proj("a", event_streaming=["KafkaJS"]),
+            _proj("b", event_streaming=["Google Pub/Sub"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "event_streaming_divergence"]
+        assert len(div) == 1
+        assert "kafka_based" in div[0].detail
+        assert "cloud_managed" in div[0].detail
+
+    def test_no_divergence_same_category(self):
+        projects = [
+            _proj("a", event_streaming=["Confluent Kafka"]),
+            _proj("b", event_streaming=["KafkaJS"]),
+        ]
+        conns = find_connections(projects)
+        div = [c for c in conns if c.type == "event_streaming_divergence"]
+        assert len(div) == 0
+
+    def test_empty_streaming(self):
+        projects = [_proj("a"), _proj("b")]
+        conns = find_connections(projects)
+        es = [c for c in conns if "streaming" in c.type]
+        assert len(es) == 0
+
+    def test_cap_at_10(self):
+        projects = [
+            _proj(f"p{i}", event_streaming=["KafkaJS"]) for i in range(20)
+        ]
+        from atlas.connections import _find_event_streaming_patterns
+        conns = _find_event_streaming_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", event_streaming=["KafkaJS", "Google Pub/Sub"]),
+            _proj("b", event_streaming=["KafkaJS", "RabbitMQ (amqplib)"]),
+        ]
+        conns = find_connections(projects)
+        es_types = {c.type for c in conns if "streaming" in c.type}
+        assert "shared_event_streaming" in es_types

@@ -387,6 +387,7 @@ CONNECTION_CATEGORIES = {
     "di": {"shared_di_framework", "di_divergence"},
     "websocket": {"shared_websocket_lib", "websocket_divergence"},
     "graphql": {"shared_graphql_lib", "graphql_divergence"},
+    "streaming": {"shared_event_streaming", "event_streaming_divergence"},
 }
 
 
