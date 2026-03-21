@@ -356,7 +356,9 @@ def connections(
 
 
 @app.command()
-def doctor():
+def doctor(
+    format: Optional[str] = typer.Option(None, help="Output format: json for structured output"),
+):
     """Diagnose portfolio health and suggest fixes."""
     portfolio = _load_portfolio()
 
@@ -365,6 +367,31 @@ def doctor():
         return
 
     recs = generate_recommendations(portfolio)
+
+    if format and format.lower() == "json":
+        import json as json_mod
+        data = {
+            "total": len(recs),
+            "recommendations": [
+                {
+                    "priority": rec.priority,
+                    "category": rec.category,
+                    "message": rec.message,
+                    "projects": rec.projects,
+                }
+                for rec in recs
+            ],
+        }
+        counts: dict[str, int] = {}
+        for rec in recs:
+            counts[rec.priority] = counts.get(rec.priority, 0) + 1
+        data["summary"] = counts
+        cat_counts_j: dict[str, int] = {}
+        for rec in recs:
+            cat_counts_j[rec.category] = cat_counts_j.get(rec.category, 0) + 1
+        data["categories"] = cat_counts_j
+        print(json_mod.dumps(data, indent=2))
+        return
 
     console.print()
     if not recs:
@@ -382,13 +409,13 @@ def doctor():
         console.print(f"  {rec.icon} [{rec.priority.upper()}] {rec.message}")
 
     # Summary counts
-    counts = {}
+    counts_r: dict[str, int] = {}
     for rec in recs:
-        counts[rec.priority] = counts.get(rec.priority, 0) + 1
+        counts_r[rec.priority] = counts_r.get(rec.priority, 0) + 1
     parts = []
     for p in ("critical", "high", "medium", "low"):
-        if p in counts:
-            parts.append(f"{counts[p]} {p}")
+        if p in counts_r:
+            parts.append(f"{counts_r[p]} {p}")
     console.print()
     console.print(f"  [dim]Summary: {', '.join(parts)}[/dim]")
 

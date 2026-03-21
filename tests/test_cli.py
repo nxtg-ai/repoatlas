@@ -486,6 +486,72 @@ class TestDoctor:
         # Empty portfolio = no recs = no category summary
         assert "Categories:" not in result.output
 
+    def test_doctor_json_format(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "bad-proj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.3, documentation=0.1, structure=0.2)
+        hs.compute()
+        proj = Project(
+            name="bad-proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=10, has_remote=False, uncommitted_changes=60),
+            health=hs, test_file_count=0, source_file_count=30, total_file_count=30, loc=2000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert "total" in data
+        assert "recommendations" in data
+        assert "summary" in data
+        assert "categories" in data
+        assert data["total"] > 0
+        assert len(data["recommendations"]) == data["total"]
+        rec = data["recommendations"][0]
+        assert "priority" in rec
+        assert "category" in rec
+        assert "message" in rec
+        assert "projects" in rec
+
+    def test_doctor_json_structure(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert isinstance(data["total"], int)
+        assert isinstance(data["recommendations"], list)
+        assert isinstance(data["summary"], dict)
+        assert isinstance(data["categories"], dict)
+
+    def test_doctor_json_has_category_counts(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = Project(
+            name="proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert isinstance(data["categories"], dict)
+        assert sum(data["categories"].values()) == data["total"]
+
 
 # ===========================================================================
 # atlas ci

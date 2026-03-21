@@ -108,8 +108,9 @@
 | N-95 | [Export Filtering](#n-95-export-filtering) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-96 | [Search Engine Detection](#n-96-search-engine-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-97 | [Search Engine Intelligence](#n-97-search-engine-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-98 | [Doctor JSON Export](#n-98-doctor-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 94/97 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 95/98 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -213,7 +214,8 @@
 - Top projects command: `atlas top --by health|loc|tests|commits -n 5` shows top N projects ranked by metric
 - Version command: `atlas version` shows installed version
 - Export filtering: `atlas export --grade A --lang Python --has Docker --min-health 80 --max-health 100` filters projects in any export format (markdown/json/csv)
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95
+- Doctor JSON export: `atlas doctor --format json` outputs structured JSON with recommendations array, priority/category summary counts for CI integration
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -600,6 +602,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project search engine intelligence: shared search engines (shared_search), server-side vs client-side vs SaaS paradigm divergence (search_divergence), search gaps for database-backed projects (search_gap). New CONNECTION_CATEGORIES entry "search". 10 tests.
 **Shipped**: 2026-03-21. Total test count: 1665 → 1675. 31st intelligence feature.
+
+### N-98: Doctor JSON Export
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
+**Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
