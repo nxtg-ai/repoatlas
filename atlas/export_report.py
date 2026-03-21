@@ -89,6 +89,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
     has_security = sum(1 for p in projects if p.tech_stack.security_tools)
     lines.append(f"**Security**: {has_security}/{n} projects have security tooling")
 
+    # Testing
+    has_testing = sum(1 for p in projects if p.tech_stack.testing_frameworks)
+    if has_testing:
+        tf_counter: Counter[str] = Counter()
+        for p in projects:
+            for tf in p.tech_stack.testing_frameworks:
+                tf_counter[tf] += 1
+        top_tf = tf_counter.most_common(6)
+        lines.append(f"**Testing**: {has_testing}/{n} projects · {', '.join(t for t, _ in top_tf)}")
+
     # AI/ML
     has_ai = sum(1 for p in projects if p.tech_stack.ai_tools)
     if has_ai:

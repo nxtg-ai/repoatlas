@@ -223,6 +223,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
             qt_parts.append(f"Type checking {has_types}/{n}")
         lines.append(f"  [bold]Quality:[/bold]      {' · '.join(qt_parts)}")
 
+    # Testing framework adoption
+    has_testing = sum(1 for p in projects if p.tech_stack.testing_frameworks)
+    if has_testing:
+        tf_counter: Counter[str] = Counter()
+        for p in projects:
+            for tf in p.tech_stack.testing_frameworks:
+                tf_counter[tf] += 1
+        top_tf = tf_counter.most_common(6)
+        tf_parts = [f"{tf} ({count})" for tf, count in top_tf]
+        lines.append(f"  [bold]Testing:[/bold]      {has_testing}/{n} projects · {', '.join(tf_parts)}")
+
     # AI/ML adoption
     has_ai = sum(1 for p in projects if p.tech_stack.ai_tools)
     if has_ai:

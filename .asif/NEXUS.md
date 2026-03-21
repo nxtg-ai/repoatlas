@@ -40,8 +40,9 @@
 | N-27 | [AI/ML Intelligence](#n-27-aiml-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-28 | [Testing Framework Detection](#n-28-testing-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
 | N-29 | [Testing Intelligence](#n-29-testing-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
+| N-30 | [Testing Summary Panel](#n-30-testing-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 26/29 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 27/30 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -76,7 +77,8 @@
 - Portfolio summary panel: language distribution, framework adoption, infra coverage, security posture
 - Rich markdown export for portfolio reports
 - Enhanced doctor recommendations leveraging all detection data
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26
+- Testing framework adoption in portfolio summary panel and markdown export
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -213,6 +215,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Enhanced `atlas doctor` recommendations engine to leverage all detection data from N-17/N-19/N-24/N-25. Per-project: security (no tooling, missing dep scanning, missing secret scanning), quality (no tooling, missing linting, missing type checking), infrastructure (no CI/CD). Cross-project: maps security_gap/security_divergence, quality_gap/quality_divergence, infra_gap/infra_divergence connections to prioritized recommendations. 23 new recommendation tests.
 **Shipped**: 2026-03-13. Total test count: 583 → 606. Surfaces all detection+intelligence data through actionable `atlas doctor` output.
+
+### N-30: Testing Summary Panel
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added testing framework adoption stats to the portfolio summary panel (display.py) and markdown export (export_report.py). Shows `Testing: X/N projects · pytest (3), Jest (2)` with top frameworks ranked by usage. Row hidden when no projects have testing frameworks. Follows the established pattern from security/quality/AI/ML summary rows. 7 new tests (4 display, 3 export).
+**Shipped**: 2026-03-13. Total test count: 666 → 673. Completes the summary panel — all detection categories now have portfolio-level visibility.
 
 ### N-29: Testing Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

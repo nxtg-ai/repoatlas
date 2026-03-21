@@ -11,7 +11,8 @@ from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
 
 def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
-          security_tools=None, test_files=0, source_files=10, loc=100) -> Project:
+          security_tools=None, testing_frameworks=None,
+          test_files=0, source_files=10, loc=100) -> Project:
     return Project(
         name=name,
         path=f"/tmp/{name}",
@@ -20,6 +21,7 @@ def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
             frameworks=frameworks or [],
             infrastructure=infrastructure or [],
             security_tools=security_tools or [],
+            testing_frameworks=testing_frameworks or [],
         ),
         git_info=GitInfo(total_commits=10, branch="main"),
         health=HealthScore(tests=0.8, git_hygiene=0.9, documentation=0.7,
@@ -162,6 +164,49 @@ class TestPortfolioSummarySecurity:
         ]
         output = _capture_summary(projects)
         assert "Secret scanning" not in output
+
+
+class TestPortfolioSummaryTesting:
+    def test_testing_coverage(self):
+        projects = [
+            _proj("a", testing_frameworks=["pytest", "tox"]),
+            _proj("b", testing_frameworks=["pytest"]),
+            _proj("c", testing_frameworks=[]),
+        ]
+        output = _capture_summary(projects)
+        assert "Testing" in output
+        assert "2/3 projects" in output
+        assert "pytest (2)" in output
+
+    def test_no_testing(self):
+        projects = [
+            _proj("a", testing_frameworks=[]),
+            _proj("b", testing_frameworks=[]),
+        ]
+        output = _capture_summary(projects)
+        # Testing row hidden when no projects have testing frameworks
+        assert "Testing" not in output or "0/2" not in output
+
+    def test_testing_multiple_frameworks_ranked(self):
+        projects = [
+            _proj("a", testing_frameworks=["pytest", "Jest"]),
+            _proj("b", testing_frameworks=["pytest", "Vitest"]),
+            _proj("c", testing_frameworks=["Jest"]),
+        ]
+        output = _capture_summary(projects)
+        assert "pytest (2)" in output
+        assert "Jest (2)" in output
+
+    def test_testing_hidden_when_none(self):
+        projects = [
+            _proj("a", testing_frameworks=[]),
+            _proj("b", testing_frameworks=[]),
+        ]
+        output = _capture_summary(projects)
+        # When no projects have testing, the Testing row should not appear
+        lines = output.split("\n")
+        testing_lines = [ln for ln in lines if "Testing:" in ln and "projects" in ln]
+        assert len(testing_lines) == 0
 
 
 class TestShowStatusSummaryPanel:

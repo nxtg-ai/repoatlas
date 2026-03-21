@@ -121,6 +121,34 @@ class TestPortfolioSummary:
         ))
         assert "AI/ML" not in report
 
+    def test_testing_shown_when_present(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", testing_frameworks=["pytest", "tox"]),
+            _proj("b", testing_frameworks=["pytest"]),
+        ))
+        assert "**Testing**" in report
+        assert "2/2 projects" in report
+        assert "pytest" in report
+
+    def test_testing_hidden_when_absent(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", testing_frameworks=[]),
+            _proj("b", testing_frameworks=[]),
+        ))
+        # Testing line in summary should not appear (project details may still show)
+        lines = report.split("\n")
+        summary_testing = [ln for ln in lines if ln.startswith("**Testing**:") and "projects" in ln]
+        assert len(summary_testing) == 0
+
+    def test_testing_framework_counts(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", testing_frameworks=["pytest", "Jest"]),
+            _proj("b", testing_frameworks=["pytest", "Vitest"]),
+            _proj("c", testing_frameworks=["Jest"]),
+        ))
+        assert "pytest" in report
+        assert "Jest" in report
+
     def test_no_summary_for_single_project(self):
         report = build_markdown_report(_portfolio(_proj("solo")))
         assert "## Portfolio Summary" not in report
