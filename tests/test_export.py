@@ -7,7 +7,7 @@ from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
 def _proj(name: str, languages=None, frameworks=None, databases=None,
           infrastructure=None, security_tools=None, ai_tools=None,
-          quality_tools=None, testing_frameworks=None,
+          quality_tools=None, testing_frameworks=None, package_managers=None,
           test_files=5, source_files=20, loc=500) -> Project:
     return Project(
         name=name,
@@ -21,6 +21,7 @@ def _proj(name: str, languages=None, frameworks=None, databases=None,
             ai_tools=ai_tools or [],
             quality_tools=quality_tools or [],
             testing_frameworks=testing_frameworks or [],
+            package_managers=package_managers or [],
         ),
         git_info=GitInfo(
             branch="main",
@@ -175,6 +176,33 @@ class TestPortfolioSummary:
         ))
         assert "pytest" in report
         assert "Jest" in report
+
+    def test_pkg_managers_shown_when_present(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", package_managers=["Poetry", "npm"]),
+            _proj("b", package_managers=["Poetry"]),
+        ))
+        assert "**Pkg Managers**" in report
+        assert "2/2 projects" in report
+        assert "Poetry" in report
+
+    def test_pkg_managers_hidden_when_absent(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", package_managers=[]),
+            _proj("b", package_managers=[]),
+        ))
+        lines = report.split("\n")
+        pm_lines = [ln for ln in lines if ln.startswith("**Pkg Managers**:") and "projects" in ln]
+        assert len(pm_lines) == 0
+
+    def test_pkg_managers_ranked(self):
+        report = build_markdown_report(_portfolio(
+            _proj("a", package_managers=["Poetry", "npm"]),
+            _proj("b", package_managers=["Poetry", "pnpm"]),
+            _proj("c", package_managers=["npm"]),
+        ))
+        assert "Poetry" in report
+        assert "npm" in report
 
     def test_no_summary_for_single_project(self):
         report = build_markdown_report(_portfolio(_proj("solo")))

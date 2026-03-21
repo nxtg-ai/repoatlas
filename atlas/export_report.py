@@ -109,6 +109,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         top_db = db_counter.most_common(6)
         lines.append(f"**Databases**: {has_db}/{n} projects · {', '.join(t for t, _ in top_db)}")
 
+    # Package managers
+    has_pm = sum(1 for p in projects if p.tech_stack.package_managers)
+    if has_pm:
+        pm_counter: Counter[str] = Counter()
+        for p in projects:
+            for pm in p.tech_stack.package_managers:
+                pm_counter[pm] += 1
+        top_pm = pm_counter.most_common(6)
+        lines.append(f"**Pkg Managers**: {has_pm}/{n} projects · {', '.join(t for t, _ in top_pm)}")
+
     # AI/ML
     has_ai = sum(1 for p in projects if p.tech_stack.ai_tools)
     if has_ai:

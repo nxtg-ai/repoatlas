@@ -46,8 +46,9 @@
 | N-33 | [Database Summary Panel](#n-33-database-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-34 | [Package Manager Detection](#n-34-package-manager-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-35 | [Package Manager Intelligence](#n-35-package-manager-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-36 | [Package Manager Summary Panel](#n-36-package-manager-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 32/35 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 33/36 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -88,7 +89,8 @@
 - Enhanced doctor recommendations leveraging all detection data
 - Testing framework adoption in portfolio summary panel and markdown export
 - Database adoption in portfolio summary panel and markdown export
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33
+- Package manager adoption in portfolio summary panel and markdown export
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -230,6 +232,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project package manager pattern detection via `_find_package_manager_patterns()` in connections.py. Detects: shared package managers (Poetry/npm across 2+ projects), JS package manager divergence (npm vs Yarn vs pnpm vs Bun), Python package manager divergence (pip vs Poetry vs PDM vs uv vs Pipenv), Java build tool divergence (Maven vs Gradle). New connection types (`shared_pkg_manager`, `pkg_manager_divergence`) displayed in `atlas connections`, markdown export, and `atlas doctor`. 13 package manager pattern tests.
 **Shipped**: 2026-03-21. Total test count: 736 → 749. Completes N-34 detection→intelligence pipeline. All 7 detection→intelligence pipelines complete.
+
+### N-36: Package Manager Summary Panel
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added package manager adoption stats to the portfolio summary panel (display.py) and markdown export (export_report.py). Shows `Pkg Mgrs: X/N projects · Poetry (3), npm (2)` with top managers ranked by usage. Row hidden when no projects have package managers. 6 new tests (3 display, 3 export).
+**Shipped**: 2026-03-21. Completes the detection→intelligence→summary pipeline for package managers (N-34→N-35→N-36). All 7 pipelines now have full summary panel visibility.
 
 ### N-34: Package Manager Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

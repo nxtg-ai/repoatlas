@@ -249,6 +249,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         db_parts = [f"{db} ({count})" for db, count in top_db]
         lines.append(f"  [bold]Databases:[/bold]    {has_db}/{n} projects · {', '.join(db_parts)}")
 
+    # Package manager adoption
+    has_pm = sum(1 for p in projects if p.tech_stack.package_managers)
+    if has_pm:
+        pm_counter: Counter[str] = Counter()
+        for p in projects:
+            for pm in p.tech_stack.package_managers:
+                pm_counter[pm] += 1
+        top_pm = pm_counter.most_common(6)
+        pm_parts = [f"{pm} ({count})" for pm, count in top_pm]
+        lines.append(f"  [bold]Pkg Mgrs:[/bold]     {has_pm}/{n} projects · {', '.join(pm_parts)}")
+
     # AI/ML adoption
     has_ai = sum(1 for p in projects if p.tech_stack.ai_tools)
     if has_ai:

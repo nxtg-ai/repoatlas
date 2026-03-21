@@ -12,6 +12,7 @@ from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
 def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
           security_tools=None, testing_frameworks=None, databases=None,
+          package_managers=None,
           test_files=0, source_files=10, loc=100) -> Project:
     return Project(
         name=name,
@@ -23,6 +24,7 @@ def _proj(name: str, languages=None, frameworks=None, infrastructure=None,
             security_tools=security_tools or [],
             testing_frameworks=testing_frameworks or [],
             databases=databases or [],
+            package_managers=package_managers or [],
         ),
         git_info=GitInfo(total_commits=10, branch="main"),
         health=HealthScore(tests=0.8, git_hygiene=0.9, documentation=0.7,
@@ -241,6 +243,39 @@ class TestPortfolioSummaryTesting:
         lines = output.split("\n")
         testing_lines = [ln for ln in lines if "Testing:" in ln and "projects" in ln]
         assert len(testing_lines) == 0
+
+
+class TestPortfolioSummaryPackageManagers:
+    def test_pkg_manager_coverage(self):
+        projects = [
+            _proj("a", package_managers=["Poetry", "npm"]),
+            _proj("b", package_managers=["Poetry"]),
+            _proj("c", package_managers=[]),
+        ]
+        output = _capture_summary(projects)
+        assert "Pkg Mgrs" in output
+        assert "2/3 projects" in output
+        assert "Poetry (2)" in output
+
+    def test_pkg_manager_hidden_when_none(self):
+        projects = [
+            _proj("a", package_managers=[]),
+            _proj("b", package_managers=[]),
+        ]
+        output = _capture_summary(projects)
+        lines = output.split("\n")
+        pm_lines = [ln for ln in lines if "Pkg Mgrs:" in ln and "projects" in ln]
+        assert len(pm_lines) == 0
+
+    def test_pkg_manager_multiple_ranked(self):
+        projects = [
+            _proj("a", package_managers=["Poetry", "npm"]),
+            _proj("b", package_managers=["Poetry", "pnpm"]),
+            _proj("c", package_managers=["npm"]),
+        ]
+        output = _capture_summary(projects)
+        assert "Poetry (2)" in output
+        assert "npm (2)" in output
 
 
 class TestShowStatusSummaryPanel:
