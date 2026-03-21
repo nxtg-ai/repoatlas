@@ -5165,3 +5165,70 @@ class TestFindDateLibPatterns:
         conns = find_connections(projects)
         date_types = {c.type for c in conns if "date" in c.type}
         assert "shared_date_lib" in date_types
+
+
+class TestFindImageLibPatterns:
+    def test_shared_image_lib(self):
+        from atlas.connections import _find_image_lib_patterns
+        projects = [
+            _proj("a", image_libs=["Sharp"]),
+            _proj("b", image_libs=["Sharp", "Jimp"]),
+        ]
+        conns = _find_image_lib_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_image_lib"]
+        assert len(shared) == 1
+        assert "Sharp" in shared[0].detail
+
+    def test_no_shared_unique(self):
+        from atlas.connections import _find_image_lib_patterns
+        projects = [
+            _proj("a", image_libs=["Sharp"]),
+            _proj("b", image_libs=["Jimp"]),
+        ]
+        conns = _find_image_lib_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_image_lib"]
+        assert len(shared) == 0
+
+    def test_divergence_high_vs_low(self):
+        from atlas.connections import _find_image_lib_patterns
+        projects = [
+            _proj("a", image_libs=["Pillow"]),
+            _proj("b", image_libs=["OpenCV"]),
+        ]
+        conns = _find_image_lib_patterns(projects)
+        div = [c for c in conns if c.type == "image_lib_divergence"]
+        assert len(div) == 1
+        assert "high_level" in div[0].detail
+        assert "low_level" in div[0].detail
+
+    def test_no_divergence_same_category(self):
+        from atlas.connections import _find_image_lib_patterns
+        projects = [
+            _proj("a", image_libs=["Pillow"]),
+            _proj("b", image_libs=["Sharp"]),
+        ]
+        conns = _find_image_lib_patterns(projects)
+        div = [c for c in conns if c.type == "image_lib_divergence"]
+        assert len(div) == 0
+
+    def test_empty(self):
+        from atlas.connections import _find_image_lib_patterns
+        projects = [_proj("a"), _proj("b")]
+        assert _find_image_lib_patterns(projects) == []
+
+    def test_cap_at_10(self):
+        from atlas.connections import _find_image_lib_patterns
+        projects = [_proj(f"p{i}", image_libs=[f"Lib{i}"]) for i in range(20)]
+        for p in projects:
+            p.tech_stack.image_libs.append("Sharp")
+        conns = _find_image_lib_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", image_libs=["Pillow", "OpenCV"]),
+            _proj("b", image_libs=["Pillow", "scikit-image"]),
+        ]
+        conns = find_connections(projects)
+        img_types = {c.type for c in conns if "image" in c.type}
+        assert "shared_image_lib" in img_types

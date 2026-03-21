@@ -269,6 +269,7 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "event_streaming_divergence": "infra",
         "payment_divergence": "deps",
         "date_lib_divergence": "deps",
+        "image_lib_divergence": "deps",
     }
 
     for conn in connections:
