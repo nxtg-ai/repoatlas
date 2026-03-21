@@ -679,6 +679,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         ser_parts = [f"{sf} ({count})" for sf, count in top_ser]
         lines.append(f"  [bold]Serialization:[/bold] {has_ser}/{n} projects \u00b7 {', '.join(ser_parts)}")
 
+    # DI frameworks
+    has_di = sum(1 for p in projects if p.tech_stack.di_frameworks)
+    if has_di:
+        di_counter: Counter[str] = Counter()
+        for p in projects:
+            for df in p.tech_stack.di_frameworks:
+                di_counter[df] += 1
+        top_di = di_counter.most_common(6)
+        di_parts = [f"{df} ({count})" for df, count in top_di]
+        lines.append(f"  [bold]DI:[/bold]            {has_di}/{n} projects \u00b7 {', '.join(di_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1101,6 +1112,10 @@ def show_project_card(project: Project):
     if project.tech_stack.serialization_formats:
         ser = ", ".join(project.tech_stack.serialization_formats[:8])
         lines.append(f"  [bold]Serialization:[/bold] {ser}")
+
+    if project.tech_stack.di_frameworks:
+        di = ", ".join(project.tech_stack.di_frameworks[:8])
+        lines.append(f"  [bold]DI:[/bold]            {di}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

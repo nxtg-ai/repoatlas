@@ -43,6 +43,7 @@ from atlas.detector import (
     detect_caching_tools,
     detect_template_engines,
     detect_serialization_formats,
+    detect_di_frameworks,
     walk_files,
 )
 
@@ -4924,3 +4925,87 @@ class TestDetectSerializationFormats:
         (tmp_path / "schema.proto").write_text('syntax = "proto3";')
         result = detect_serialization_formats(tmp_path)
         assert result.count("Protocol Buffers") == 1
+
+
+# ---------------------------------------------------------------------------
+# detect_di_frameworks
+# ---------------------------------------------------------------------------
+
+
+class TestDetectDIFrameworks:
+    def test_empty(self, tmp_path):
+        assert detect_di_frameworks(tmp_path) == []
+
+    # --- Python ---
+    def test_python_dependency_injector(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("dependency-injector>=4.0\n")
+        assert "dependency-injector" in detect_di_frameworks(tmp_path)
+
+    def test_python_fastapi_depends(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("fastapi>=0.100\n")
+        assert "FastAPI Depends" in detect_di_frameworks(tmp_path)
+
+    def test_python_lagom(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("lagom>=2.0\n")
+        assert "Lagom" in detect_di_frameworks(tmp_path)
+
+    def test_python_dishka(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("dishka>=1.0\n")
+        assert "dishka" in detect_di_frameworks(tmp_path)
+
+    # --- JS/TS ---
+    def test_js_inversify(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"inversify": "^6.0"}}))
+        assert "InversifyJS" in detect_di_frameworks(tmp_path)
+
+    def test_js_tsyringe(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"tsyringe": "^4.0"}}))
+        assert "tsyringe" in detect_di_frameworks(tmp_path)
+
+    def test_js_awilix(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"awilix": "^9.0"}}))
+        assert "Awilix" in detect_di_frameworks(tmp_path)
+
+    def test_js_nestjs(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"@nestjs/core": "^10.0"}}))
+        assert "NestJS DI" in detect_di_frameworks(tmp_path)
+
+    def test_js_angular(self, tmp_path):
+        (tmp_path / "package.json").write_text(json.dumps({"dependencies": {"@angular/core": "^17.0"}}))
+        assert "Angular DI" in detect_di_frameworks(tmp_path)
+
+    # --- Go ---
+    def test_go_uber_fx(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire go.uber.org/fx v1.20\n")
+        assert "Uber Fx" in detect_di_frameworks(tmp_path)
+
+    def test_go_wire(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/google/wire v0.5\n")
+        assert "Wire" in detect_di_frameworks(tmp_path)
+
+    # --- Rust ---
+    def test_rust_shaku(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nshaku = "0.6"\n')
+        assert "Shaku" in detect_di_frameworks(tmp_path)
+
+    # --- Java ---
+    def test_java_spring(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><artifactId>spring-context</artifactId></dependency>")
+        assert "Spring DI" in detect_di_frameworks(tmp_path)
+
+    def test_java_guice(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'com.google.inject:guice:5.1'\n")
+        assert "Google Guice" in detect_di_frameworks(tmp_path)
+
+    def test_java_dagger(self, tmp_path):
+        (tmp_path / "build.gradle.kts").write_text("implementation(\"com.google.dagger:dagger:2.48\")\n")
+        assert "Dagger" in detect_di_frameworks(tmp_path)
+
+    def test_sorted(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("fastapi>=0.100\ndependency-injector>=4.0\n")
+        result = detect_di_frameworks(tmp_path)
+        assert result == sorted(result)
+
+    def test_invalid_package_json(self, tmp_path):
+        (tmp_path / "package.json").write_text("not json")
+        assert detect_di_frameworks(tmp_path) == []

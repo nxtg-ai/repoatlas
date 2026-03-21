@@ -4026,6 +4026,111 @@ def detect_serialization_formats(project_path: Path) -> list[str]:
     return sorted(tools)
 
 
+def detect_di_frameworks(project_path: Path) -> list[str]:
+    """Detect dependency injection frameworks and IoC containers."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    py_deps = _collect_python_deps(project_path)
+
+    # --- Python ---
+    if "dependency-injector" in py_deps:
+        _add("dependency-injector")
+    if "inject" in py_deps:
+        _add("python-inject")
+    if "lagom" in py_deps:
+        _add("Lagom")
+    if "punq" in py_deps:
+        _add("punq")
+    if "wireup" in py_deps:
+        _add("wireup")
+    if "svcs" in py_deps:
+        _add("svcs")
+    if "dishka" in py_deps:
+        _add("dishka")
+    if "fastapi" in py_deps:
+        _add("FastAPI Depends")
+
+    # --- JS/TS ---
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            content = pkg_json.read_text().lower()
+            if "inversify" in content:
+                _add("InversifyJS")
+            if "tsyringe" in content:
+                _add("tsyringe")
+            if "typedi" in content:
+                _add("TypeDI")
+            if "awilix" in content:
+                _add("Awilix")
+            if "bottlejs" in content:
+                _add("BottleJS")
+            if "injection-js" in content:
+                _add("injection-js")
+            if "@angular/core" in content:
+                _add("Angular DI")
+            if "@nestjs/core" in content or "@nestjs/common" in content:
+                _add("NestJS DI")
+        except Exception:
+            pass
+
+    # --- Go ---
+    go_mod = project_path / "go.mod"
+    if go_mod.exists():
+        try:
+            content = go_mod.read_text().lower()
+            if "uber.org/fx" in content or "go.uber.org/fx" in content:
+                _add("Uber Fx")
+            if "uber.org/dig" in content or "go.uber.org/dig" in content:
+                _add("Uber Dig")
+            if "google/wire" in content:
+                _add("Wire")
+            if "samber/do" in content:
+                _add("do")
+        except Exception:
+            pass
+
+    # --- Rust ---
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            content = cargo_toml.read_text().lower()
+            if "shaku" in content:
+                _add("Shaku")
+            if "inject" in content and "waiter_di" not in content:
+                _add("inject")
+        except Exception:
+            pass
+
+    # --- Java ---
+    for build_file in [project_path / "pom.xml", project_path / "build.gradle", project_path / "build.gradle.kts"]:
+        if build_file.exists():
+            try:
+                content = build_file.read_text().lower()
+                if "spring" in content and ("context" in content or "boot" in content):
+                    _add("Spring DI")
+                if "guice" in content:
+                    _add("Google Guice")
+                if "dagger" in content:
+                    _add("Dagger")
+                if "javax.inject" in content or "jakarta.inject" in content:
+                    _add("CDI")
+                if "micronaut" in content:
+                    _add("Micronaut DI")
+                if "quarkus" in content:
+                    _add("Quarkus CDI")
+            except Exception:
+                pass
+
+    return sorted(tools)
+
+
 def _collect_python_deps(project_path: Path) -> set[str]:
     """Collect Python dependency names from pyproject.toml and requirements.txt."""
     py_deps: set[str] = set()

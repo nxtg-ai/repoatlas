@@ -434,6 +434,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         ser_names = ", ".join(s for s, _ in top_ser)
         lines.append(f"**Serialization**: {has_ser}/{n} projects \u00b7 {ser_names}")
 
+    has_di = sum(1 for p in projects if p.tech_stack.di_frameworks)
+    if has_di:
+        di_counter: Counter[str] = Counter()
+        for p in projects:
+            for df in p.tech_stack.di_frameworks:
+                di_counter[df] += 1
+        top_di = di_counter.most_common(6)
+        di_names = ", ".join(d for d, _ in top_di)
+        lines.append(f"**DI Frameworks**: {has_di}/{n} projects \u00b7 {di_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -558,6 +568,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.serialization_formats:
             lines.append(f"- **Serialization**: {', '.join(p.tech_stack.serialization_formats[:8])}")
+
+        if p.tech_stack.di_frameworks:
+            lines.append(f"- **DI Frameworks**: {', '.join(p.tech_stack.di_frameworks[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -1032,6 +1045,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             ser_counter2[sf] += 1
     has_ser = sum(1 for p in projects if p.tech_stack.serialization_formats)
 
+    # DI frameworks
+    di_counter2: Counter[str] = Counter()
+    for p in projects:
+        for df in p.tech_stack.di_frameworks:
+            di_counter2[df] += 1
+    has_di = sum(1 for p in projects if p.tech_stack.di_frameworks)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1081,6 +1101,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "caching_tools": {"coverage": f"{has_caching}/{n}", "tools": dict(caching_counter2.most_common(10))},
         "template_engines": {"coverage": f"{has_tpl}/{n}", "engines": dict(tpl_counter2.most_common(10))},
         "serialization_formats": {"coverage": f"{has_ser}/{n}", "formats": dict(ser_counter2.most_common(10))},
+        "di_frameworks": {"coverage": f"{has_di}/{n}", "frameworks": dict(di_counter2.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1101,7 +1122,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1159,6 +1180,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.caching_tools),
             "; ".join(ts.template_engines),
             "; ".join(ts.serialization_formats),
+            "; ".join(ts.di_frameworks),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

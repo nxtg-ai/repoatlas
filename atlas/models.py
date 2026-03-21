@@ -45,6 +45,7 @@ class TechStack:
     caching_tools: list[str] = field(default_factory=list)
     template_engines: list[str] = field(default_factory=list)
     serialization_formats: list[str] = field(default_factory=list)
+    di_frameworks: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -171,6 +172,7 @@ class Project:
                 "caching_tools": self.tech_stack.caching_tools,
                 "template_engines": self.tech_stack.template_engines,
                 "serialization_formats": self.tech_stack.serialization_formats,
+                "di_frameworks": self.tech_stack.di_frameworks,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -242,6 +244,7 @@ class Project:
                 caching_tools=ts.get("caching_tools", []),
                 template_engines=ts.get("template_engines", []),
                 serialization_formats=ts.get("serialization_formats", []),
+                di_frameworks=ts.get("di_frameworks", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),
