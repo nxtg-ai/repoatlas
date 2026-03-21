@@ -1198,6 +1198,7 @@ def generate_badges(portfolio: Portfolio) -> list[str]:
 def top(
     n: int = typer.Option(5, "--limit", "-n", help="Number of projects to show"),
     by: str = typer.Option("health", help="Sort by: health, loc, tests, commits"),
+    format: Optional[str] = typer.Option(None, "--format", "-f", help="Output format: json"),
 ):
     """Show top projects by a metric."""
     portfolio = _load_portfolio()
@@ -1219,6 +1220,31 @@ def top(
         raise typer.Exit(1)
 
     projects = sorted(portfolio.projects, key=sort_keys[by], reverse=True)[:n]
+
+    if format == "json":
+        import json as json_mod
+        metric_fns = {
+            "health": lambda p: p.health.percent,
+            "loc": lambda p: p.loc,
+            "tests": lambda p: p.test_file_count,
+            "commits": lambda p: p.git_info.total_commits,
+        }
+        data = {
+            "metric": by,
+            "limit": n,
+            "projects": [
+                {
+                    "rank": i,
+                    "name": p.name,
+                    "value": metric_fns[by](p),
+                    "health_grade": p.health.grade,
+                    "stack": p.tech_stack.summary,
+                }
+                for i, p in enumerate(projects, 1)
+            ],
+        }
+        console.print(json_mod.dumps(data, indent=2))
+        return
 
     console.print()
     console.print(f"  [bold]Top {len(projects)} by {by}[/bold]")

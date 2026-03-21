@@ -1798,6 +1798,35 @@ class TestTop:
         result = runner.invoke(app, ["top"])
         assert "No projects" in result.output
 
+    def test_top_json_format(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        (d / ".git").mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["top", "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["metric"] == "health"
+        assert len(data["projects"]) == 1
+        assert data["projects"][0]["name"] == "proj"
+        assert data["projects"][0]["rank"] == 1
+
+    def test_top_json_by_loc(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        (d / ".git").mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["top", "--by", "loc", "--format", "json"])
+        data = json.loads(result.output)
+        assert data["metric"] == "loc"
+        assert data["projects"][0]["value"] == proj.loc
+
 
 # ---------------------------------------------------------------------------
 # version command
