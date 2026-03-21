@@ -1343,6 +1343,54 @@ class TestGenerateBadges:
 
 
 # ---------------------------------------------------------------------------
+# rename
+# ---------------------------------------------------------------------------
+class TestRename:
+    def test_no_portfolio(self, portfolio_dir):
+        result = runner.invoke(app, ["rename", "old", "new"])
+        assert result.exit_code == 1
+
+    def test_project_not_found(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        result = runner.invoke(app, ["rename", "nonexistent", "new"])
+        assert result.exit_code == 1
+        assert "not found" in result.output.lower()
+
+    def test_rename_success(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        (d / ".git").mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["rename", "proj", "my-app"])
+        assert result.exit_code == 0
+        assert "my-app" in result.output
+        # Verify rename persisted
+        result2 = runner.invoke(app, ["inspect", "my-app"])
+        assert result2.exit_code == 0
+
+    def test_rename_collision(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d1 = tmp_path / "proj1"
+        d1.mkdir()
+        (d1 / ".git").mkdir()
+        d2 = tmp_path / "proj2"
+        d2.mkdir()
+        (d2 / ".git").mkdir()
+        p1 = _make_project("proj1", str(d1))
+        p2 = _make_project("proj2", str(d2))
+        with patch("atlas.cli.scan_project", return_value=p1):
+            runner.invoke(app, ["add", str(d1)])
+        with patch("atlas.cli.scan_project", return_value=p2):
+            runner.invoke(app, ["add", str(d2)])
+        result = runner.invoke(app, ["rename", "proj1", "proj2"])
+        assert result.exit_code == 1
+        assert "already in use" in result.output.lower()
+
+
+# ---------------------------------------------------------------------------
 # batch-remove
 # ---------------------------------------------------------------------------
 class TestBatchRemove:

@@ -97,8 +97,9 @@
 | N-84 | [Batch Remove Stale Projects](#n-84-batch-remove-stale-projects) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-85 | [Logging Framework Detection](#n-85-logging-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-86 | [Logging Intelligence](#n-86-logging-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-87 | [Rename Project Command](#n-87-rename-project-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 83/86 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 84/87 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -190,7 +191,8 @@
 - Connection severity filtering: `atlas connections --severity warning` filters connections by severity level (info, warning, critical)
 - Project search: `atlas search <term>` finds projects by name, language, framework, or technology. Shows matches with health grade and tech summary
 - Batch remove: `atlas batch-remove` prunes stale projects whose directories no longer exist on disk. Lists removed projects with paths, auto-saves portfolio
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84
+- Rename project: `atlas rename <old> <new>` renames a project in the portfolio. Prevents name collisions
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -522,6 +524,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project logging pattern detection via `_find_logging_patterns()` in connections.py. Analyzes logging_tools data from N-85 across the portfolio to detect: shared logging tools (Loguru/Winston across 2+ projects, info), logging strategy divergence (structured logging like structlog/Pino/zerolog vs traditional logging like Winston/Log4j/Logrus, warning), and logging gaps (backend projects with 10+ source files using API frameworks but no logging framework, warning). New connection types (`shared_logging`, `logging_divergence`, `logging_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps logging_gap and logging_divergence to `infra` recommendation category. 26th CONNECTION_CATEGORIES entry. 10 tests.
 **Shipped**: 2026-03-21. Total test count: 1530 → 1540. 27th intelligence feature. Completes N-85 detection→intelligence pipeline.
+
+### N-87: Rename Project Command
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: New `atlas rename <old> <new>` command for renaming projects in the portfolio. Validates project exists, prevents name collisions with existing projects, persists the rename. 4 tests.
+**Shipped**: 2026-03-21. Total test count: 1540 → 1544. 26th experience feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

@@ -631,6 +631,31 @@ def remove(name: str = typer.Argument(help="Project name to remove")):
     console.print(f"  [green]\u2713[/green] Removed [bold]{name}[/bold] from portfolio")
 
 
+@app.command()
+def rename(
+    old_name: str = typer.Argument(help="Current project name"),
+    new_name: str = typer.Argument(help="New project name"),
+):
+    """Rename a project in the portfolio."""
+    portfolio = _load_portfolio()
+    project = portfolio.find_project(old_name)
+
+    if not project:
+        console.print(f"[red]Project not found: {old_name}[/red]")
+        available = ", ".join(p.name for p in portfolio.projects)
+        console.print(f"[dim]Available: {available}[/dim]")
+        raise typer.Exit(1)
+
+    existing = portfolio.find_project(new_name)
+    if existing:
+        console.print(f"[red]Name already in use: {new_name}[/red]")
+        raise typer.Exit(1)
+
+    project.name = new_name
+    _save_portfolio(portfolio)
+    console.print(f"  [green]\u2713[/green] Renamed [bold]{old_name}[/bold] \u2192 [bold]{new_name}[/bold]")
+
+
 @app.command(name="batch-remove")
 def batch_remove():
     """Remove projects whose directories no longer exist on disk."""
