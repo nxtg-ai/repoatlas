@@ -210,6 +210,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "pkg_manager_divergence": "deps",
         "license_gap": "docs",
         "license_divergence": "docs",
+        "docs_gap": "docs",
+        "docs_divergence": "docs",
     }
 
     for conn in connections:

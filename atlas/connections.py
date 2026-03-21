@@ -21,6 +21,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_testing_patterns(projects))
     connections.extend(_find_package_manager_patterns(projects))
     connections.extend(_find_license_patterns(projects))
+    connections.extend(_find_docs_artifact_patterns(projects))
     return connections
 
 
@@ -778,6 +779,80 @@ def _find_license_patterns(projects: list[Project]) -> list[Connection]:
             type="license_gap",
             detail=f"{len(unlicensed)} project(s) have no detected license — add a LICENSE file",
             projects=sorted(unlicensed),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_docs_artifact_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project documentation artifact patterns: shared, divergence, gaps."""
+    connections: list[Connection] = []
+
+    # Shared docs artifacts — same artifact in 2+ projects
+    artifact_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for artifact in p.tech_stack.docs_artifacts:
+            artifact_to_projects[artifact].append(p.name)
+
+    for artifact, projs in artifact_to_projects.items():
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_docs",
+                detail=f"{artifact} present in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Docs coverage divergence — projects with rich docs vs minimal docs
+    rich_docs = [p.name for p in projects if len(p.tech_stack.docs_artifacts) >= 5]
+    minimal_docs = [p.name for p in projects if 0 < len(p.tech_stack.docs_artifacts) <= 1
+                    and p.source_file_count > 5]
+    if rich_docs and minimal_docs:
+        connections.append(Connection(
+            type="docs_divergence",
+            detail=(
+                f"{len(rich_docs)} project(s) have rich documentation "
+                f"while {len(minimal_docs)} have minimal — consider standardizing"
+            ),
+            projects=sorted(rich_docs + minimal_docs),
+            severity="warning",
+        ))
+
+    # Docs gaps — projects missing critical artifacts
+    # README gap
+    no_readme = [p.name for p in projects
+                 if "README" not in p.tech_stack.docs_artifacts
+                 and p.source_file_count > 5]
+    if no_readme:
+        connections.append(Connection(
+            type="docs_gap",
+            detail=f"{len(no_readme)} project(s) missing README",
+            projects=sorted(no_readme),
+            severity="critical",
+        ))
+
+    # CHANGELOG gap
+    no_changelog = [p.name for p in projects
+                    if "CHANGELOG" not in p.tech_stack.docs_artifacts
+                    and p.source_file_count > 10]
+    if no_changelog:
+        connections.append(Connection(
+            type="docs_gap",
+            detail=f"{len(no_changelog)} project(s) missing CHANGELOG",
+            projects=sorted(no_changelog),
+            severity="warning",
+        ))
+
+    # CONTRIBUTING gap (only flag for larger projects)
+    no_contributing = [p.name for p in projects
+                       if "CONTRIBUTING" not in p.tech_stack.docs_artifacts
+                       and p.source_file_count > 20]
+    if no_contributing:
+        connections.append(Connection(
+            type="docs_gap",
+            detail=f"{len(no_contributing)} project(s) missing CONTRIBUTING guide",
+            projects=sorted(no_contributing),
             severity="warning",
         ))
 

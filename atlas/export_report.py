@@ -245,6 +245,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_license": "Shared Licenses",
         "license_divergence": "License Divergence",
         "license_gap": "License Gaps",
+        "shared_docs": "Shared Documentation",
+        "docs_divergence": "Documentation Divergence",
+        "docs_gap": "Documentation Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

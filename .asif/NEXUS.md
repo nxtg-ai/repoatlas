@@ -52,8 +52,9 @@
 | N-39 | [License Summary Panel](#n-39-license-summary-panel) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-40 | [Enhanced JSON Export](#n-40-enhanced-json-export) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-41 | [Documentation Artifacts Detection](#n-41-documentation-artifacts-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-42 | [Documentation Artifacts Intelligence](#n-42-documentation-artifacts-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 38/41 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 39/42 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -85,7 +86,8 @@
 - Cross-project database intelligence (shared databases, relational/vector/broker divergence, database gaps)
 - Cross-project package manager intelligence (shared managers, JS/Python/Java divergence)
 - Cross-project license intelligence (shared licenses, copyleft/permissive divergence, license gaps)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38
+- Cross-project documentation intelligence (shared artifacts, docs coverage divergence, README/CHANGELOG/CONTRIBUTING gaps)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -242,6 +244,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project package manager pattern detection via `_find_package_manager_patterns()` in connections.py. Detects: shared package managers (Poetry/npm across 2+ projects), JS package manager divergence (npm vs Yarn vs pnpm vs Bun), Python package manager divergence (pip vs Poetry vs PDM vs uv vs Pipenv), Java build tool divergence (Maven vs Gradle). New connection types (`shared_pkg_manager`, `pkg_manager_divergence`) displayed in `atlas connections`, markdown export, and `atlas doctor`. 13 package manager pattern tests.
 **Shipped**: 2026-03-21. Total test count: 736 → 749. Completes N-34 detection→intelligence pipeline. All 7 detection→intelligence pipelines complete.
+
+### N-42: Documentation Artifacts Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project documentation artifact pattern detection via `_find_docs_artifact_patterns()` in connections.py. Analyzes docs_artifacts data from N-41 across the portfolio to detect: shared documentation artifacts (README/CHANGELOG/LICENSE across 2+ projects, info), documentation coverage divergence (projects with 5+ artifacts vs projects with ≤1 artifact and 5+ source files, warning), and documentation gaps — README missing (critical, >5 source files), CHANGELOG missing (warning, >10 source files), CONTRIBUTING missing (warning, >20 source files). New connection types (`shared_docs`, `docs_divergence`, `docs_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. Maps to `docs` recommendation category. 17 documentation pattern tests.
+**Shipped**: 2026-03-21. Total test count: 833 → 850. Completes N-41 detection→intelligence pipeline. 9th intelligence layer.
 
 ### N-41: Documentation Artifacts Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

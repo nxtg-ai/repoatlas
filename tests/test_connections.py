@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from atlas.connections import (
     _find_ai_patterns,
+    _find_docs_artifact_patterns,
     _find_health_gaps,
     _find_infra_patterns,
     _find_quality_patterns,
@@ -1408,3 +1409,161 @@ class TestFindLicensePatterns:
         conns = find_connections(projects)
         pm_types = {c.type for c in conns if "pkg_manager" in c.type}
         assert "shared_pkg_manager" in pm_types
+
+
+# ---------------------------------------------------------------------------
+# _find_docs_artifact_patterns
+# ---------------------------------------------------------------------------
+class TestFindDocsArtifactPatterns:
+    def test_shared_docs_basic(self):
+        projects = [
+            _proj("a", docs_artifacts=["README", "CHANGELOG"]),
+            _proj("b", docs_artifacts=["README", "LICENSE"]),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_docs"]
+        assert len(shared) == 1
+        assert "README" in shared[0].detail
+
+    def test_shared_multiple_artifacts(self):
+        projects = [
+            _proj("a", docs_artifacts=["README", "CHANGELOG", "LICENSE"]),
+            _proj("b", docs_artifacts=["README", "CHANGELOG", "LICENSE"]),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_docs"]
+        assert len(shared) == 3
+
+    def test_no_shared_when_different(self):
+        projects = [
+            _proj("a", docs_artifacts=["README"]),
+            _proj("b", docs_artifacts=["CHANGELOG"]),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_docs"]
+        assert len(shared) == 0
+
+    def test_shared_severity_info(self):
+        projects = [
+            _proj("a", docs_artifacts=["README"]),
+            _proj("b", docs_artifacts=["README"]),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_docs"]
+        assert shared[0].severity == "info"
+
+    def test_docs_divergence_rich_vs_minimal(self):
+        projects = [
+            _proj("a", docs_artifacts=["README", "CHANGELOG", "CONTRIBUTING", "LICENSE", "docs/"],
+                  source_files=20),
+            _proj("b", docs_artifacts=["README"], source_files=20),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        div = [c for c in conns if c.type == "docs_divergence"]
+        assert len(div) == 1
+        assert div[0].severity == "warning"
+
+    def test_no_divergence_all_rich(self):
+        projects = [
+            _proj("a", docs_artifacts=["README", "CHANGELOG", "CONTRIBUTING", "LICENSE", "docs/"]),
+            _proj("b", docs_artifacts=["README", "CHANGELOG", "CONTRIBUTING", "LICENSE", "SECURITY"]),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        div = [c for c in conns if c.type == "docs_divergence"]
+        assert len(div) == 0
+
+    def test_no_divergence_all_minimal(self):
+        projects = [
+            _proj("a", docs_artifacts=["README"], source_files=20),
+            _proj("b", docs_artifacts=["README"], source_files=20),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        div = [c for c in conns if c.type == "docs_divergence"]
+        assert len(div) == 0
+
+    def test_minimal_not_flagged_for_small_projects(self):
+        projects = [
+            _proj("a", docs_artifacts=["README", "CHANGELOG", "CONTRIBUTING", "LICENSE", "docs/"]),
+            _proj("b", docs_artifacts=["README"], source_files=3),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        div = [c for c in conns if c.type == "docs_divergence"]
+        assert len(div) == 0
+
+    def test_readme_gap(self):
+        projects = [
+            _proj("a", docs_artifacts=[], source_files=20),
+            _proj("b", docs_artifacts=["README"], source_files=20),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        gaps = [c for c in conns if c.type == "docs_gap" and "README" in c.detail]
+        assert len(gaps) == 1
+        assert gaps[0].severity == "critical"
+        assert "a" in gaps[0].projects
+
+    def test_no_readme_gap_for_small_projects(self):
+        projects = [
+            _proj("a", docs_artifacts=[], source_files=3),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        gaps = [c for c in conns if c.type == "docs_gap" and "README" in c.detail]
+        assert len(gaps) == 0
+
+    def test_changelog_gap(self):
+        projects = [
+            _proj("a", docs_artifacts=["README"], source_files=15),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        gaps = [c for c in conns if c.type == "docs_gap" and "CHANGELOG" in c.detail]
+        assert len(gaps) == 1
+        assert gaps[0].severity == "warning"
+
+    def test_no_changelog_gap_for_small_projects(self):
+        projects = [
+            _proj("a", docs_artifacts=["README"], source_files=8),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        gaps = [c for c in conns if c.type == "docs_gap" and "CHANGELOG" in c.detail]
+        assert len(gaps) == 0
+
+    def test_contributing_gap(self):
+        projects = [
+            _proj("a", docs_artifacts=["README", "CHANGELOG"], source_files=25),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        gaps = [c for c in conns if c.type == "docs_gap" and "CONTRIBUTING" in c.detail]
+        assert len(gaps) == 1
+
+    def test_no_contributing_gap_for_small_projects(self):
+        projects = [
+            _proj("a", docs_artifacts=["README"], source_files=15),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        gaps = [c for c in conns if c.type == "docs_gap" and "CONTRIBUTING" in c.detail]
+        assert len(gaps) == 0
+
+    def test_empty_projects(self):
+        conns = _find_docs_artifact_patterns([])
+        assert conns == []
+
+    def test_all_well_documented(self):
+        projects = [
+            _proj("a", docs_artifacts=["README", "CHANGELOG", "CONTRIBUTING", "LICENSE", "docs/"]),
+            _proj("b", docs_artifacts=["README", "CHANGELOG", "CONTRIBUTING", "LICENSE", "docs/"]),
+        ]
+        conns = _find_docs_artifact_patterns(projects)
+        gaps = [c for c in conns if c.type == "docs_gap"]
+        div = [c for c in conns if c.type == "docs_divergence"]
+        assert len(gaps) == 0
+        assert len(div) == 0
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", docs_artifacts=["README", "CHANGELOG"],
+                  project_license="MIT", source_files=20),
+            _proj("b", docs_artifacts=["README"],
+                  project_license="MIT", source_files=20),
+        ]
+        conns = find_connections(projects)
+        docs_types = {c.type for c in conns if "docs" in c.type}
+        assert "shared_docs" in docs_types

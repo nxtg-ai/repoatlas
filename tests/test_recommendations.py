@@ -34,6 +34,7 @@ def _make_project(
     infrastructure: list[str] | None = None,
     testing_frameworks: list[str] | None = None,
     databases: list[str] | None = None,
+    docs_artifacts: list[str] | None = None,
     project_license: str = "",
 ) -> Project:
     hs = HealthScore(tests=tests, git_hygiene=git, documentation=docs, structure=structure)
@@ -50,6 +51,7 @@ def _make_project(
             infrastructure=infrastructure or [],
             testing_frameworks=testing_frameworks or [],
             databases=databases or [],
+            docs_artifacts=docs_artifacts or [],
         ),
         git_info=GitInfo(
             branch="main",
@@ -227,6 +229,7 @@ class TestCrossProjectRecommendations:
                           infrastructure=["GitHub Actions"],
                           testing_frameworks=["pytest"],
                           databases=["PostgreSQL"],
+                          docs_artifacts=["README", "CHANGELOG", "CONTRIBUTING"],
                           project_license="MIT")
         b = _make_project("b", tests=0.9, git=1.0, docs=0.8, structure=0.9,
                           security_tools=["Dependabot", "Gitleaks"],
@@ -234,6 +237,7 @@ class TestCrossProjectRecommendations:
                           infrastructure=["GitHub Actions"],
                           testing_frameworks=["pytest"],
                           databases=["PostgreSQL"],
+                          docs_artifacts=["README", "CHANGELOG", "CONTRIBUTING"],
                           project_license="MIT")
         portfolio = _make_portfolio(a, b)
         recs = _cross_project_recommendations(portfolio)

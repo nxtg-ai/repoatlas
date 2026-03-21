@@ -55,6 +55,9 @@ CONNECTION_ICONS = {
     "shared_license": "[green]\u00a9[/green]",
     "license_divergence": "[yellow]\u00a7[/yellow]",
     "license_gap": "[red]\u2205[/red]",
+    "shared_docs": "[green]\u2261[/green]",
+    "docs_divergence": "[yellow]\u2260[/yellow]",
+    "docs_gap": "[red]\u2717[/red]",
 }
 
 
@@ -345,6 +348,9 @@ def show_connections(connections: list[Connection]):
         "shared_license": "Shared Licenses",
         "license_divergence": "License Divergence",
         "license_gap": "License Gaps",
+        "shared_docs": "Shared Documentation",
+        "docs_divergence": "Documentation Divergence",
+        "docs_gap": "Documentation Gaps",
     }
 
     lines = []
