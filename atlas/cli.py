@@ -11,6 +11,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskPr
 
 from atlas.connections import find_connections
 from atlas.display import console, show_connections, show_project_card, show_scan_complete, show_status
+from atlas.history import build_scan_entry, compute_trends, load_history, save_scan
 from atlas.license_manager import activate as activate_license, get_status as get_license_status
 from atlas.models import Portfolio
 from atlas.recommendations import generate_recommendations
@@ -142,6 +143,9 @@ def scan():
     portfolio.last_scan = datetime.now(timezone.utc).isoformat()
     _save_portfolio(portfolio)
 
+    # Save scan to history for trends
+    save_scan(build_scan_entry(portfolio))
+
     elapsed = time.time() - start
     show_scan_complete(portfolio, elapsed)
 
@@ -215,6 +219,77 @@ def doctor():
             parts.append(f"{counts[p]} {p}")
     console.print()
     console.print(f"  [dim]Summary: {', '.join(parts)}[/dim]")
+    console.print()
+
+
+@app.command()
+def trends():
+    """Show health trends across scans."""
+    entries = load_history()
+
+    if len(entries) == 0:
+        console.print("[yellow]No scan history.[/yellow] Run [bold]atlas scan[/bold] first.")
+        return
+
+    if len(entries) < 2:
+        console.print("[yellow]Need at least 2 scans for trends.[/yellow] Run [bold]atlas scan[/bold] again after making changes.")
+        return
+
+    latest = entries[-1]
+    previous = entries[-2]
+    project_trends = compute_trends(entries)
+
+    console.print()
+    console.print("  [bold]Portfolio Trends[/bold]")
+    console.print()
+
+    # Portfolio-level delta
+    health_delta = latest.portfolio_health - previous.portfolio_health
+    if abs(health_delta) < 0.005:
+        arrow = "[dim]=[/dim]"
+    elif health_delta > 0:
+        arrow = f"[green]\u2191 +{health_delta:.0%}[/green]"
+    else:
+        arrow = f"[red]\u2193 {health_delta:.0%}[/red]"
+
+    console.print(f"  Health: {latest.portfolio_grade} ({latest.portfolio_health:.0%}) {arrow}")
+    console.print(f"  Tests: {latest.total_tests:,}  |  LOC: {latest.total_loc:,}  |  Projects: {latest.total_projects}")
+
+    test_delta = latest.total_tests - previous.total_tests
+    if test_delta != 0:
+        sign = "+" if test_delta > 0 else ""
+        color = "green" if test_delta > 0 else "red"
+        console.print(f"  [dim]Tests delta:[/dim] [{color}]{sign}{test_delta}[/{color}]")
+
+    console.print()
+    console.print("  [bold]Per-Project Changes[/bold] [dim](vs previous scan)[/dim]")
+    console.print()
+
+    direction_icons = {
+        "up": "[green]\u2191[/green]",
+        "down": "[red]\u2193[/red]",
+        "stable": "[dim]=[/dim]",
+        "new": "[cyan]+[/cyan]",
+        "removed": "[red]-[/red]",
+    }
+
+    for t in sorted(project_trends, key=lambda x: x["direction"] != "down"):
+        icon = direction_icons.get(t["direction"], " ")
+        name = t["name"]
+        if t["direction"] == "new":
+            console.print(f"  {icon} {name} — [cyan]new[/cyan] ({t['current']:.0%})")
+        elif t["direction"] == "removed":
+            console.print(f"  {icon} {name} — [red]removed[/red]")
+        elif t["direction"] == "stable":
+            console.print(f"  {icon} {name} — {t['current']:.0%} [dim](stable)[/dim]")
+        else:
+            delta = t["delta"]
+            sign = "+" if delta > 0 else ""
+            color = "green" if delta > 0 else "red"
+            console.print(f"  {icon} {name} — {t['current']:.0%} [{color}]({sign}{delta:.0%})[/{color}]")
+
+    console.print()
+    console.print(f"  [dim]{len(entries)} scans in history | Latest: {latest.timestamp[:19]}[/dim]")
     console.print()
 
 

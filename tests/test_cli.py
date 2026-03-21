@@ -508,3 +508,50 @@ class TestReset:
         result = runner.invoke(app, ["reset"])
         assert result.exit_code == 0
         assert "No portfolio" in result.output
+
+
+# ===========================================================================
+# atlas trends
+# ===========================================================================
+
+
+class TestTrends:
+    def test_trends_no_history(self, portfolio_dir):
+        with patch("atlas.cli.load_history", return_value=[]):
+            result = runner.invoke(app, ["trends"])
+        assert result.exit_code == 0
+        assert "No scan history" in result.output
+
+    def test_trends_single_scan(self, portfolio_dir):
+        from atlas.history import ProjectSnapshot, ScanEntry
+        entry = ScanEntry(
+            timestamp="2026-03-13T00:00:00+00:00",
+            portfolio_health=0.8, portfolio_grade="B+",
+            total_projects=1, total_tests=5, total_loc=1000,
+            projects=[ProjectSnapshot("proj", 0.8, "B+", 5, 1000)],
+        )
+        with patch("atlas.cli.load_history", return_value=[entry]):
+            result = runner.invoke(app, ["trends"])
+        assert result.exit_code == 0
+        assert "Need at least 2 scans" in result.output
+
+    def test_trends_shows_changes(self, portfolio_dir):
+        from atlas.history import ProjectSnapshot, ScanEntry
+        prev = ScanEntry(
+            timestamp="2026-03-12T00:00:00+00:00",
+            portfolio_health=0.7, portfolio_grade="B",
+            total_projects=1, total_tests=3, total_loc=800,
+            projects=[ProjectSnapshot("proj", 0.7, "B", 3, 800)],
+        )
+        curr = ScanEntry(
+            timestamp="2026-03-13T00:00:00+00:00",
+            portfolio_health=0.9, portfolio_grade="A",
+            total_projects=1, total_tests=10, total_loc=1200,
+            projects=[ProjectSnapshot("proj", 0.9, "A", 10, 1200)],
+        )
+        with patch("atlas.cli.load_history", return_value=[prev, curr]):
+            result = runner.invoke(app, ["trends"])
+        assert result.exit_code == 0
+        assert "Portfolio Trends" in result.output
+        assert "proj" in result.output
+        assert "2 scans" in result.output
