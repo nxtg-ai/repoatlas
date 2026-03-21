@@ -27,6 +27,7 @@ from atlas.connections import (
     _find_logging_patterns,
     _find_container_orchestration_patterns,
     _find_cloud_provider_patterns,
+    _find_task_queue_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -3868,3 +3869,104 @@ class TestFindCloudProviderPatterns:
         conns = find_connections(projects)
         cloud_types = {c.type for c in conns if "cloud" in c.type}
         assert "shared_cloud" in cloud_types
+
+
+# ---------------------------------------------------------------------------
+# _find_task_queue_patterns
+# ---------------------------------------------------------------------------
+class TestFindTaskQueuePatterns:
+    def test_shared_task_queue(self):
+        projects = [
+            _proj("a", task_queues=["Celery", "RQ"]),
+            _proj("b", task_queues=["Celery"]),
+        ]
+        conns = _find_task_queue_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_task_queue"]
+        assert len(shared) == 1
+        assert "Celery" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_no_shared_unique_queues(self):
+        projects = [
+            _proj("a", task_queues=["Celery"]),
+            _proj("b", task_queues=["BullMQ"]),
+        ]
+        conns = _find_task_queue_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_task_queue"]
+        assert len(shared) == 0
+
+    def test_divergence_traditional_vs_workflow(self):
+        projects = [
+            _proj("a", task_queues=["Celery"]),
+            _proj("b", task_queues=["Airflow"]),
+        ]
+        conns = _find_task_queue_patterns(projects)
+        div = [c for c in conns if c.type == "task_queue_divergence"]
+        assert len(div) == 1
+        assert "Mixed task queue paradigms" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_divergence_traditional_vs_cron(self):
+        projects = [
+            _proj("a", task_queues=["BullMQ"]),
+            _proj("b", task_queues=["node-cron"]),
+        ]
+        conns = _find_task_queue_patterns(projects)
+        div = [c for c in conns if c.type == "task_queue_divergence"]
+        assert len(div) == 1
+
+    def test_no_divergence_same_paradigm(self):
+        projects = [
+            _proj("a", task_queues=["Celery"]),
+            _proj("b", task_queues=["BullMQ"]),
+        ]
+        conns = _find_task_queue_patterns(projects)
+        div = [c for c in conns if c.type == "task_queue_divergence"]
+        assert len(div) == 0
+
+    def test_gap_backend_without_queues(self):
+        projects = [
+            _proj("a", task_queues=["Celery"], frameworks=["FastAPI"], source_files=30),
+            _proj("b", task_queues=[], frameworks=["Django"], source_files=30),
+        ]
+        conns = _find_task_queue_patterns(projects)
+        gaps = [c for c in conns if c.type == "task_queue_gap"]
+        assert len(gaps) == 1
+        assert "b" in gaps[0].projects
+        assert gaps[0].severity == "warning"
+
+    def test_no_gap_all_have_queues(self):
+        projects = [
+            _proj("a", task_queues=["Celery"], frameworks=["FastAPI"], source_files=30),
+            _proj("b", task_queues=["RQ"], frameworks=["Flask"], source_files=30),
+        ]
+        conns = _find_task_queue_patterns(projects)
+        gaps = [c for c in conns if c.type == "task_queue_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_without_backend_framework(self):
+        projects = [
+            _proj("a", task_queues=["Celery"]),
+            _proj("b", task_queues=[], frameworks=["React"], source_files=30),
+        ]
+        conns = _find_task_queue_patterns(projects)
+        gaps = [c for c in conns if c.type == "task_queue_gap"]
+        assert len(gaps) == 0
+
+    def test_no_gap_small_project(self):
+        projects = [
+            _proj("a", task_queues=["Celery"]),
+            _proj("b", task_queues=[], frameworks=["FastAPI"], source_files=5),
+        ]
+        conns = _find_task_queue_patterns(projects)
+        gaps = [c for c in conns if c.type == "task_queue_gap"]
+        assert len(gaps) == 0
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", task_queues=["Celery"]),
+            _proj("b", task_queues=["Celery", "RQ"]),
+        ]
+        conns = find_connections(projects)
+        queue_types = {c.type for c in conns if "task_queue" in c.type}
+        assert "shared_task_queue" in queue_types

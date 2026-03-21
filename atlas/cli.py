@@ -297,6 +297,7 @@ CONNECTION_CATEGORIES = {
     "logging": {"shared_logging", "logging_divergence", "logging_gap"},
     "containers": {"shared_container_orch", "container_orch_divergence", "container_orch_gap"},
     "cloud": {"shared_cloud", "cloud_divergence", "cloud_gap"},
+    "queues": {"shared_task_queue", "task_queue_divergence", "task_queue_gap"},
 }
 
 

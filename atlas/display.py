@@ -122,6 +122,9 @@ CONNECTION_ICONS = {
     "shared_cloud": "[green]\u2601[/green]",
     "cloud_divergence": "[yellow]\u2601[/yellow]",
     "cloud_gap": "[red]\u2601[/red]",
+    "shared_task_queue": "[green]\u23f1[/green]",
+    "task_queue_divergence": "[yellow]\u23f1[/yellow]",
+    "task_queue_gap": "[red]\u23f1[/red]",
 }
 
 
@@ -678,6 +681,9 @@ def show_connections(connections: list[Connection]):
         "shared_cloud": "Shared Cloud Providers",
         "cloud_divergence": "Cloud Provider Divergence",
         "cloud_gap": "Cloud Provider Gaps",
+        "shared_task_queue": "Shared Task Queues",
+        "task_queue_divergence": "Task Queue Divergence",
+        "task_queue_gap": "Task Queue Gaps",
     }
 
     lines = []
@@ -744,6 +750,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_logging": "logging", "logging_divergence": "logging", "logging_gap": "logging",
         "shared_container_orch": "containers", "container_orch_divergence": "containers", "container_orch_gap": "containers",
         "shared_cloud": "cloud", "cloud_divergence": "cloud", "cloud_gap": "cloud",
+        "shared_task_queue": "queues", "task_queue_divergence": "queues", "task_queue_gap": "queues",
     }
 
     for conn in connections:

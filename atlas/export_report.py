@@ -554,6 +554,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_cloud": "Shared Cloud Providers",
         "cloud_divergence": "Cloud Provider Divergence",
         "cloud_gap": "Cloud Provider Gaps",
+        "shared_task_queue": "Shared Task Queues",
+        "task_queue_divergence": "Task Queue Divergence",
+        "task_queue_gap": "Task Queue Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

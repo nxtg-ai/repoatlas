@@ -39,6 +39,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_logging_patterns(projects))
     connections.extend(_find_container_orchestration_patterns(projects))
     connections.extend(_find_cloud_provider_patterns(projects))
+    connections.extend(_find_task_queue_patterns(projects))
     return connections
 
 
@@ -2145,6 +2146,85 @@ def _find_cloud_provider_patterns(projects: list[Project]) -> list[Connection]:
                 detail=f"{len(no_cloud)} deployed project(s) have no cloud provider SDK detected",
                 projects=sorted(no_cloud),
                 severity="info",
+            ))
+
+    return connections[:10]
+
+
+def _find_task_queue_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project task queue and background job patterns."""
+    connections: list[Connection] = []
+
+    # Shared task queues — same queue framework used by 2+ projects
+    queue_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for q in p.tech_stack.task_queues:
+            queue_to_projects[q].append(p.name)
+
+    for q, projs in sorted(queue_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_task_queue",
+                detail=f"{q} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Task queue divergence — different queue paradigms across portfolio
+    traditional = {"Celery", "RQ", "Dramatiq", "Huey", "arq", "TaskIQ",
+                   "BullMQ", "Bull", "Bee-Queue", "Agenda", "Asynq",
+                   "gocraft/work", "Quartz", "Spring Batch",
+                   "tokio-cron-scheduler", "Apalis", "pg-boss",
+                   "Graphile Worker", "Quirrel"}
+    workflow = {"Temporal", "Prefect", "Airflow", "Luigi", "Dagster"}
+    cron_based = {"node-cron", "robfig/cron"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "traditional": {}, "workflow": {}, "cron": {},
+    }
+    cat_sets = [
+        ("traditional", traditional),
+        ("workflow", workflow),
+        ("cron", cron_based),
+    ]
+    for p in projects:
+        for q in p.tech_stack.task_queues:
+            for cat_name, cat_set in cat_sets:
+                if q in cat_set:
+                    cat_found[cat_name].setdefault(q, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, queues in active_cats.items():
+            queue_names = ", ".join(sorted(queues.keys())[:3])
+            parts.append(f"{cat_name} ({queue_names})")
+            for ps in queues.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="task_queue_divergence",
+            detail=f"Mixed task queue paradigms: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    # Task queue gap — backend projects with no task queue detected
+    has_queues = {p.name for p in projects if p.tech_stack.task_queues}
+    if has_queues:
+        no_queues = [p.name for p in projects
+                     if not p.tech_stack.task_queues
+                     and p.source_file_count > 20
+                     and any(f in p.tech_stack.frameworks
+                             for f in ("FastAPI", "Django", "Flask", "Express",
+                                       "NestJS", "Spring", "Gin", "Echo",
+                                       "Actix", "Rails"))]
+        if no_queues:
+            connections.append(Connection(
+                type="task_queue_gap",
+                detail=f"{len(no_queues)} backend project(s) have no task queue/background jobs detected",
+                projects=sorted(no_queues),
+                severity="warning",
             ))
 
     return connections[:10]

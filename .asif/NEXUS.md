@@ -104,8 +104,9 @@
 | N-91 | [Cloud Provider Intelligence](#n-91-cloud-provider-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-92 | [Top Projects & Version Commands](#n-92-top-projects--version-commands) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-93 | [Task Queue & Background Job Detection](#n-93-task-queue--background-job-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-94 | [Task Queue Intelligence](#n-94-task-queue-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 90/93 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 91/94 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -173,7 +174,8 @@
 - Cross-project logging intelligence (shared logging tools, structured vs traditional logging divergence, logging gaps for backend projects)
 - Cross-project container orchestration intelligence (shared orchestration tools, IaC vs Kubernetes-native vs Compose divergence, orchestration gaps for Docker projects)
 - Cross-project cloud provider intelligence (shared providers, hyperscaler vs edge/PaaS divergence, multi-hyperscaler complexity warnings, cloud gaps for deployed projects)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91
+- Cross-project task queue intelligence (shared task queues, traditional vs workflow vs cron paradigm divergence, task queue gaps for backend projects)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -572,6 +574,11 @@
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
 **What**: New `detect_task_queues()` in detector.py with refactored `_collect_python_deps()` helper. Detects task queues and background job frameworks across ecosystems: Python (Celery, RQ, Dramatiq, Huey, arq, TaskIQ, Temporal, Prefect, Airflow, Luigi, Dagster), JS/TS (BullMQ, Bull, Bee-Queue, Agenda, node-cron, Temporal, Graphile Worker, pg-boss, Quirrel), Go (Asynq, Temporal, robfig/cron, gocraft/work), Rust (tokio-cron-scheduler, Apalis), Java (Quartz, Spring Batch). Added `task_queues` field to TechStack model. Shows in `atlas inspect` project card, portfolio summary panel (display.py), markdown export project details and summary, JSON export portfolio_summary, and CSV export. `_project_has_tech()` searches task_queues. 19 detection tests.
 **Shipped**: 2026-03-21. Total test count: 1611 → 1630. 28th detection category.
+
+### N-94: Task Queue Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project task queue intelligence: shared task queues (shared_task_queue), traditional vs workflow vs cron paradigm divergence (task_queue_divergence), task queue gaps for backend projects without background jobs (task_queue_gap). New CONNECTION_CATEGORIES entry "queues". 10 tests.
+**Shipped**: 2026-03-21. Total test count: 1630 → 1640. 30th intelligence feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
