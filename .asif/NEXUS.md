@@ -91,8 +91,9 @@
 | N-78 | [Connection Severity Filtering](#n-78-connection-severity-filtering) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-79 | [i18n & Localization Detection](#n-79-i18n--localization-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-80 | [i18n Intelligence](#n-80-i18n-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-81 | [Project Search Command](#n-81-project-search-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 77/80 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 78/81 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -178,7 +179,8 @@
 - Connection category list: `atlas connections --type list` shows all available categories with their connection types
 - Export connection summary stats: markdown exports show "N connections: X warning, Y info" header, JSON exports include connection_summary with total/critical/warning/info counts
 - Connection severity filtering: `atlas connections --severity warning` filters connections by severity level (info, warning, critical)
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78
+- Project search: `atlas search <term>` finds projects by name, language, framework, or technology. Shows matches with health grade and tech summary
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -480,6 +482,11 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project i18n/localization intelligence. Shared i18n tool detection (same tool in 2+ projects), i18n strategy divergence (ICU/message format [react-intl, FormatJS] vs key-based [i18next, vue-i18n, next-intl] vs extraction-based [Lingui, Babel, Angular i18n]), i18n gap detection (web projects using React/Vue/Angular/Django/Flask/FastAPI/etc. with 10+ files but no i18n). Connection types: shared_i18n (info), i18n_divergence (warning), i18n_gap (warning). Added to CONNECTION_CATEGORIES as "i18n" category (24th). 10 tests.
 **Shipped**: 2026-03-21. Total test count: 1451 → 1461. 25th intelligence feature.
+
+### N-81: Project Search Command
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: New `atlas search <term>` command for quick portfolio search. Matches against project name (substring), language (exact), framework (exact), and all tech fields via `_project_has_tech`. Results show health grade, health %, project name, and tech summary. Handles empty portfolios and no matches gracefully. 4 tests.
+**Shipped**: 2026-03-21. Total test count: 1461 → 1465. 24th experience feature.
 
 ### N-51: Build Tool Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

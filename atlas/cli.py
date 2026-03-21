@@ -390,6 +390,47 @@ def doctor():
 
 
 @app.command()
+def search(
+    query: str = typer.Argument(help="Search term (matches name, language, framework, or tech)"),
+):
+    """Search portfolio projects by name, language, framework, or technology."""
+    portfolio = _load_portfolio()
+
+    if not portfolio.projects:
+        console.print("[yellow]No projects in portfolio.[/yellow]")
+        return
+
+    term = query.lower()
+    matches = []
+    for p in portfolio.projects:
+        # Match against name
+        if term in p.name.lower():
+            matches.append(p)
+            continue
+        # Match against languages
+        if any(term == lang.lower() for lang in p.tech_stack.languages):
+            matches.append(p)
+            continue
+        # Match against all tech fields
+        if _project_has_tech(p, term):
+            matches.append(p)
+            continue
+
+    console.print()
+    if not matches:
+        console.print(f"  [yellow]No projects match '{query}'[/yellow]")
+        console.print()
+        return
+
+    console.print(f"  [bold]{len(matches)} project{'s' if len(matches) != 1 else ''} matching '{query}':[/bold]")
+    console.print()
+    for p in matches:
+        grade_color = {"A": "green", "B+": "green", "B": "cyan", "C": "yellow", "D": "red", "F": "bold red"}.get(p.health.grade, "white")
+        console.print(f"  [{grade_color}]{p.health.grade:>2}[/{grade_color}] {p.health.percent:>3}%  [bold]{p.name}[/bold]  [dim]{p.tech_stack.summary}[/dim]")
+    console.print()
+
+
+@app.command()
 def ci(
     min_health: int = typer.Option(0, help="Minimum portfolio health % (0-100). Fail if below."),
     min_project_health: int = typer.Option(0, help="Minimum per-project health %. Fail if any project below."),

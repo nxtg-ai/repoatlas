@@ -346,6 +346,45 @@ class TestConnections:
 
 
 # ===========================================================================
+# atlas search
+# ===========================================================================
+
+
+class TestSearch:
+    def test_search_by_name(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "myproject"
+        d.mkdir()
+        proj = _make_project("myproject", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["search", "myproject"])
+        assert result.exit_code == 0
+        assert "myproject" in result.output
+        assert "1 project" in result.output
+
+    def test_search_no_match(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["search", "nonexistent"])
+        assert result.exit_code == 0
+        assert "No projects match" in result.output
+
+    def test_search_empty_portfolio(self, portfolio_dir):
+        runner.invoke(app, ["init"])
+        result = runner.invoke(app, ["search", "test"])
+        assert "No projects" in result.output
+
+    def test_search_no_portfolio(self, portfolio_dir):
+        result = runner.invoke(app, ["search", "test"])
+        assert result.exit_code == 1
+
+
+# ===========================================================================
 # atlas doctor
 # ===========================================================================
 
