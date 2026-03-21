@@ -7,7 +7,8 @@ from atlas.models import GitInfo, HealthScore, Portfolio, Project, TechStack
 
 def _proj(name: str, languages=None, frameworks=None, databases=None,
           infrastructure=None, security_tools=None, ai_tools=None,
-          quality_tools=None, test_files=5, source_files=20, loc=500) -> Project:
+          quality_tools=None, testing_frameworks=None,
+          test_files=5, source_files=20, loc=500) -> Project:
     return Project(
         name=name,
         path=f"/tmp/{name}",
@@ -19,6 +20,7 @@ def _proj(name: str, languages=None, frameworks=None, databases=None,
             security_tools=security_tools or [],
             ai_tools=ai_tools or [],
             quality_tools=quality_tools or [],
+            testing_frameworks=testing_frameworks or [],
         ),
         git_info=GitInfo(
             branch="main",
@@ -192,7 +194,8 @@ class TestConnectionsSection:
         p = _proj("solo", test_files=10, source_files=10,
                   infrastructure=["GitHub Actions"],
                   security_tools=["Dependabot", "Gitleaks"],
-                  quality_tools=["Ruff", "mypy"])
+                  quality_tools=["Ruff", "mypy"],
+                  testing_frameworks=["pytest"])
         p.health.tests = 1.0
         report = build_markdown_report(_portfolio(p))
         assert "Cross-Project Intelligence" not in report

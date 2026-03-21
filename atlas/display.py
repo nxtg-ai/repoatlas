@@ -45,6 +45,9 @@ CONNECTION_ICONS = {
     "shared_ai": "[magenta]\u2b50[/magenta]",
     "ai_divergence": "[yellow]\u2b53[/yellow]",
     "ai_gap": "[red]\u2b54[/red]",
+    "shared_testing": "[green]\u2713[/green]",
+    "testing_divergence": "[yellow]\u2263[/yellow]",
+    "testing_gap": "[red]\u2717[/red]",
 }
 
 
@@ -270,6 +273,9 @@ def show_connections(connections: list[Connection]):
         "shared_ai": "Shared AI/ML Tools",
         "ai_divergence": "AI/ML Divergence",
         "ai_gap": "AI/ML Gaps",
+        "shared_testing": "Shared Testing Frameworks",
+        "testing_divergence": "Testing Divergence",
+        "testing_gap": "Testing Gaps",
     }
 
     lines = []

@@ -203,6 +203,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "quality_divergence": "quality",
         "ai_gap": "ai",
         "ai_divergence": "ai",
+        "testing_gap": "tests",
+        "testing_divergence": "tests",
     }
 
     for conn in connections:

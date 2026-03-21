@@ -10,6 +10,7 @@ from atlas.connections import (
     _find_shared_databases,
     _find_shared_deps,
     _find_shared_frameworks,
+    _find_testing_patterns,
     _find_version_mismatches,
     find_connections,
 )
@@ -18,7 +19,7 @@ from atlas.models import GitInfo, HealthScore, Project, TechStack
 
 def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           infrastructure=None, security_tools=None, quality_tools=None,
-          ai_tools=None,
+          ai_tools=None, testing_frameworks=None,
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -32,6 +33,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             security_tools=security_tools or [],
             quality_tools=quality_tools or [],
             ai_tools=ai_tools or [],
+            testing_frameworks=testing_frameworks or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -895,3 +897,146 @@ class TestFindAIPatterns:
         ai_types = {c.type for c in conns if "ai" in c.type}
         assert "shared_ai" in ai_types
         assert "ai_divergence" in ai_types
+
+
+# ---------------------------------------------------------------------------
+# Testing framework patterns (N-29)
+# ---------------------------------------------------------------------------
+class TestFindTestingPatterns:
+    def test_shared_testing_framework(self):
+        projects = [
+            _proj("a", testing_frameworks=["pytest"]),
+            _proj("b", testing_frameworks=["pytest"]),
+        ]
+        conns = _find_testing_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_testing"]
+        assert len(shared) == 1
+        assert "pytest" in shared[0].detail
+        assert shared[0].severity == "info"
+
+    def test_shared_multiple_frameworks(self):
+        projects = [
+            _proj("a", testing_frameworks=["pytest", "Jest"]),
+            _proj("b", testing_frameworks=["pytest", "Jest"]),
+            _proj("c", testing_frameworks=["Jest"]),
+        ]
+        conns = _find_testing_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_testing"]
+        assert len(shared) == 2
+
+    def test_no_shared_when_unique(self):
+        projects = [
+            _proj("a", testing_frameworks=["pytest"]),
+            _proj("b", testing_frameworks=["Jest"]),
+        ]
+        conns = _find_testing_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_testing"]
+        assert len(shared) == 0
+
+    def test_js_divergence_jest_vs_vitest(self):
+        projects = [
+            _proj("a", testing_frameworks=["Jest"]),
+            _proj("b", testing_frameworks=["Vitest"]),
+        ]
+        conns = _find_testing_patterns(projects)
+        div = [c for c in conns if c.type == "testing_divergence"]
+        assert len(div) == 1
+        assert "JS test runners" in div[0].detail
+        assert div[0].severity == "warning"
+
+    def test_js_divergence_three_runners(self):
+        projects = [
+            _proj("a", testing_frameworks=["Jest"]),
+            _proj("b", testing_frameworks=["Vitest"]),
+            _proj("c", testing_frameworks=["Mocha"]),
+        ]
+        conns = _find_testing_patterns(projects)
+        div = [c for c in conns if c.type == "testing_divergence"]
+        assert len(div) == 1
+        assert "Jest" in div[0].detail
+        assert "Vitest" in div[0].detail
+        assert "Mocha" in div[0].detail
+
+    def test_no_js_divergence_same_runner(self):
+        projects = [
+            _proj("a", testing_frameworks=["Jest"]),
+            _proj("b", testing_frameworks=["Jest"]),
+        ]
+        conns = _find_testing_patterns(projects)
+        div = [c for c in conns if c.type == "testing_divergence"]
+        assert len(div) == 0
+
+    def test_python_divergence_pytest_vs_nose(self):
+        projects = [
+            _proj("a", testing_frameworks=["pytest"]),
+            _proj("b", testing_frameworks=["nose2"]),
+        ]
+        conns = _find_testing_patterns(projects)
+        div = [c for c in conns if c.type == "testing_divergence"]
+        assert len(div) == 1
+        assert "Python test runners" in div[0].detail
+
+    def test_no_python_divergence_same_runner(self):
+        projects = [
+            _proj("a", testing_frameworks=["pytest"]),
+            _proj("b", testing_frameworks=["pytest"]),
+        ]
+        conns = _find_testing_patterns(projects)
+        div = [c for c in conns if c.type == "testing_divergence"]
+        assert len(div) == 0
+
+    def test_testing_gap_no_framework(self):
+        projects = [
+            _proj("a", testing_frameworks=["pytest"]),
+            _proj("b", testing_frameworks=[], source_files=20),
+        ]
+        conns = _find_testing_patterns(projects)
+        gap = [c for c in conns if c.type == "testing_gap"]
+        assert len(gap) == 1
+        assert "b" in gap[0].projects
+        assert gap[0].severity == "critical"
+
+    def test_testing_gap_ignores_small_projects(self):
+        projects = [
+            _proj("a", testing_frameworks=["pytest"]),
+            _proj("tiny", testing_frameworks=[], source_files=3),
+        ]
+        conns = _find_testing_patterns(projects)
+        gap = [c for c in conns if c.type == "testing_gap"]
+        assert len(gap) == 0
+
+    def test_no_gap_all_have_frameworks(self):
+        projects = [
+            _proj("a", testing_frameworks=["pytest"]),
+            _proj("b", testing_frameworks=["Jest"]),
+        ]
+        conns = _find_testing_patterns(projects)
+        gap = [c for c in conns if c.type == "testing_gap"]
+        assert len(gap) == 0
+
+    def test_empty_projects(self):
+        conns = _find_testing_patterns([])
+        assert conns == []
+
+    def test_single_project_no_connections(self):
+        conns = _find_testing_patterns([_proj("solo", testing_frameworks=["pytest"])])
+        shared = [c for c in conns if c.type == "shared_testing"]
+        assert len(shared) == 0
+
+    def test_integration_with_find_connections_testing(self):
+        projects = [
+            _proj("a", testing_frameworks=["Jest"]),
+            _proj("b", testing_frameworks=["Jest", "Vitest"]),
+        ]
+        conns = find_connections(projects)
+        testing_types = {c.type for c in conns if "testing" in c.type}
+        assert "shared_testing" in testing_types
+
+    def test_mixed_divergence_js_and_python(self):
+        projects = [
+            _proj("a", testing_frameworks=["pytest", "Jest"]),
+            _proj("b", testing_frameworks=["nose2", "Vitest"]),
+        ]
+        conns = _find_testing_patterns(projects)
+        div = [c for c in conns if c.type == "testing_divergence"]
+        assert len(div) == 2  # one for JS, one for Python

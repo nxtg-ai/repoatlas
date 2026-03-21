@@ -39,8 +39,9 @@
 | N-26 | [Enhanced Doctor Recommendations](#n-26-enhanced-doctor-recommendations) | EXPERIENCE | SHIPPED | P1 | 2026-03-13 |
 | N-27 | [AI/ML Intelligence](#n-27-aiml-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 | N-28 | [Testing Framework Detection](#n-28-testing-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-13 |
+| N-29 | [Testing Intelligence](#n-29-testing-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-13 |
 
-**Summary**: 25/28 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 26/29 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -64,7 +65,8 @@
 - Cross-project security intelligence (shared tools, adoption gaps, divergence)
 - Cross-project quality intelligence (shared tools, adoption gaps, linter divergence)
 - Cross-project AI/ML intelligence (shared tools, LLM provider divergence, experiment tracking gaps)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27
+- Cross-project testing intelligence (shared frameworks, runner divergence, testing gaps)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -211,6 +213,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Enhanced `atlas doctor` recommendations engine to leverage all detection data from N-17/N-19/N-24/N-25. Per-project: security (no tooling, missing dep scanning, missing secret scanning), quality (no tooling, missing linting, missing type checking), infrastructure (no CI/CD). Cross-project: maps security_gap/security_divergence, quality_gap/quality_divergence, infra_gap/infra_divergence connections to prioritized recommendations. 23 new recommendation tests.
 **Shipped**: 2026-03-13. Total test count: 583 → 606. Surfaces all detection+intelligence data through actionable `atlas doctor` output.
+
+### N-29: Testing Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project testing framework pattern detection via `_find_testing_patterns()` in connections.py. Analyzes testing framework data from N-28 across the portfolio to detect: shared testing frameworks (pytest/Jest across 2+ projects), JS test runner divergence (Jest vs Vitest vs Mocha vs AVA), Python test runner divergence (pytest vs nose2 vs unittest2), and testing gaps (projects with 5+ source files but no testing framework). New connection types (`shared_testing`, `testing_divergence`, `testing_gap`) displayed in `atlas connections`, markdown export, and `atlas doctor`. 15 testing pattern tests.
+**Shipped**: 2026-03-13. Total test count: 651 → 666. Completes N-28 detection→intelligence pipeline. All 5 detection→intelligence pipelines complete: infra (N-17→N-18), security (N-19→N-23), quality (N-24→N-25), AI/ML (N-21→N-27), testing (N-28→N-29).
 
 ### N-28: Testing Framework Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

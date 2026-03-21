@@ -18,6 +18,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_security_patterns(projects))
     connections.extend(_find_quality_patterns(projects))
     connections.extend(_find_ai_patterns(projects))
+    connections.extend(_find_testing_patterns(projects))
     return connections
 
 
@@ -487,6 +488,81 @@ def _find_ai_patterns(projects: list[Project]) -> list[Connection]:
             detail=f"{len(ml_no_tracking)} ML projects lack experiment tracking — add MLflow/W&B",
             projects=ml_no_tracking,
             severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_testing_patterns(projects: list[Project]) -> list[Connection]:
+    """Detect cross-project testing framework patterns."""
+    connections: list[Connection] = []
+
+    # Shared testing frameworks (2+ projects)
+    from collections import Counter
+    tf_counter: Counter[str] = Counter()
+    tf_projects: dict[str, list[str]] = {}
+    for p in projects:
+        for tf in p.tech_stack.testing_frameworks:
+            tf_counter[tf] += 1
+            tf_projects.setdefault(tf, []).append(p.name)
+
+    for tf, count in tf_counter.most_common():
+        if count >= 2:
+            connections.append(Connection(
+                type="shared_testing",
+                detail=f"{tf} used in {count} projects — reuse configs/fixtures",
+                projects=tf_projects[tf],
+                severity="info",
+            ))
+
+    # Testing framework divergence within same language
+    # JS: Jest vs Vitest vs Mocha
+    js_unit_frameworks = {"Jest", "Vitest", "Mocha", "AVA"}
+    js_divergence: dict[str, set[str]] = {}
+    for p in projects:
+        js_tfs = [tf for tf in p.tech_stack.testing_frameworks if tf in js_unit_frameworks]
+        for tf in js_tfs:
+            js_divergence.setdefault(tf, set()).add(p.name)
+
+    if len(js_divergence) >= 2:
+        detail_parts = [f"{tf} ({', '.join(sorted(projs))})" for tf, projs in js_divergence.items()]
+        all_projects = sorted({p for projs in js_divergence.values() for p in projs})
+        connections.append(Connection(
+            type="testing_divergence",
+            detail=f"Multiple JS test runners: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
+        ))
+
+    # Python: pytest vs nose2 vs unittest2
+    py_test_frameworks = {"pytest", "nose2", "unittest2"}
+    py_divergence: dict[str, set[str]] = {}
+    for p in projects:
+        py_tfs = [tf for tf in p.tech_stack.testing_frameworks if tf in py_test_frameworks]
+        for tf in py_tfs:
+            py_divergence.setdefault(tf, set()).add(p.name)
+
+    if len(py_divergence) >= 2:
+        detail_parts = [f"{tf} ({', '.join(sorted(projs))})" for tf, projs in py_divergence.items()]
+        all_projects = sorted({p for projs in py_divergence.values() for p in projs})
+        connections.append(Connection(
+            type="testing_divergence",
+            detail=f"Multiple Python test runners: {', '.join(detail_parts)} — standardize",
+            projects=all_projects,
+            severity="warning",
+        ))
+
+    # Testing gap — projects with code but no testing framework
+    no_testing = [
+        p.name for p in projects
+        if not p.tech_stack.testing_frameworks and p.source_file_count > 5
+    ]
+    if no_testing:
+        connections.append(Connection(
+            type="testing_gap",
+            detail=f"{len(no_testing)} projects have no testing framework — add pytest/Jest",
+            projects=no_testing,
+            severity="critical",
         ))
 
     return connections[:10]

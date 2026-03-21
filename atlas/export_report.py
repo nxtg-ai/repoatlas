@@ -176,6 +176,9 @@ def _connections_section(conns: list) -> list[str]:
         "shared_ai": "Shared AI/ML Tools",
         "ai_divergence": "AI/ML Divergence",
         "ai_gap": "AI/ML Gaps",
+        "shared_testing": "Shared Testing Frameworks",
+        "testing_divergence": "Testing Divergence",
+        "testing_gap": "Testing Gaps",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
