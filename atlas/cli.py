@@ -439,6 +439,7 @@ CONNECTION_CATEGORIES = {
     "math": {"shared_math_lib", "math_lib_divergence"},
     "async": {"shared_async_lib", "async_lib_divergence"},
     "crypto": {"shared_crypto_lib", "crypto_lib_divergence"},
+    "pdf": {"shared_pdf_lib", "pdf_lib_divergence"},
 }
 
 
@@ -450,6 +451,7 @@ def connections(
     format: Optional[str] = typer.Option(None, help="Output format: json or csv for structured output"),
     summary: bool = typer.Option(False, "--summary", help="Show compact category summary table"),
     sort: Optional[str] = typer.Option(None, "--sort", help="Sort by: type, severity, projects"),
+    limit: Optional[int] = typer.Option(None, "--limit", "-n", help="Max connections to show"),
 ):
     """Show cross-project intelligence."""
     portfolio = _load_portfolio()
@@ -513,6 +515,9 @@ def connections(
             conns.sort(key=lambda c: (severity_rank.get(c.severity, 99), c.type))
         elif sort_lower == "projects":
             conns.sort(key=lambda c: len(c.projects), reverse=True)
+
+    if limit is not None and limit > 0:
+        conns = conns[:limit]
 
     if summary:
         from collections import Counter

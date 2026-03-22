@@ -5633,3 +5633,68 @@ class TestFindCryptoPatterns:
         conns = find_connections(projects)
         crypto_types = {c.type for c in conns if "crypto" in c.type}
         assert "shared_crypto_lib" in crypto_types
+
+
+class TestFindPdfPatterns:
+    def test_empty(self):
+        from atlas.connections import _find_pdf_patterns
+        projects = [_proj("a"), _proj("b")]
+        assert _find_pdf_patterns(projects) == []
+
+    def test_shared_pdf_lib(self):
+        from atlas.connections import _find_pdf_patterns
+        projects = [
+            _proj("a", pdf_libs=["ReportLab", "pypdf"]),
+            _proj("b", pdf_libs=["ReportLab", "WeasyPrint"]),
+        ]
+        conns = _find_pdf_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_pdf_lib"]
+        assert len(shared) >= 1
+        assert any("ReportLab" in c.detail for c in shared)
+
+    def test_no_shared_when_disjoint(self):
+        from atlas.connections import _find_pdf_patterns
+        projects = [
+            _proj("a", pdf_libs=["ReportLab"]),
+            _proj("b", pdf_libs=["pypdf"]),
+        ]
+        conns = _find_pdf_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_pdf_lib"]
+        assert len(shared) == 0
+
+    def test_generation_extraction_divergence(self):
+        from atlas.connections import _find_pdf_patterns
+        projects = [
+            _proj("a", pdf_libs=["ReportLab", "WeasyPrint"]),
+            _proj("b", pdf_libs=["pypdf", "pdfplumber"]),
+        ]
+        conns = _find_pdf_patterns(projects)
+        div = [c for c in conns if c.type == "pdf_lib_divergence"]
+        assert len(div) == 1
+        assert "generation" in div[0].detail.lower()
+        assert "extraction" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        from atlas.connections import _find_pdf_patterns
+        projects = [
+            _proj("a", pdf_libs=["ReportLab"]),
+            _proj("b", pdf_libs=["WeasyPrint"]),
+        ]
+        conns = _find_pdf_patterns(projects)
+        div = [c for c in conns if c.type == "pdf_lib_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        from atlas.connections import _find_pdf_patterns
+        projects = [_proj(f"p{i}", pdf_libs=["ReportLab", "pypdf", "jsPDF"]) for i in range(20)]
+        conns = _find_pdf_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", pdf_libs=["ReportLab", "pypdf"]),
+            _proj("b", pdf_libs=["ReportLab", "WeasyPrint"]),
+        ]
+        conns = find_connections(projects)
+        pdf_types = {c.type for c in conns if "pdf" in c.type}
+        assert "shared_pdf_lib" in pdf_types

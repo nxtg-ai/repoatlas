@@ -438,7 +438,7 @@ class TestConnections:
             runner.invoke(app, ["add", str(d)])
         result = runner.invoke(app, ["connections", "--type", "list"])
         assert result.exit_code == 0
-        assert "51 categories" in result.output
+        assert "52 categories" in result.output
 
     def test_connections_type_list_shows_types(self, portfolio_dir, tmp_path):
         runner.invoke(app, ["init"])
@@ -690,6 +690,43 @@ class TestConnections:
                 runner.invoke(app, ["add", str(d)])
         result = runner.invoke(app, ["connections", "--summary", "--severity", "warning"])
         assert result.exit_code == 0
+
+    def test_connections_limit_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--format", "json", "--limit", "3"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert len(data["connections"]) <= 3
+
+    def test_connections_limit_rich(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--limit", "2"])
+        assert result.exit_code == 0
+
+    def test_connections_limit_with_sort(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ("proj-a", "proj-b"):
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["connections", "--format", "json", "--sort", "type", "--limit", "3"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert len(data["connections"]) <= 3
 
 
 # ===========================================================================

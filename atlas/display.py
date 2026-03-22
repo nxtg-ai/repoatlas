@@ -175,6 +175,8 @@ CONNECTION_ICONS = {
     "async_lib_divergence": "[yellow]⟳[/yellow]",
     "shared_crypto_lib": "[green]🔐[/green]",
     "crypto_lib_divergence": "[yellow]🔐[/yellow]",
+    "shared_pdf_lib": "[green]📄[/green]",
+    "pdf_lib_divergence": "[yellow]📄[/yellow]",
 }
 
 
@@ -870,6 +872,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         compress_parts = [f"{cl} ({count})" for cl, count in top_compress]
         lines.append(f"  [bold]Compress:[/bold] {has_compress}/{n} projects · {', '.join(compress_parts)}")
 
+    # Email libs
+    has_email = sum(1 for p in projects if p.tech_stack.email_libs)
+    if has_email:
+        email_counter: Counter[str] = Counter()
+        for p in projects:
+            for el in p.tech_stack.email_libs:
+                email_counter[el] += 1
+        top_email = email_counter.most_common(6)
+        email_parts = [f"{el} ({count})" for el, count in top_email]
+        lines.append(f"  [bold]Email:[/bold]    {has_email}/{n} projects · {', '.join(email_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1048,6 +1061,8 @@ def show_connections(connections: list[Connection]):
         "async_lib_divergence": "Async Approach Divergence",
         "shared_crypto_lib": "Shared Crypto Lib",
         "crypto_lib_divergence": "Crypto Approach Divergence",
+        "shared_pdf_lib": "Shared PDF/Doc Lib",
+        "pdf_lib_divergence": "PDF/Doc Approach Divergence",
     }
 
     lines = []
@@ -1137,6 +1152,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_math_lib": "math", "math_lib_divergence": "math",
         "shared_async_lib": "async", "async_lib_divergence": "async",
         "shared_crypto_lib": "crypto", "crypto_lib_divergence": "crypto",
+        "shared_pdf_lib": "pdf", "pdf_lib_divergence": "pdf",
     }
 
     for conn in connections:
@@ -1391,6 +1407,10 @@ def show_project_card(project: Project):
     if project.tech_stack.compression_libs:
         cl = ", ".join(project.tech_stack.compression_libs[:8])
         lines.append(f"  [bold]Compress:[/bold] {cl}")
+
+    if project.tech_stack.email_libs:
+        el = ", ".join(project.tech_stack.email_libs[:8])
+        lines.append(f"  [bold]Email:[/bold]    {el}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

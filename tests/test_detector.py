@@ -58,6 +58,7 @@ from atlas.detector import (
     detect_math_libs,
     detect_async_libs,
     detect_compression_libs,
+    detect_email_libs,
     walk_files,
 )
 
@@ -6450,4 +6451,95 @@ class TestDetectCompressionLibs:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("zstandard>=0.22\nlz4>=4.3\nbrotli>=1.1\n")
         result = detect_compression_libs(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_email_libs
+class TestDetectEmailLibs:
+    def test_empty_project(self, tmp_path):
+        assert detect_email_libs(tmp_path) == []
+
+    def test_python_sendgrid(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sendgrid>=6.0\n")
+        result = detect_email_libs(tmp_path)
+        assert "SendGrid" in result
+
+    def test_python_resend(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("resend>=0.7\n")
+        result = detect_email_libs(tmp_path)
+        assert "Resend" in result
+
+    def test_python_flask_mail(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("flask-mail>=0.9\n")
+        result = detect_email_libs(tmp_path)
+        assert "Flask-Mail" in result
+
+    def test_python_yagmail(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("yagmail>=0.15\n")
+        result = detect_email_libs(tmp_path)
+        assert "yagmail" in result
+
+    def test_python_mailchimp(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("mailchimp3>=3.0\n")
+        result = detect_email_libs(tmp_path)
+        assert "Mailchimp" in result
+
+    def test_python_postmark(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("postmark>=0.5\n")
+        result = detect_email_libs(tmp_path)
+        assert "Postmark" in result
+
+    def test_python_aiosmtplib(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("aiosmtplib>=2.0\n")
+        result = detect_email_libs(tmp_path)
+        assert "aiosmtplib" in result
+
+    def test_js_nodemailer(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"nodemailer":"^6.9"}}')
+        result = detect_email_libs(tmp_path)
+        assert "Nodemailer" in result
+
+    def test_js_sendgrid(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@sendgrid/mail":"^7.7"}}')
+        result = detect_email_libs(tmp_path)
+        assert "SendGrid" in result
+
+    def test_js_mjml(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"mjml":"^4.14"}}')
+        result = detect_email_libs(tmp_path)
+        assert "MJML" in result
+
+    def test_js_react_email(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-email":"^1.10"}}')
+        result = detect_email_libs(tmp_path)
+        assert "React Email" in result
+
+    def test_go_gomail(self, tmp_path):
+        (tmp_path / "go.sum").write_text("gopkg.in/go-gomail/go-gomail.v2 v2.0.0 h1:abc\n")
+        result = detect_email_libs(tmp_path)
+        assert "Gomail" in result
+
+    def test_rust_lettre(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nlettre = "0.11"\n')
+        result = detect_email_libs(tmp_path)
+        assert "Lettre" in result
+
+    def test_java_spring_mail(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.springframework.boot:spring-boot-starter-mail:3.2'\n")
+        result = detect_email_libs(tmp_path)
+        assert "Spring Mail" in result
+
+    def test_java_jakarta_mail(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency>jakarta.mail</dependency>")
+        result = detect_email_libs(tmp_path)
+        assert "Jakarta Mail" in result
+
+    def test_java_commons_email(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.apache.commons:commons-email:1.5'\n")
+        result = detect_email_libs(tmp_path)
+        assert "Commons Email" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sendgrid>=6.0\nresend>=0.7\nyagmail>=0.15\n")
+        result = detect_email_libs(tmp_path)
         assert result == sorted(result)

@@ -62,6 +62,7 @@ from atlas.detector import (
     detect_math_libs,
     detect_async_libs,
     detect_compression_libs,
+    detect_email_libs,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -126,6 +127,7 @@ def scan_project(project_path: Path) -> Project:
     math_libs = detect_math_libs(path)
     async_libs = detect_async_libs(path)
     compression_libs = detect_compression_libs(path)
+    email_libs = detect_email_libs(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -185,6 +187,7 @@ def scan_project(project_path: Path) -> Project:
         math_libs=math_libs,
         async_libs=async_libs,
         compression_libs=compression_libs,
+        email_libs=email_libs,
     )
 
     project = Project(
