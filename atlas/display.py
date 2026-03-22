@@ -167,6 +167,8 @@ CONNECTION_ICONS = {
     "data_viz_divergence": "[yellow]◆[/yellow]",
     "shared_geo_lib": "[green]◎[/green]",
     "geo_lib_divergence": "[yellow]◎[/yellow]",
+    "shared_media_lib": "[green]♪[/green]",
+    "media_lib_divergence": "[yellow]♪[/yellow]",
 }
 
 
@@ -818,6 +820,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         geo_parts = [f"{gl} ({count})" for gl, count in top_geo]
         lines.append(f"  [bold]Geo/Maps:[/bold]   {has_geo}/{n} projects · {', '.join(geo_parts)}")
 
+    # Media libs
+    has_media = sum(1 for p in projects if p.tech_stack.media_libs)
+    if has_media:
+        media_counter: Counter[str] = Counter()
+        for p in projects:
+            for ml in p.tech_stack.media_libs:
+                media_counter[ml] += 1
+        top_media = media_counter.most_common(6)
+        media_parts = [f"{ml} ({count})" for ml, count in top_media]
+        lines.append(f"  [bold]Media:[/bold]     {has_media}/{n} projects · {', '.join(media_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -988,6 +1001,8 @@ def show_connections(connections: list[Connection]):
         "data_viz_divergence": "Data Viz Approach Divergence",
         "shared_geo_lib": "Shared Geo/Map Lib",
         "geo_lib_divergence": "Geo Approach Divergence",
+        "shared_media_lib": "Shared Media Lib",
+        "media_lib_divergence": "Media Approach Divergence",
     }
 
     lines = []
@@ -1073,6 +1088,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_image_lib": "imaging", "image_lib_divergence": "imaging",
         "shared_data_viz": "dataviz", "data_viz_divergence": "dataviz",
         "shared_geo_lib": "geo", "geo_lib_divergence": "geo",
+        "shared_media_lib": "media", "media_lib_divergence": "media",
     }
 
     for conn in connections:
@@ -1311,6 +1327,10 @@ def show_project_card(project: Project):
     if project.tech_stack.geo_libs:
         gl = ", ".join(project.tech_stack.geo_libs[:8])
         lines.append(f"  [bold]Geo/Maps:[/bold]   {gl}")
+
+    if project.tech_stack.media_libs:
+        ml = ", ".join(project.tech_stack.media_libs[:8])
+        lines.append(f"  [bold]Media:[/bold]     {ml}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

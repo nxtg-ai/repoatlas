@@ -44,7 +44,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
-          state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, project_license="",
+          state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -99,6 +99,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             pdf_libs=pdf_libs or [],
             data_viz_libs=data_viz_libs or [],
             geo_libs=geo_libs or [],
+            media_libs=media_libs or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -5370,3 +5371,68 @@ class TestFindGeoPatterns:
         conns = find_connections(projects)
         geo_types = {c.type for c in conns if "geo" in c.type}
         assert "shared_geo_lib" in geo_types
+
+
+class TestFindMediaPatterns:
+    def test_empty(self):
+        from atlas.connections import _find_media_patterns
+        projects = [_proj("a"), _proj("b")]
+        assert _find_media_patterns(projects) == []
+
+    def test_shared_media_lib(self):
+        from atlas.connections import _find_media_patterns
+        projects = [
+            _proj("a", media_libs=["FFmpeg", "Pydub"]),
+            _proj("b", media_libs=["FFmpeg", "MoviePy"]),
+        ]
+        conns = _find_media_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_media_lib"]
+        assert len(shared) >= 1
+        assert any("FFmpeg" in c.detail for c in shared)
+
+    def test_no_shared_when_disjoint(self):
+        from atlas.connections import _find_media_patterns
+        projects = [
+            _proj("a", media_libs=["Pydub"]),
+            _proj("b", media_libs=["MoviePy"]),
+        ]
+        conns = _find_media_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_media_lib"]
+        assert len(shared) == 0
+
+    def test_audio_video_divergence(self):
+        from atlas.connections import _find_media_patterns
+        projects = [
+            _proj("a", media_libs=["Librosa", "Pydub"]),
+            _proj("b", media_libs=["MoviePy", "PyAV"]),
+        ]
+        conns = _find_media_patterns(projects)
+        div = [c for c in conns if c.type == "media_lib_divergence"]
+        assert len(div) == 1
+        assert "audio" in div[0].detail.lower()
+        assert "video" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        from atlas.connections import _find_media_patterns
+        projects = [
+            _proj("a", media_libs=["Librosa"]),
+            _proj("b", media_libs=["Pydub"]),
+        ]
+        conns = _find_media_patterns(projects)
+        div = [c for c in conns if c.type == "media_lib_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        from atlas.connections import _find_media_patterns
+        projects = [_proj(f"p{i}", media_libs=["FFmpeg", "Pydub", "MoviePy"]) for i in range(20)]
+        conns = _find_media_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", media_libs=["FFmpeg", "Pydub"]),
+            _proj("b", media_libs=["FFmpeg", "MoviePy"]),
+        ]
+        conns = find_connections(projects)
+        media_types = {c.type for c in conns if "media" in c.type}
+        assert "shared_media_lib" in media_types

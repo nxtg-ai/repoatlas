@@ -54,6 +54,7 @@ from atlas.detector import (
     detect_pdf_libs,
     detect_data_viz_libs,
     detect_geo_libs,
+    detect_media_libs,
     walk_files,
 )
 
@@ -6055,4 +6056,104 @@ class TestDetectGeoLibs:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("shapely>=2.0\ngeopandas>=0.14\nfiona>=1.9\n")
         result = detect_geo_libs(tmp_path)
+        assert result == sorted(result)
+
+
+# ---------------------------------------------------------------------------
+# detect_media_libs
+# ---------------------------------------------------------------------------
+class TestDetectMediaLibs:
+    def test_empty(self, tmp_path):
+        assert detect_media_libs(tmp_path) == []
+
+    def test_python_ffmpeg(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("ffmpeg-python>=0.2\n")
+        result = detect_media_libs(tmp_path)
+        assert "FFmpeg" in result
+
+    def test_python_moviepy(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("moviepy>=1.0\n")
+        result = detect_media_libs(tmp_path)
+        assert "MoviePy" in result
+
+    def test_python_pydub(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pydub>=0.25\n")
+        result = detect_media_libs(tmp_path)
+        assert "Pydub" in result
+
+    def test_python_librosa(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("librosa>=0.10\n")
+        result = detect_media_libs(tmp_path)
+        assert "Librosa" in result
+
+    def test_python_pyav(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("av>=11.0\n")
+        result = detect_media_libs(tmp_path)
+        assert "PyAV" in result
+
+    def test_python_torchaudio(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("torchaudio>=2.0\n")
+        result = detect_media_libs(tmp_path)
+        assert "torchaudio" in result
+
+    def test_js_fluent_ffmpeg(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"fluent-ffmpeg": "^2.1"}}')
+        result = detect_media_libs(tmp_path)
+        assert "FFmpeg" in result
+
+    def test_js_tone(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"tone": "^14.7"}}')
+        result = detect_media_libs(tmp_path)
+        assert "Tone.js" in result
+
+    def test_js_videojs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"video.js": "^8.0"}}')
+        result = detect_media_libs(tmp_path)
+        assert "Video.js" in result
+
+    def test_js_hlsjs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"hls.js": "^1.5"}}')
+        result = detect_media_libs(tmp_path)
+        assert "HLS.js" in result
+
+    def test_js_howler(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"howler": "^2.2"}}')
+        result = detect_media_libs(tmp_path)
+        assert "Howler.js" in result
+
+    def test_go_beep(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/faiface/beep v1.1.0 h1:abc\n")
+        result = detect_media_libs(tmp_path)
+        assert "Beep" in result
+
+    def test_rust_rodio(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nrodio = "0.17"')
+        result = detect_media_libs(tmp_path)
+        assert "Rodio" in result
+
+    def test_rust_symphonia(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nsymphonia = "0.5"')
+        result = detect_media_libs(tmp_path)
+        assert "Symphonia" in result
+
+    def test_java_javacv(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><groupId>org.bytedeco</groupId><artifactId>javacv</artifactId></dependency>")
+        result = detect_media_libs(tmp_path)
+        assert "JavaCV" in result
+
+    def test_java_jcodec(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.jcodec:jcodec:0.2.5'")
+        result = detect_media_libs(tmp_path)
+        assert "JCodec" in result
+
+    def test_multiple_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("ffmpeg-python>=0.2\nmoviepy>=1.0\npydub>=0.25\n")
+        result = detect_media_libs(tmp_path)
+        assert "FFmpeg" in result
+        assert "MoviePy" in result
+        assert "Pydub" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pydub>=0.25\nlibrosa>=0.10\nffmpeg-python>=0.2\n")
+        result = detect_media_libs(tmp_path)
         assert result == sorted(result)

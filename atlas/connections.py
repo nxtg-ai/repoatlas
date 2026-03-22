@@ -58,6 +58,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_image_lib_patterns(projects))
     connections.extend(_find_data_viz_patterns(projects))
     connections.extend(_find_geo_patterns(projects))
+    connections.extend(_find_media_patterns(projects))
     return connections
 
 
@@ -3368,6 +3369,66 @@ def _find_geo_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="geo_lib_divergence",
             detail=f"Mixed geo approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_media_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project audio/video media library patterns."""
+    connections: list[Connection] = []
+
+    # Shared media libs — same lib used by 2+ projects
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.media_libs:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_media_lib",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Media lib divergence — audio processing vs video/streaming
+    audio = {"Pydub", "Librosa", "SoundFile", "PyAudio", "audioread", "sounddevice",
+             "Pedalboard", "torchaudio", "aubio", "madmom", "Essentia", "music21",
+             "Tone.js", "Howler.js", "WaveSurfer.js", "Pizzicato", "music-metadata",
+             "Beep", "Oto", "Rodio", "CPAL", "Symphonia", "dasp",
+             "TarsosDSP", "Tritonus", "JLayer"}
+    video = {"MoviePy", "PyAV", "Decord", "VidGear",
+             "Video.js", "Plyr", "HLS.js", "DASH.js", "Shaka Player",
+             "Mediasoup", "SimplePeer", "PeerJS",
+             "Ebiten", "GoAV", "go-dash", "GStreamer",
+             "JavaCV", "JCodec", "Xuggler", "JAVE"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "audio": {}, "video": {},
+    }
+    cat_sets = [("audio", audio), ("video", video)]
+    for p in projects:
+        for lib in p.tech_stack.media_libs:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="media_lib_divergence",
+            detail=f"Mixed media approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

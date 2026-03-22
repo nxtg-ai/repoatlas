@@ -438,7 +438,7 @@ class TestConnections:
             runner.invoke(app, ["add", str(d)])
         result = runner.invoke(app, ["connections", "--type", "list"])
         assert result.exit_code == 0
-        assert "47 categories" in result.output
+        assert "48 categories" in result.output
 
     def test_connections_type_list_shows_types(self, portfolio_dir, tmp_path):
         runner.invoke(app, ["init"])
@@ -1689,6 +1689,30 @@ class TestExport:
         assert result.exit_code == 0
         data = json.loads(result.output)
         assert len(data["projects"]) == 2
+
+    def test_export_sort_name_json(self, portfolio_dir, tmp_path):
+        self._setup_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["export", "--format", "json", "--sort", "name"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        names = [p["name"] for p in data["projects"]]
+        assert names == sorted(names, key=str.lower)
+
+    def test_export_sort_health_json(self, portfolio_dir, tmp_path):
+        self._setup_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["export", "--format", "json", "--sort", "health"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        healths = [p["health"]["overall"] for p in data["projects"]]
+        assert healths == sorted(healths, reverse=True)
+
+    def test_export_sort_loc_json(self, portfolio_dir, tmp_path):
+        self._setup_two_projects(portfolio_dir, tmp_path)
+        result = runner.invoke(app, ["export", "--format", "json", "--sort", "loc"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        locs = [p["loc"] for p in data["projects"]]
+        assert locs == sorted(locs, reverse=True)
 
 
 # ===========================================================================

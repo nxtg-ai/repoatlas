@@ -380,6 +380,7 @@ def _project_has_tech(project, term: str) -> bool:
         + ts.pdf_libs
         + ts.data_viz_libs
         + ts.geo_libs
+        + ts.media_libs
     )
     return any(term == item.lower() for item in all_items)
 
@@ -432,6 +433,7 @@ CONNECTION_CATEGORIES = {
     "imaging": {"shared_image_lib", "image_lib_divergence"},
     "dataviz": {"shared_data_viz", "data_viz_divergence"},
     "geo": {"shared_geo_lib", "geo_lib_divergence"},
+    "media": {"shared_media_lib", "media_lib_divergence"},
 }
 
 
@@ -1200,6 +1202,7 @@ def export(
     has: Optional[str] = typer.Option(None, help="Filter by tech (e.g. Docker, FastAPI, pytest)"),
     min_health: Optional[int] = typer.Option(None, help="Filter projects with health >= N%"),
     max_health: Optional[int] = typer.Option(None, help="Filter projects with health <= N%"),
+    sort: Optional[str] = typer.Option(None, "--sort", help="Sort by: name, health, loc"),
 ):
     """Export portfolio report."""
     portfolio = _load_portfolio()
@@ -1221,7 +1224,16 @@ def export(
     if max_health is not None:
         filtered = [p for p in filtered if p.health.percent <= max_health]
 
-    if len(filtered) != len(portfolio.projects):
+    if sort:
+        sort_lower = sort.lower()
+        if sort_lower == "name":
+            filtered.sort(key=lambda p: p.name.lower())
+        elif sort_lower == "health":
+            filtered.sort(key=lambda p: p.health.overall, reverse=True)
+        elif sort_lower == "loc":
+            filtered.sort(key=lambda p: p.loc, reverse=True)
+
+    if len(filtered) != len(portfolio.projects) or sort:
         portfolio = Portfolio(
             name=portfolio.name,
             projects=filtered,
