@@ -379,6 +379,7 @@ def _project_has_tech(project, term: str) -> bool:
         + ts.crypto_libs
         + ts.pdf_libs
         + ts.data_viz_libs
+        + ts.geo_libs
     )
     return any(term == item.lower() for item in all_items)
 

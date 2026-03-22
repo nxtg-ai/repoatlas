@@ -53,6 +53,7 @@ from atlas.detector import (
     detect_crypto_libs,
     detect_pdf_libs,
     detect_data_viz_libs,
+    detect_geo_libs,
     walk_files,
 )
 
@@ -5967,4 +5968,91 @@ class TestDetectDataVizLibs:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("seaborn>=0.13\nmatplotlib>=3.8\nbokeh>=3.0\n")
         result = detect_data_viz_libs(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectGeoLibs:
+    def test_empty(self, tmp_path):
+        assert detect_geo_libs(tmp_path) == []
+
+    def test_python_geopandas(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("geopandas>=0.14\n")
+        result = detect_geo_libs(tmp_path)
+        assert "GeoPandas" in result
+
+    def test_python_shapely(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("shapely>=2.0\n")
+        result = detect_geo_libs(tmp_path)
+        assert "Shapely" in result
+
+    def test_python_rasterio(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("rasterio>=1.3\n")
+        result = detect_geo_libs(tmp_path)
+        assert "rasterio" in result
+
+    def test_python_geopy(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("geopy>=2.4\n")
+        result = detect_geo_libs(tmp_path)
+        assert "geopy" in result
+
+    def test_python_h3(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("h3>=4.0\n")
+        result = detect_geo_libs(tmp_path)
+        assert "H3" in result
+
+    def test_python_cartopy(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("cartopy>=0.22\n")
+        result = detect_geo_libs(tmp_path)
+        assert "Cartopy" in result
+
+    def test_js_leaflet(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"leaflet": "^1.9"}}')
+        result = detect_geo_libs(tmp_path)
+        assert "Leaflet" in result
+
+    def test_js_mapbox_gl(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"mapbox-gl": "^3.0"}}')
+        result = detect_geo_libs(tmp_path)
+        assert "Mapbox GL" in result
+
+    def test_js_turf(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"@turf/turf": "^6.0"}}')
+        result = detect_geo_libs(tmp_path)
+        assert "Turf.js" in result
+
+    def test_js_openlayers(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"ol": "^8.0"}}')
+        result = detect_geo_libs(tmp_path)
+        assert "OpenLayers" in result
+
+    def test_go_orb(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/paulmach/orb v0.10.0 h1:abc\n")
+        result = detect_geo_libs(tmp_path)
+        assert "orb" in result
+
+    def test_rust_geo(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ngeo = "0.27"')
+        result = detect_geo_libs(tmp_path)
+        assert "geo" in result
+
+    def test_java_geotools(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><groupId>org.geotools</groupId></dependency>")
+        result = detect_geo_libs(tmp_path)
+        assert "GeoTools" in result
+
+    def test_java_jts(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.locationtech.jts:jts-core:1.19'")
+        result = detect_geo_libs(tmp_path)
+        assert "JTS" in result
+
+    def test_multiple_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("geopandas>=0.14\nshapely>=2.0\nfiona>=1.9\n")
+        result = detect_geo_libs(tmp_path)
+        assert "GeoPandas" in result
+        assert "Shapely" in result
+        assert "Fiona" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("shapely>=2.0\ngeopandas>=0.14\nfiona>=1.9\n")
+        result = detect_geo_libs(tmp_path)
         assert result == sorted(result)

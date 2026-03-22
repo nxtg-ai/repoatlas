@@ -534,6 +534,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         dvl_names = ", ".join(f"{t} ({c})" for t, c in dvl_counter_md.most_common(8))
         lines.append(f"**Data Viz Libs**: {has_dvl_md}/{n} projects · {dvl_names}")
 
+    # Geo libs
+    has_geo_md = sum(1 for p in projects if p.tech_stack.geo_libs)
+    if has_geo_md:
+        geo_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for gl in p.tech_stack.geo_libs:
+                geo_counter_md[gl] += 1
+        geo_names = ", ".join(f"{t} ({c})" for t, c in geo_counter_md.most_common(8))
+        lines.append(f"**Geo/Map Libs**: {has_geo_md}/{n} projects · {geo_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -688,6 +698,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.data_viz_libs:
             lines.append(f"- **Data Viz**: {', '.join(p.tech_stack.data_viz_libs[:8])}")
+
+        if p.tech_stack.geo_libs:
+            lines.append(f"- **Geo/Maps**: {', '.join(p.tech_stack.geo_libs[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -1248,6 +1261,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             dvl_counter_j[dv] += 1
     has_dvl_j = sum(1 for p in projects if p.tech_stack.data_viz_libs)
 
+    # Geo libs
+    geo_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for gl in p.tech_stack.geo_libs:
+            geo_counter_j[gl] += 1
+    has_geo_j = sum(1 for p in projects if p.tech_stack.geo_libs)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1307,6 +1327,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "crypto_libs": {"coverage": f"{has_cl_j}/{n}", "libs": dict(cl_counter_j.most_common(10))},
         "pdf_libs": {"coverage": f"{has_pdf_j}/{n}", "libs": dict(pdf_counter_j.most_common(10))},
         "data_viz_libs": {"coverage": f"{has_dvl_j}/{n}", "libs": dict(dvl_counter_j.most_common(10))},
+        "geo_libs": {"coverage": f"{has_geo_j}/{n}", "libs": dict(geo_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1327,7 +1348,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1395,6 +1416,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.crypto_libs),
             "; ".join(ts.pdf_libs),
             "; ".join(ts.data_viz_libs),
+            "; ".join(ts.geo_libs),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

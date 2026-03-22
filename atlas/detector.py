@@ -5283,3 +5283,131 @@ def detect_data_viz_libs(project_path: Path) -> list[str]:
             _add(name)
 
     return sorted(tools)
+
+
+def detect_geo_libs(project_path: Path) -> list[str]:
+    """Detect geospatial and mapping libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map = {
+        "geopandas": "GeoPandas",
+        "shapely": "Shapely",
+        "fiona": "Fiona",
+        "rasterio": "rasterio",
+        "pyproj": "pyproj",
+        "gdal": "GDAL",
+        "osgeo": "GDAL",
+        "geopy": "geopy",
+        "geoalchemy2": "GeoAlchemy2",
+        "h3": "H3",
+        "s2sphere": "S2",
+        "geojson": "GeoJSON",
+        "osmnx": "OSMnx",
+        "xarray": "xarray",
+        "cartopy": "Cartopy",
+        "keplergl": "Kepler.gl",
+    }
+    for dep, name in py_map.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    js_content = ""
+    if pkg_json.exists():
+        try:
+            js_content = pkg_json.read_text().lower()
+        except OSError:
+            pass
+
+    js_map = {
+        "leaflet": "Leaflet",
+        "mapbox-gl": "Mapbox GL",
+        "maplibre-gl": "MapLibre GL",
+        "ol": "OpenLayers",
+        "cesium": "Cesium",
+        "@turf/": "Turf.js",
+        "@googlemaps/": "Google Maps",
+        "@react-google-maps/": "Google Maps",
+        "react-leaflet": "React Leaflet",
+        "react-map-gl": "react-map-gl",
+        "@mapbox/": "Mapbox",
+        "h3-js": "H3",
+        "geojson": "GeoJSON",
+        "@here/": "HERE Maps",
+    }
+    for dep, name in js_map.items():
+        if dep in js_content:
+            _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_content = ""
+    if go_sum.exists():
+        try:
+            go_content = go_sum.read_text().lower()
+        except OSError:
+            pass
+
+    go_map = {
+        "paulmach/orb": "orb",
+        "golang/geo": "S2 Geometry",
+        "twpayne/go-geom": "go-geom",
+        "tidwall/tile38": "Tile38",
+        "uber/h3-go": "H3",
+    }
+    for dep, name in go_map.items():
+        if dep.lower() in go_content:
+            _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    rust_content = ""
+    if cargo_toml.exists():
+        try:
+            rust_content = cargo_toml.read_text().lower()
+        except OSError:
+            pass
+
+    rust_map = {
+        "geo": "geo",
+        "geozero": "geozero",
+        "proj": "proj",
+        "h3o": "H3",
+        "s2": "S2",
+    }
+    for dep, name in rust_map.items():
+        if dep in rust_content:
+            _add(name)
+
+    # Java
+    java_deps_geo = []
+    for build_file in ("build.gradle", "build.gradle.kts", "pom.xml"):
+        bf = project_path / build_file
+        if bf.exists():
+            try:
+                java_deps_geo.append(bf.read_text())
+            except Exception:
+                pass
+    java_content_geo = " ".join(java_deps_geo)
+
+    java_map_geo = {
+        "geotools": "GeoTools",
+        "jts-core": "JTS",
+        "spatial4j": "Spatial4j",
+        "h3-java": "H3",
+        "graphhopper": "GraphHopper",
+    }
+    for dep, name in java_map_geo.items():
+        if dep in java_content_geo:
+            _add(name)
+
+    return sorted(tools)

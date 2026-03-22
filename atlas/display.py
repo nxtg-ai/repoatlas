@@ -805,6 +805,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         dvl_parts = [f"{dv} ({count})" for dv, count in top_dvl]
         lines.append(f"  [bold]Data Viz:[/bold]   {has_dvl}/{n} projects · {', '.join(dvl_parts)}")
 
+    # Geo libs
+    has_geo = sum(1 for p in projects if p.tech_stack.geo_libs)
+    if has_geo:
+        geo_counter: Counter[str] = Counter()
+        for p in projects:
+            for gl in p.tech_stack.geo_libs:
+                geo_counter[gl] += 1
+        top_geo = geo_counter.most_common(6)
+        geo_parts = [f"{gl} ({count})" for gl, count in top_geo]
+        lines.append(f"  [bold]Geo/Maps:[/bold]   {has_geo}/{n} projects · {', '.join(geo_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1291,6 +1302,10 @@ def show_project_card(project: Project):
     if project.tech_stack.data_viz_libs:
         dv = ", ".join(project.tech_stack.data_viz_libs[:8])
         lines.append(f"  [bold]Data Viz:[/bold]   {dv}")
+
+    if project.tech_stack.geo_libs:
+        gl = ", ".join(project.tech_stack.geo_libs[:8])
+        lines.append(f"  [bold]Geo/Maps:[/bold]   {gl}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")
