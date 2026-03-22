@@ -182,8 +182,11 @@
 | N-169 | [Accessibility & A11y Tool Detection](#n-169-accessibility--a11y-tool-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-170 | [Email Intelligence](#n-170-email-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-171 | [Doctor Result Limit](#n-171-doctor-result-limit) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-172 | [Web Scraping & Crawling Detection](#n-172-web-scraping--crawling-detection) | DETECTION | SHIPPED | P1 | 2026-03-22 |
+| N-173 | [Compression Intelligence](#n-173-compression-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
+| N-174 | [Export Result Limit](#n-174-export-result-limit) | EXPERIENCE | SHIPPED | P1 | 2026-03-22 |
 
-**Summary**: 168/171 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 171/174 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -245,7 +248,8 @@
 - Compression & archive library detection: Zstandard, LZ4, Brotli, Snappy, Blosc, 7-Zip, RAR (Python), pako, fflate, JSZip, archiver (JS/TS), klauspost/compress, pgzip (Go), flate2, Zstandard, Brotli, Snappy (Rust), Commons Compress, Snappy, LZ4, Zip4j (Java)
 - Email & SMTP library detection: SendGrid, Mailgun, Postmark, Resend, django-anymail, Flask-Mail, yagmail, aiosmtplib, Mailchimp (Python), Nodemailer, SendGrid, Resend, MJML, React Email (JS/TS), Gomail, go-smtp (Go), Lettre, mail-send (Rust), JavaMail, Jakarta Mail, Spring Mail, Commons Email (Java)
 - Accessibility & a11y tool detection: axe-core, Playwright, Selenium, Pa11y (Python), axe-core, jsx-a11y, React Aria, Radix UI, Reach UI, Downshift, react-focus-lock, focus-trap-react, Pa11y, Lighthouse, Testing Library, jest-axe, vitest-axe, cypress-axe, ally.js, a11y-dialog, vue-a11y-utils (JS/TS), .accessibilityrc, .pa11yci config files
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157, N-160, N-163, N-167, N-169
+- Web scraping & crawling detection: Scrapy, BeautifulSoup, lxml, Parsel, MechanicalSoup, requests-html, selectolax, trafilatura, newspaper3k (Python), Puppeteer, Playwright, Cheerio, Crawlee, x-ray, jsdom, node-html-parser, linkedom, happy-dom (JS/TS), Colly, goquery, chromedp, rod (Go), scraper, select.rs, spider, headless_chrome (Rust), jsoup, HtmlUnit, WebMagic, crawler4j, Apache Nutch (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157, N-160, N-163, N-167, N-169, N-172
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -302,7 +306,8 @@
 - Cross-project cryptography intelligence (shared crypto libs, high-level/password hashing vs low-level/primitives paradigm divergence)
 - Cross-project PDF/document intelligence (shared PDF libs, generation/creation vs parsing/extraction paradigm divergence)
 - Cross-project email intelligence (shared email libs, SaaS/API-based vs SMTP/self-hosted paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170
+- Cross-project compression intelligence (shared compression libs, archival/format vs streaming/fast paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -361,7 +366,8 @@
 - Search result limit: `atlas search <term> --limit 5` limits the number of search results displayed. Works with all output formats and combines with --sort
 - Connections result limit: `atlas connections --limit 10` limits the number of connections displayed. Applied after filters and sorting. Works with all output formats (rich, json, csv), --summary, and all filters
 - Doctor result limit: `atlas doctor --limit 5` limits the number of recommendations displayed. Applied after filters and sorting. Works with all output formats (rich, json, csv) and combines with --category, --priority, --project, and --sort
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130, N-133, N-136, N-137, N-140, N-143, N-147, N-150, N-153, N-156, N-159, N-162, N-165, N-168, N-171
+- Export result limit: `atlas export --limit 5` limits the number of projects in export output. Applied after filters and sorting. Works with all output formats (markdown, json, csv) and combines with --grade, --lang, --has, --min-health, --max-health, and --sort
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130, N-133, N-136, N-137, N-140, N-143, N-147, N-150, N-153, N-156, N-159, N-162, N-165, N-168, N-171, N-174
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -763,6 +769,21 @@
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Cross-project email and SMTP intelligence. Detects shared email libs (shared_email_lib — info) and SaaS/API-based vs SMTP/self-hosted paradigm divergence (email_lib_divergence — warning). SaaS: SendGrid, Mailgun, Postmark, Resend, Mailchimp, Mailjet, AWS SES, MJML, React Email. SMTP: Nodemailer, Flask-Mail, django-anymail, yagmail, Gomail, Lettre, JavaMail, Spring Mail. Companion to N-167. Added to CONNECTION_CATEGORIES (email), display type_labels/icons (✉), export type_labels, recommendations type_to_category. Capped at 10 connections. 7 tests.
 **Shipped**: 2026-03-21. Total test count: 2427. 54th intelligence feature.
+
+### N-174: Export Result Limit
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--limit` / `-n` option to `atlas export` command. Limits the number of projects in export output. Applied after filters and sorting. Works with all output formats (markdown, json, csv) and combines with --grade, --lang, --has, --min-health, --max-health, and --sort. 3 tests.
+**Shipped**: 2026-03-22. Total test count: 2460. 55th experience feature.
+
+### N-173: Compression Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project compression and archive intelligence. Detects shared compression libs (shared_compression_lib — info) and archival vs streaming paradigm divergence (compression_lib_divergence — warning). Archival: JSZip, archiver, tar-stream, 7-Zip, RAR, Commons Compress. Streaming: LZ4, Snappy, Zstandard, Brotli, Blosc, pako, fflate, klauspost/compress. Companion to N-163. Added to CONNECTION_CATEGORIES (compression), display type_labels/icons (🗜), export type_labels, recommendations type_to_category. Capped at 10 connections. 7 tests.
+**Shipped**: 2026-03-22. Total test count: 2457. 55th intelligence feature.
+
+### N-172: Web Scraping & Crawling Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects web scraping and crawling libraries across Python (Scrapy, BeautifulSoup, lxml, Parsel, MechanicalSoup, requests-html, selectolax, gazpacho, newspaper3k, trafilatura, cssselect, pyquery, html5lib), JS/TS (Puppeteer, Playwright, Cheerio, Crawlee, x-ray, jsdom, node-html-parser, linkedom, happy-dom), Go (Colly, goquery, chromedp, rod), Rust (scraper, select.rs, spider, headless_chrome), Java (jsoup, HtmlUnit, WebMagic, crawler4j, Apache Nutch). TechStack field `scraping_libs`, portfolio summary, project card, CSV/MD/JSON export. 20 tests.
+**Shipped**: 2026-03-22. Total test count: 2450. 55th detection category.
 
 ### N-169: Accessibility & A11y Tool Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

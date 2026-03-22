@@ -62,6 +62,7 @@ class TechStack:
     compression_libs: list[str] = field(default_factory=list)
     email_libs: list[str] = field(default_factory=list)
     a11y_tools: list[str] = field(default_factory=list)
+    scraping_libs: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -205,6 +206,7 @@ class Project:
                 "compression_libs": self.tech_stack.compression_libs,
                 "email_libs": self.tech_stack.email_libs,
                 "a11y_tools": self.tech_stack.a11y_tools,
+                "scraping_libs": self.tech_stack.scraping_libs,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -293,6 +295,7 @@ class Project:
                 compression_libs=ts.get("compression_libs", []),
                 email_libs=ts.get("email_libs", []),
                 a11y_tools=ts.get("a11y_tools", []),
+                scraping_libs=ts.get("scraping_libs", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

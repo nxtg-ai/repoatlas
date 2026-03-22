@@ -44,7 +44,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
-          state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, email_libs=None, project_license="",
+          state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, email_libs=None, compression_libs=None, scraping_libs=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -103,6 +103,8 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             math_libs=math_libs or [],
             async_libs=async_libs or [],
             email_libs=email_libs or [],
+            compression_libs=compression_libs or [],
+            scraping_libs=scraping_libs or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -5767,3 +5769,71 @@ class TestFindEmailPatterns:
         conns = find_connections(projects)
         email_types = {c.type for c in conns if "email" in c.type}
         assert "shared_email_lib" in email_types
+
+
+# ---------------------------------------------------------------------------
+# _find_compression_patterns
+# ---------------------------------------------------------------------------
+class TestFindCompressionPatterns:
+    def test_empty(self):
+        from atlas.connections import _find_compression_patterns
+        projects = [_proj("a"), _proj("b")]
+        assert _find_compression_patterns(projects) == []
+
+    def test_shared_compression_lib(self):
+        from atlas.connections import _find_compression_patterns
+        projects = [
+            _proj("a", compression_libs=["LZ4", "Zstandard"]),
+            _proj("b", compression_libs=["LZ4", "Brotli"]),
+        ]
+        conns = _find_compression_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_compression_lib"]
+        assert len(shared) >= 1
+        assert any("LZ4" in c.detail for c in shared)
+
+    def test_no_shared_when_disjoint(self):
+        from atlas.connections import _find_compression_patterns
+        projects = [
+            _proj("a", compression_libs=["LZ4"]),
+            _proj("b", compression_libs=["Brotli"]),
+        ]
+        conns = _find_compression_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_compression_lib"]
+        assert len(shared) == 0
+
+    def test_archival_streaming_divergence(self):
+        from atlas.connections import _find_compression_patterns
+        projects = [
+            _proj("a", compression_libs=["JSZip", "archiver"]),
+            _proj("b", compression_libs=["LZ4", "Snappy"]),
+        ]
+        conns = _find_compression_patterns(projects)
+        div = [c for c in conns if c.type == "compression_lib_divergence"]
+        assert len(div) == 1
+        assert "archival" in div[0].detail.lower()
+        assert "streaming" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        from atlas.connections import _find_compression_patterns
+        projects = [
+            _proj("a", compression_libs=["LZ4"]),
+            _proj("b", compression_libs=["Snappy"]),
+        ]
+        conns = _find_compression_patterns(projects)
+        div = [c for c in conns if c.type == "compression_lib_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        from atlas.connections import _find_compression_patterns
+        projects = [_proj(f"p{i}", compression_libs=["LZ4", "JSZip", "Zstandard"]) for i in range(20)]
+        conns = _find_compression_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", compression_libs=["LZ4", "JSZip"]),
+            _proj("b", compression_libs=["LZ4", "archiver"]),
+        ]
+        conns = find_connections(projects)
+        comp_types = {c.type for c in conns if "compression" in c.type}
+        assert "shared_compression_lib" in comp_types

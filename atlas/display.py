@@ -179,6 +179,8 @@ CONNECTION_ICONS = {
     "pdf_lib_divergence": "[yellow]📄[/yellow]",
     "shared_email_lib": "[green]✉[/green]",
     "email_lib_divergence": "[yellow]✉[/yellow]",
+    "shared_compression_lib": "[green]🗜[/green]",
+    "compression_lib_divergence": "[yellow]🗜[/yellow]",
 }
 
 
@@ -896,6 +898,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         a11y_parts = [f"{at} ({count})" for at, count in top_a11y]
         lines.append(f"  [bold]A11y:[/bold]     {has_a11y}/{n} projects · {', '.join(a11y_parts)}")
 
+    # Scraping libs
+    has_scraping = sum(1 for p in projects if p.tech_stack.scraping_libs)
+    if has_scraping:
+        scraping_counter: Counter[str] = Counter()
+        for p in projects:
+            for sl in p.tech_stack.scraping_libs:
+                scraping_counter[sl] += 1
+        top_scraping = scraping_counter.most_common(6)
+        scraping_parts = [f"{sl} ({count})" for sl, count in top_scraping]
+        lines.append(f"  [bold]Scraping:[/bold]  {has_scraping}/{n} projects · {', '.join(scraping_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1078,6 +1091,8 @@ def show_connections(connections: list[Connection]):
         "pdf_lib_divergence": "PDF/Doc Approach Divergence",
         "shared_email_lib": "Shared Email Lib",
         "email_lib_divergence": "Email Approach Divergence",
+        "shared_compression_lib": "Shared Compression Lib",
+        "compression_lib_divergence": "Compression Approach Divergence",
     }
 
     lines = []
@@ -1169,6 +1184,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_crypto_lib": "crypto", "crypto_lib_divergence": "crypto",
         "shared_pdf_lib": "pdf", "pdf_lib_divergence": "pdf",
         "shared_email_lib": "email", "email_lib_divergence": "email",
+        "shared_compression_lib": "compression", "compression_lib_divergence": "compression",
     }
 
     for conn in connections:
@@ -1431,6 +1447,10 @@ def show_project_card(project: Project):
     if project.tech_stack.a11y_tools:
         at = ", ".join(project.tech_stack.a11y_tools[:8])
         lines.append(f"  [bold]A11y:[/bold]     {at}")
+
+    if project.tech_stack.scraping_libs:
+        scr = ", ".join(project.tech_stack.scraping_libs[:8])
+        lines.append(f"  [bold]Scraping:[/bold]  {scr}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

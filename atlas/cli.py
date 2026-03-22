@@ -441,6 +441,7 @@ CONNECTION_CATEGORIES = {
     "crypto": {"shared_crypto_lib", "crypto_lib_divergence"},
     "pdf": {"shared_pdf_lib", "pdf_lib_divergence"},
     "email": {"shared_email_lib", "email_lib_divergence"},
+    "compression": {"shared_compression_lib", "compression_lib_divergence"},
 }
 
 
@@ -1226,6 +1227,7 @@ def export(
     min_health: Optional[int] = typer.Option(None, help="Filter projects with health >= N%"),
     max_health: Optional[int] = typer.Option(None, help="Filter projects with health <= N%"),
     sort: Optional[str] = typer.Option(None, "--sort", help="Sort by: name, health, loc"),
+    limit: Optional[int] = typer.Option(None, "--limit", "-n", help="Limit number of projects in output"),
 ):
     """Export portfolio report."""
     portfolio = _load_portfolio()
@@ -1256,7 +1258,10 @@ def export(
         elif sort_lower == "loc":
             filtered.sort(key=lambda p: p.loc, reverse=True)
 
-    if len(filtered) != len(portfolio.projects) or sort:
+    if limit is not None and limit > 0:
+        filtered = filtered[:limit]
+
+    if len(filtered) != len(portfolio.projects) or sort or limit:
         portfolio = Portfolio(
             name=portfolio.name,
             projects=filtered,

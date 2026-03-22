@@ -60,6 +60,7 @@ from atlas.detector import (
     detect_compression_libs,
     detect_email_libs,
     detect_a11y_tools,
+    detect_scraping_libs,
     walk_files,
 )
 
@@ -6641,4 +6642,107 @@ class TestDetectA11yTools:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "package.json").write_text('{"dependencies":{"focus-trap-react":"^10","axe-core":"^4","downshift":"^8"}}')
         result = detect_a11y_tools(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_scraping_libs
+class TestDetectScrapingLibs:
+    def test_empty_project(self, tmp_path):
+        assert detect_scraping_libs(tmp_path) == []
+
+    def test_python_scrapy(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("scrapy>=2.11\n")
+        result = detect_scraping_libs(tmp_path)
+        assert "Scrapy" in result
+
+    def test_python_beautifulsoup(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("beautifulsoup4>=4.12\n")
+        result = detect_scraping_libs(tmp_path)
+        assert "BeautifulSoup" in result
+
+    def test_python_lxml(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("lxml>=5.0\n")
+        result = detect_scraping_libs(tmp_path)
+        assert "lxml" in result
+
+    def test_python_parsel(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("parsel>=1.8\n")
+        result = detect_scraping_libs(tmp_path)
+        assert "Parsel" in result
+
+    def test_python_mechanicalsoup(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("mechanicalsoup>=0.12\n")
+        result = detect_scraping_libs(tmp_path)
+        assert "MechanicalSoup" in result
+
+    def test_python_trafilatura(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("trafilatura>=1.6\n")
+        result = detect_scraping_libs(tmp_path)
+        assert "trafilatura" in result
+
+    def test_python_newspaper3k(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("newspaper3k>=0.2\n")
+        result = detect_scraping_libs(tmp_path)
+        assert "newspaper3k" in result
+
+    def test_js_puppeteer(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"puppeteer":"^22.0"}}')
+        result = detect_scraping_libs(tmp_path)
+        assert "Puppeteer" in result
+
+    def test_js_cheerio(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"cheerio":"^1.0"}}')
+        result = detect_scraping_libs(tmp_path)
+        assert "Cheerio" in result
+
+    def test_js_crawlee(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"crawlee":"^3.7"}}')
+        result = detect_scraping_libs(tmp_path)
+        assert "Crawlee" in result
+
+    def test_js_jsdom(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"jsdom":"^24.0"}}')
+        result = detect_scraping_libs(tmp_path)
+        assert "jsdom" in result
+
+    def test_js_playwright(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"playwright":"^1.40"}}')
+        result = detect_scraping_libs(tmp_path)
+        assert "Playwright" in result
+
+    def test_go_colly(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/gocolly/colly v2.1.0 h1:abc\n")
+        result = detect_scraping_libs(tmp_path)
+        assert "Colly" in result
+
+    def test_go_goquery(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/PuerkitoBio/goquery v1.8.0 h1:abc\n")
+        result = detect_scraping_libs(tmp_path)
+        assert "goquery" in result
+
+    def test_rust_scraper(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nscraper = "0.18"\n')
+        result = detect_scraping_libs(tmp_path)
+        assert "scraper" in result
+
+    def test_java_jsoup(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.jsoup:jsoup:1.17'\n")
+        result = detect_scraping_libs(tmp_path)
+        assert "jsoup" in result
+
+    def test_java_htmlunit(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency>htmlunit</dependency>")
+        result = detect_scraping_libs(tmp_path)
+        assert "HtmlUnit" in result
+
+    def test_multiple_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("scrapy>=2.11\nbeautifulsoup4>=4.12\nlxml>=5.0\n")
+        result = detect_scraping_libs(tmp_path)
+        assert "Scrapy" in result
+        assert "BeautifulSoup" in result
+        assert "lxml" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("scrapy>=2.11\nbeautifulsoup4>=4.12\nlxml>=5.0\n")
+        result = detect_scraping_libs(tmp_path)
         assert result == sorted(result)

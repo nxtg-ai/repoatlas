@@ -6114,3 +6114,117 @@ def detect_a11y_tools(project_path: Path) -> list[str]:
         _add("Pa11y CI")
 
     return sorted(tools)
+
+
+def detect_scraping_libs(project_path: Path) -> list[str]:
+    """Detect web scraping and crawling libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map = {
+        "scrapy": "Scrapy",
+        "beautifulsoup4": "BeautifulSoup",
+        "bs4": "BeautifulSoup",
+        "lxml": "lxml",
+        "parsel": "Parsel",
+        "mechanicalsoup": "MechanicalSoup",
+        "requests-html": "requests-html",
+        "selectolax": "selectolax",
+        "gazpacho": "gazpacho",
+        "newspaper3k": "newspaper3k",
+        "trafilatura": "trafilatura",
+        "cssselect": "cssselect",
+        "pyquery": "pyquery",
+        "html5lib": "html5lib",
+    }
+    for dep, name in py_map.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content = pkg_json.read_text().lower()
+        except OSError:
+            js_content = ""
+
+        js_map = {
+            "puppeteer": "Puppeteer",
+            "playwright": "Playwright",
+            "cheerio": "Cheerio",
+            "crawlee": "Crawlee",
+            "x-ray": "x-ray",
+            "jsdom": "jsdom",
+            "node-html-parser": "node-html-parser",
+            "linkedom": "linkedom",
+            "happy-dom": "happy-dom",
+        }
+        for dep, name in js_map.items():
+            if dep in js_content:
+                _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    if go_sum.exists():
+        try:
+            go_content = go_sum.read_text()
+        except OSError:
+            go_content = ""
+
+        scraping_go_map = {
+            "github.com/gocolly/colly": "Colly",
+            "github.com/PuerkitoBio/goquery": "goquery",
+            "github.com/chromedp/chromedp": "chromedp",
+            "github.com/go-rod/rod": "rod",
+        }
+        for dep, name in scraping_go_map.items():
+            if dep in go_content:
+                _add(name)
+
+    # Rust
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            rust_content = cargo.read_text()
+        except OSError:
+            rust_content = ""
+
+        scraping_rust_map = {
+            "scraper": "scraper",
+            "select": "select.rs",
+            "spider": "spider",
+            "headless_chrome": "headless_chrome",
+        }
+        for dep, name in scraping_rust_map.items():
+            if dep in rust_content:
+                _add(name)
+
+    # Java
+    for java_file in ("pom.xml", "build.gradle", "build.gradle.kts"):
+        jf = project_path / java_file
+        if jf.exists():
+            try:
+                java_content_scraping = jf.read_text()
+            except OSError:
+                java_content_scraping = ""
+
+            java_map_scraping = {
+                "jsoup": "jsoup",
+                "htmlunit": "HtmlUnit",
+                "webmagic": "WebMagic",
+                "crawler4j": "crawler4j",
+                "apache.nutch": "Apache Nutch",
+            }
+            for dep, name in java_map_scraping.items():
+                if dep in java_content_scraping.lower():
+                    _add(name)
+
+    return sorted(tools)

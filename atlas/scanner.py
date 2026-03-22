@@ -64,6 +64,7 @@ from atlas.detector import (
     detect_compression_libs,
     detect_email_libs,
     detect_a11y_tools,
+    detect_scraping_libs,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -130,6 +131,7 @@ def scan_project(project_path: Path) -> Project:
     compression_libs = detect_compression_libs(path)
     email_libs = detect_email_libs(path)
     a11y_tools = detect_a11y_tools(path)
+    scraping_libs = detect_scraping_libs(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -191,6 +193,7 @@ def scan_project(project_path: Path) -> Project:
         compression_libs=compression_libs,
         email_libs=email_libs,
         a11y_tools=a11y_tools,
+        scraping_libs=scraping_libs,
     )
 
     project = Project(
