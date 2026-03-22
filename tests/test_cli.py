@@ -438,7 +438,7 @@ class TestConnections:
             runner.invoke(app, ["add", str(d)])
         result = runner.invoke(app, ["connections", "--type", "list"])
         assert result.exit_code == 0
-        assert "50 categories" in result.output
+        assert "51 categories" in result.output
 
     def test_connections_type_list_shows_types(self, portfolio_dir, tmp_path):
         runner.invoke(app, ["init"])
@@ -816,6 +816,64 @@ class TestSearch:
         data = json.loads(result.output)
         locs = [p["loc"] for p in data["projects"]]
         assert locs == sorted(locs, reverse=True)
+
+    def test_search_limit_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for i in range(5):
+            d = tmp_path / f"proj{i}"
+            d.mkdir()
+            proj = Project(
+                name=f"proj{i}", path=str(d),
+                tech_stack=TechStack(languages={"Python": 10}),
+                git_info=GitInfo(branch="main", total_commits=10, has_remote=True),
+                health=HealthScore(tests=0.8, git_hygiene=0.9, documentation=0.7, structure=0.8, overall=0.8, grade="B"),
+                test_file_count=5, source_file_count=20, loc=1000,
+            )
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["search", "python", "--format", "json", "--limit", "2"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert len(data["projects"]) == 2
+
+    def test_search_limit_rich(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for i in range(5):
+            d = tmp_path / f"proj{i}"
+            d.mkdir()
+            proj = Project(
+                name=f"proj{i}", path=str(d),
+                tech_stack=TechStack(languages={"Python": 10}),
+                git_info=GitInfo(branch="main", total_commits=10, has_remote=True),
+                health=HealthScore(tests=0.8, git_hygiene=0.9, documentation=0.7, structure=0.8, overall=0.8, grade="B"),
+                test_file_count=5, source_file_count=20, loc=1000,
+            )
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["search", "python", "--limit", "2"])
+        assert result.exit_code == 0
+        assert "2 project" in result.output
+
+    def test_search_limit_with_sort(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name, loc in [("a", 100), ("b", 5000), ("c", 1000), ("d", 3000)]:
+            d = tmp_path / name
+            d.mkdir()
+            proj = Project(
+                name=name, path=str(d),
+                tech_stack=TechStack(languages={"Python": 10}),
+                git_info=GitInfo(branch="main", total_commits=10, has_remote=True),
+                health=HealthScore(tests=0.8, git_hygiene=0.9, documentation=0.7, structure=0.8, overall=0.8, grade="B"),
+                test_file_count=5, source_file_count=20, loc=loc,
+            )
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["search", "python", "--format", "json", "--sort", "loc", "--limit", "2"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert len(data["projects"]) == 2
+        assert data["projects"][0]["loc"] == 5000
+        assert data["projects"][1]["loc"] == 3000
 
 
 # ===========================================================================

@@ -438,6 +438,7 @@ CONNECTION_CATEGORIES = {
     "media": {"shared_media_lib", "media_lib_divergence"},
     "math": {"shared_math_lib", "math_lib_divergence"},
     "async": {"shared_async_lib", "async_lib_divergence"},
+    "crypto": {"shared_crypto_lib", "crypto_lib_divergence"},
 }
 
 
@@ -711,6 +712,7 @@ def search(
     query: str = typer.Argument(help="Search term (matches name, language, framework, or tech)"),
     format: Optional[str] = typer.Option(None, "--format", "-f", help="Output format: json"),
     sort: Optional[str] = typer.Option(None, "--sort", help="Sort by: name, health, loc"),
+    limit: Optional[int] = typer.Option(None, "--limit", "-n", help="Max results to show"),
 ):
     """Search portfolio projects by name, language, framework, or technology."""
     portfolio = _load_portfolio()
@@ -743,6 +745,9 @@ def search(
             matches.sort(key=lambda p: p.health.overall, reverse=True)
         elif sort_lower == "loc":
             matches.sort(key=lambda p: p.loc, reverse=True)
+
+    if limit is not None and limit > 0:
+        matches = matches[:limit]
 
     if format == "json":
         import json as json_mod

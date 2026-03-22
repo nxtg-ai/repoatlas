@@ -61,6 +61,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_media_patterns(projects))
     connections.extend(_find_math_patterns(projects))
     connections.extend(_find_async_patterns(projects))
+    connections.extend(_find_crypto_patterns(projects))
     return connections
 
 
@@ -3549,6 +3550,67 @@ def _find_async_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="async_lib_divergence",
             detail=f"Mixed async approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_crypto_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project cryptography library patterns."""
+    connections: list[Connection] = []
+
+    # Shared crypto libs — same lib used by 2+ projects
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.crypto_libs:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_crypto_lib",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Crypto lib divergence — high-level/password hashing vs low-level/primitives
+    high_level = {"bcrypt", "Passlib", "Argon2", "bcrypt.js", "argon2",
+                  "Bouncy Castle", "Jasypt", "Tink", "Conscrypt",
+                  "Spring Security Crypto", "jose", "jsonwebtoken",
+                  "PyNaCl", "libsodium", "TweetNaCl", "OpenPGP.js",
+                  "noble-curves", "noble-hashes", "age", "CIRCL"}
+    low_level = {"cryptography", "PyCryptodome", "pyOpenSSL",
+                 "CryptoJS", "node-forge", "WebCrypto", "scrypt-js",
+                 "x/crypto", "ring", "rustls", "Orion", "sodiumoxide",
+                 "sha2", "aes-gcm", "rust-crypto", "rcgen",
+                 "x/oauth2", "Paramiko", "certifi", "truststore",
+                 "hmac", "hashlib", "jwcrypto"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "high-level": {}, "low-level": {},
+    }
+    cat_sets = [("high-level", high_level), ("low-level", low_level)]
+    for p in projects:
+        for lib in p.tech_stack.crypto_libs:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="crypto_lib_divergence",
+            detail=f"Mixed crypto approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

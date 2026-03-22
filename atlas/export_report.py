@@ -574,6 +574,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         async_names = ", ".join(f"{t} ({c})" for t, c in async_counter_md.most_common(8))
         lines.append(f"**Async Libs**: {has_async_md}/{n} projects · {async_names}")
 
+    # Compression libs
+    has_compress_md = sum(1 for p in projects if p.tech_stack.compression_libs)
+    if has_compress_md:
+        compress_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for cl in p.tech_stack.compression_libs:
+                compress_counter_md[cl] += 1
+        compress_names = ", ".join(f"{t} ({c})" for t, c in compress_counter_md.most_common(8))
+        lines.append(f"**Compression Libs**: {has_compress_md}/{n} projects · {compress_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -740,6 +750,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.async_libs:
             lines.append(f"- **Async**: {', '.join(p.tech_stack.async_libs[:8])}")
+
+        if p.tech_stack.compression_libs:
+            lines.append(f"- **Compression**: {', '.join(p.tech_stack.compression_libs[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -910,6 +923,8 @@ def _connections_section(conns: list) -> list[str]:
         "math_lib_divergence": "Math/Sci Approach Divergence",
         "shared_async_lib": "Shared Async Lib",
         "async_lib_divergence": "Async Approach Divergence",
+        "shared_crypto_lib": "Shared Crypto Lib",
+        "crypto_lib_divergence": "Crypto Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
@@ -1336,6 +1351,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             async_counter_j[al] += 1
     has_async_j = sum(1 for p in projects if p.tech_stack.async_libs)
 
+    # Compression libs
+    compress_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for cl in p.tech_stack.compression_libs:
+            compress_counter_j[cl] += 1
+    has_compress_j = sum(1 for p in projects if p.tech_stack.compression_libs)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1399,6 +1421,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "media_libs": {"coverage": f"{has_media_j}/{n}", "libs": dict(media_counter_j.most_common(10))},
         "math_libs": {"coverage": f"{has_math_j}/{n}", "libs": dict(math_counter_j.most_common(10))},
         "async_libs": {"coverage": f"{has_async_j}/{n}", "libs": dict(async_counter_j.most_common(10))},
+        "compression_libs": {"coverage": f"{has_compress_j}/{n}", "libs": dict(compress_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1419,7 +1442,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1491,6 +1514,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.media_libs),
             "; ".join(ts.math_libs),
             "; ".join(ts.async_libs),
+            "; ".join(ts.compression_libs),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

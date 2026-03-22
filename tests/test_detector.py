@@ -57,6 +57,7 @@ from atlas.detector import (
     detect_media_libs,
     detect_math_libs,
     detect_async_libs,
+    detect_compression_libs,
     walk_files,
 )
 
@@ -6353,4 +6354,100 @@ class TestDetectAsyncLibs:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("uvloop>=0.19\nanyio>=4.0\ntrio>=0.22\n")
         result = detect_async_libs(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_compression_libs
+class TestDetectCompressionLibs:
+    def test_empty_project(self, tmp_path):
+        assert detect_compression_libs(tmp_path) == []
+
+    def test_python_zstandard(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("zstandard>=0.22\n")
+        result = detect_compression_libs(tmp_path)
+        assert "Zstandard" in result
+
+    def test_python_lz4(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("lz4>=4.3\n")
+        result = detect_compression_libs(tmp_path)
+        assert "LZ4" in result
+
+    def test_python_brotli(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("brotli>=1.1\n")
+        result = detect_compression_libs(tmp_path)
+        assert "Brotli" in result
+
+    def test_python_snappy(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("python-snappy>=0.6\n")
+        result = detect_compression_libs(tmp_path)
+        assert "Snappy" in result
+
+    def test_python_blosc(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("blosc>=1.11\n")
+        result = detect_compression_libs(tmp_path)
+        assert "Blosc" in result
+
+    def test_python_7zip(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("py7zr>=0.20\n")
+        result = detect_compression_libs(tmp_path)
+        assert "7-Zip" in result
+
+    def test_python_rarfile(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("rarfile>=4.1\n")
+        result = detect_compression_libs(tmp_path)
+        assert "RAR" in result
+
+    def test_js_pako(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"pako":"^2.1"}}')
+        result = detect_compression_libs(tmp_path)
+        assert "pako" in result
+
+    def test_js_jszip(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"jszip":"^3.10"}}')
+        result = detect_compression_libs(tmp_path)
+        assert "JSZip" in result
+
+    def test_js_archiver(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"archiver":"^6.0"}}')
+        result = detect_compression_libs(tmp_path)
+        assert "archiver" in result
+
+    def test_js_fflate(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"fflate":"^0.8"}}')
+        result = detect_compression_libs(tmp_path)
+        assert "fflate" in result
+
+    def test_go_klauspost(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/klauspost/compress v1.17.0 h1:abc\n")
+        result = detect_compression_libs(tmp_path)
+        assert "klauspost/compress" in result
+
+    def test_go_lz4(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/pierrec/lz4/v4 v4.1.0 h1:abc\n")
+        result = detect_compression_libs(tmp_path)
+        assert "LZ4" in result
+
+    def test_rust_flate2(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nflate2 = "1.0"\n')
+        result = detect_compression_libs(tmp_path)
+        assert "flate2" in result
+
+    def test_rust_zstd(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nzstd = "0.13"\n')
+        result = detect_compression_libs(tmp_path)
+        assert "Zstandard" in result
+
+    def test_java_commons_compress(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.apache.commons:commons-compress:1.26'\n")
+        result = detect_compression_libs(tmp_path)
+        assert "Commons Compress" in result
+
+    def test_java_snappy(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency>snappy-java</dependency>")
+        result = detect_compression_libs(tmp_path)
+        assert "Snappy" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("zstandard>=0.22\nlz4>=4.3\nbrotli>=1.1\n")
+        result = detect_compression_libs(tmp_path)
         assert result == sorted(result)

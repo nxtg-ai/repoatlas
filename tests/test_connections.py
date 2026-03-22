@@ -5568,3 +5568,68 @@ class TestFindAsyncPatterns:
         conns = find_connections(projects)
         async_types = {c.type for c in conns if "async" in c.type}
         assert "shared_async_lib" in async_types
+
+
+class TestFindCryptoPatterns:
+    def test_empty(self):
+        from atlas.connections import _find_crypto_patterns
+        projects = [_proj("a"), _proj("b")]
+        assert _find_crypto_patterns(projects) == []
+
+    def test_shared_crypto_lib(self):
+        from atlas.connections import _find_crypto_patterns
+        projects = [
+            _proj("a", crypto_libs=["bcrypt", "Argon2"]),
+            _proj("b", crypto_libs=["bcrypt", "ring"]),
+        ]
+        conns = _find_crypto_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_crypto_lib"]
+        assert len(shared) >= 1
+        assert any("bcrypt" in c.detail for c in shared)
+
+    def test_no_shared_when_disjoint(self):
+        from atlas.connections import _find_crypto_patterns
+        projects = [
+            _proj("a", crypto_libs=["bcrypt"]),
+            _proj("b", crypto_libs=["ring"]),
+        ]
+        conns = _find_crypto_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_crypto_lib"]
+        assert len(shared) == 0
+
+    def test_high_low_level_divergence(self):
+        from atlas.connections import _find_crypto_patterns
+        projects = [
+            _proj("a", crypto_libs=["bcrypt", "Argon2"]),
+            _proj("b", crypto_libs=["cryptography", "PyCryptodome"]),
+        ]
+        conns = _find_crypto_patterns(projects)
+        div = [c for c in conns if c.type == "crypto_lib_divergence"]
+        assert len(div) == 1
+        assert "high-level" in div[0].detail.lower()
+        assert "low-level" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        from atlas.connections import _find_crypto_patterns
+        projects = [
+            _proj("a", crypto_libs=["bcrypt"]),
+            _proj("b", crypto_libs=["Argon2"]),
+        ]
+        conns = _find_crypto_patterns(projects)
+        div = [c for c in conns if c.type == "crypto_lib_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        from atlas.connections import _find_crypto_patterns
+        projects = [_proj(f"p{i}", crypto_libs=["bcrypt", "ring", "CryptoJS"]) for i in range(20)]
+        conns = _find_crypto_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", crypto_libs=["bcrypt", "Argon2"]),
+            _proj("b", crypto_libs=["bcrypt", "ring"]),
+        ]
+        conns = find_connections(projects)
+        crypto_types = {c.type for c in conns if "crypto" in c.type}
+        assert "shared_crypto_lib" in crypto_types

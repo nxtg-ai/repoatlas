@@ -173,6 +173,8 @@ CONNECTION_ICONS = {
     "math_lib_divergence": "[yellow]∑[/yellow]",
     "shared_async_lib": "[green]⟳[/green]",
     "async_lib_divergence": "[yellow]⟳[/yellow]",
+    "shared_crypto_lib": "[green]🔐[/green]",
+    "crypto_lib_divergence": "[yellow]🔐[/yellow]",
 }
 
 
@@ -857,6 +859,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         async_parts = [f"{al} ({count})" for al, count in top_async]
         lines.append(f"  [bold]Async:[/bold]    {has_async}/{n} projects · {', '.join(async_parts)}")
 
+    # Compression libs
+    has_compress = sum(1 for p in projects if p.tech_stack.compression_libs)
+    if has_compress:
+        compress_counter: Counter[str] = Counter()
+        for p in projects:
+            for cl in p.tech_stack.compression_libs:
+                compress_counter[cl] += 1
+        top_compress = compress_counter.most_common(6)
+        compress_parts = [f"{cl} ({count})" for cl, count in top_compress]
+        lines.append(f"  [bold]Compress:[/bold] {has_compress}/{n} projects · {', '.join(compress_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1033,6 +1046,8 @@ def show_connections(connections: list[Connection]):
         "math_lib_divergence": "Math/Sci Approach Divergence",
         "shared_async_lib": "Shared Async Lib",
         "async_lib_divergence": "Async Approach Divergence",
+        "shared_crypto_lib": "Shared Crypto Lib",
+        "crypto_lib_divergence": "Crypto Approach Divergence",
     }
 
     lines = []
@@ -1121,6 +1136,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_media_lib": "media", "media_lib_divergence": "media",
         "shared_math_lib": "math", "math_lib_divergence": "math",
         "shared_async_lib": "async", "async_lib_divergence": "async",
+        "shared_crypto_lib": "crypto", "crypto_lib_divergence": "crypto",
     }
 
     for conn in connections:
@@ -1371,6 +1387,10 @@ def show_project_card(project: Project):
     if project.tech_stack.async_libs:
         al = ", ".join(project.tech_stack.async_libs[:8])
         lines.append(f"  [bold]Async:[/bold]    {al}")
+
+    if project.tech_stack.compression_libs:
+        cl = ", ".join(project.tech_stack.compression_libs[:8])
+        lines.append(f"  [bold]Compress:[/bold] {cl}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")
