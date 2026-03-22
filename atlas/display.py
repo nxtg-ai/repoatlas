@@ -169,6 +169,8 @@ CONNECTION_ICONS = {
     "geo_lib_divergence": "[yellow]◎[/yellow]",
     "shared_media_lib": "[green]♪[/green]",
     "media_lib_divergence": "[yellow]♪[/yellow]",
+    "shared_math_lib": "[green]∑[/green]",
+    "math_lib_divergence": "[yellow]∑[/yellow]",
 }
 
 
@@ -831,6 +833,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         media_parts = [f"{ml} ({count})" for ml, count in top_media]
         lines.append(f"  [bold]Media:[/bold]     {has_media}/{n} projects · {', '.join(media_parts)}")
 
+    # Math libs
+    has_math = sum(1 for p in projects if p.tech_stack.math_libs)
+    if has_math:
+        math_counter: Counter[str] = Counter()
+        for p in projects:
+            for ml in p.tech_stack.math_libs:
+                math_counter[ml] += 1
+        top_math = math_counter.most_common(6)
+        math_parts = [f"{ml} ({count})" for ml, count in top_math]
+        lines.append(f"  [bold]Math/Sci:[/bold]  {has_math}/{n} projects · {', '.join(math_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1003,6 +1016,8 @@ def show_connections(connections: list[Connection]):
         "geo_lib_divergence": "Geo Approach Divergence",
         "shared_media_lib": "Shared Media Lib",
         "media_lib_divergence": "Media Approach Divergence",
+        "shared_math_lib": "Shared Math/Sci Lib",
+        "math_lib_divergence": "Math/Sci Approach Divergence",
     }
 
     lines = []
@@ -1089,6 +1104,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_data_viz": "dataviz", "data_viz_divergence": "dataviz",
         "shared_geo_lib": "geo", "geo_lib_divergence": "geo",
         "shared_media_lib": "media", "media_lib_divergence": "media",
+        "shared_math_lib": "math", "math_lib_divergence": "math",
     }
 
     for conn in connections:
@@ -1331,6 +1347,10 @@ def show_project_card(project: Project):
     if project.tech_stack.media_libs:
         ml = ", ".join(project.tech_stack.media_libs[:8])
         lines.append(f"  [bold]Media:[/bold]     {ml}")
+
+    if project.tech_stack.math_libs:
+        mthl = ", ".join(project.tech_stack.math_libs[:8])
+        lines.append(f"  [bold]Math/Sci:[/bold]  {mthl}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

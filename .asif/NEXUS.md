@@ -167,8 +167,11 @@
 | N-154 | [Audio/Video & Media Library Detection](#n-154-audiovideo--media-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-155 | [Media Intelligence](#n-155-media-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-156 | [Export Sort Command](#n-156-export-sort-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-157 | [Math & Scientific Computing Detection](#n-157-math--scientific-computing-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-158 | [Math Intelligence](#n-158-math-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-159 | [Top Projects Filter](#n-159-top-projects-filter) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 153/156 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 156/159 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -225,7 +228,8 @@
 - Data visualization library detection: Matplotlib, Plotly, Seaborn, Bokeh, Altair, Dash, Streamlit, Gradio, pyecharts, Plotext (Python), D3.js, Chart.js, Recharts, Nivo, Victory, Visx, ECharts, Highcharts, ApexCharts, Three.js, Deck.gl, Tremor, Vega/Vega-Lite (JS/TS), go-echarts, Gonum Plot, go-chart, termui (Go), Plotters, plotlib, charming (Rust), JFreeChart, XChart, JavaFX Charts (Java)
 - Geospatial & mapping library detection: GeoPandas, Shapely, Fiona, rasterio, pyproj, GDAL, geopy, GeoAlchemy2, H3, Cartopy, OSMnx, xarray (Python), Leaflet, Mapbox GL, MapLibre GL, OpenLayers, Cesium, Turf.js, Google Maps, react-map-gl, H3-js (JS/TS), orb, S2 Geometry, go-geom, Tile38, H3 (Go), geo, geozero, proj, H3, S2 (Rust), GeoTools, JTS, Spatial4j, H3, GraphHopper (Java)
 - Audio/video & media library detection: FFmpeg, MoviePy, Pydub, Librosa, SoundFile, PyAudio, PyAV, torchaudio, Essentia, music21 (Python), fluent-ffmpeg, Tone.js, Howler.js, Video.js, HLS.js, Shaka Player, Mediasoup, PeerJS (JS/TS), Beep, Oto, Ebiten, GoAV (Go), Rodio, CPAL, Symphonia, GStreamer (Rust), JavaCV, JCodec, TarsosDSP (Java)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154
+- Math & scientific computing library detection: NumPy, SciPy, SymPy, Pandas, Polars, scikit-learn, Numba, Dask, JAX, PyMC, CVXPY (Python), math.js, Danfo.js, Arquero, TensorFlow.js (JS/TS), Gonum, stats (Go), nalgebra, ndarray, statrs, Linfa (Rust), Commons Math, EJML, ND4J, Smile, Tablesaw (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -277,7 +281,8 @@
 - Cross-project data visualization intelligence (shared viz libs, interactive/dashboard vs static/notebook paradigm divergence)
 - Cross-project geospatial intelligence (shared geo libs, mapping/visualization vs analysis/computation paradigm divergence)
 - Cross-project media intelligence (shared media libs, audio processing vs video/streaming paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155
+- Cross-project math/scientific computing intelligence (shared math libs, numerical/array vs statistical/ML paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -331,7 +336,8 @@
 - Doctor sort: `atlas doctor --sort priority|category` sorts recommendations. Works with all filters and output formats (rich, json, csv)
 - Search sort: `atlas search <term> --sort name|health|loc` sorts search results. By name (alphabetical), health (descending), or LOC (descending). Works with JSON output format
 - Export sort: `atlas export --sort name|health|loc` sorts projects in export output. Works with all formats (markdown, json, csv) and all filters
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130, N-133, N-136, N-137, N-140, N-143, N-147, N-150, N-153, N-156
+- Top projects filter: `atlas top --lang Python --has Docker` filters which projects are eligible for ranking. Works with all metrics, formats, and --limit
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130, N-133, N-136, N-137, N-140, N-143, N-147, N-150, N-153, N-156, N-159
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -723,6 +729,21 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-159: Top Projects Filter
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--lang` and `--has` filter options to `atlas top` command. Filters projects before ranking by metric. `--lang Python` shows only Python projects. `--has Docker` shows only projects with Docker. Works with all metrics (health, loc, tests, commits), output formats (rich, json, csv), and --limit. Shows "No projects match" when filters exclude everything. 3 tests.
+**Shipped**: 2026-03-21. Total test count: 2315. 50th experience feature.
+
+### N-158: Math Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project math/scientific computing intelligence. Detects shared math libs (shared_math_lib — info) and numerical vs statistical paradigm divergence (math_lib_divergence — warning). Numerical: NumPy, SciPy, Numba, CuPy, JAX, Dask, Gonum, nalgebra, etc. Statistical: scikit-learn, statsmodels, PyMC, Linfa, Smile, etc. Added to CONNECTION_CATEGORIES (math), display type_labels/icons, export type_labels, recommendations type_to_category. Capped at 10 connections. 7 tests.
+**Shipped**: 2026-03-21. Total test count: 2305 → 2312. 50th intelligence feature.
+
+### N-157: Math & Scientific Computing Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects math and scientific computing libraries across Python (NumPy, SciPy, SymPy, Pandas, Polars, scikit-learn, Numba, Dask, Modin, Vaex, CuPy, JAX, PyMC, ArviZ, CVXPY, statsmodels, NetworkX), JS/TS (math.js, Numeric.js, ML-Matrix, simple-statistics, jStat, stdlib, ndarray, TensorFlow.js, Danfo.js, Arquero), Go (Gonum, stats, sparse), Rust (nalgebra, ndarray, statrs, peroxide, Linfa), Java (Commons Math, EJML, ND4J, Tablesaw, Smile). TechStack field, portfolio summary, project card, CSV/MD/JSON export, CLI search. 18 tests.
+**Shipped**: 2026-03-21. Total test count: 2287 → 2305. 50th detection category.
 
 ### N-156: Export Sort Command
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1

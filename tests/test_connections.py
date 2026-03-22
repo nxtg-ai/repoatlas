@@ -44,7 +44,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
-          state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, project_license="",
+          state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -100,6 +100,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             data_viz_libs=data_viz_libs or [],
             geo_libs=geo_libs or [],
             media_libs=media_libs or [],
+            math_libs=math_libs or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -5436,3 +5437,68 @@ class TestFindMediaPatterns:
         conns = find_connections(projects)
         media_types = {c.type for c in conns if "media" in c.type}
         assert "shared_media_lib" in media_types
+
+
+class TestFindMathPatterns:
+    def test_empty(self):
+        from atlas.connections import _find_math_patterns
+        projects = [_proj("a"), _proj("b")]
+        assert _find_math_patterns(projects) == []
+
+    def test_shared_math_lib(self):
+        from atlas.connections import _find_math_patterns
+        projects = [
+            _proj("a", math_libs=["NumPy", "SciPy"]),
+            _proj("b", math_libs=["NumPy", "Pandas"]),
+        ]
+        conns = _find_math_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_math_lib"]
+        assert len(shared) >= 1
+        assert any("NumPy" in c.detail for c in shared)
+
+    def test_no_shared_when_disjoint(self):
+        from atlas.connections import _find_math_patterns
+        projects = [
+            _proj("a", math_libs=["NumPy"]),
+            _proj("b", math_libs=["Pandas"]),
+        ]
+        conns = _find_math_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_math_lib"]
+        assert len(shared) == 0
+
+    def test_numerical_statistical_divergence(self):
+        from atlas.connections import _find_math_patterns
+        projects = [
+            _proj("a", math_libs=["NumPy", "SciPy"]),
+            _proj("b", math_libs=["scikit-learn", "statsmodels"]),
+        ]
+        conns = _find_math_patterns(projects)
+        div = [c for c in conns if c.type == "math_lib_divergence"]
+        assert len(div) == 1
+        assert "numerical" in div[0].detail.lower()
+        assert "statistical" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        from atlas.connections import _find_math_patterns
+        projects = [
+            _proj("a", math_libs=["NumPy"]),
+            _proj("b", math_libs=["SciPy"]),
+        ]
+        conns = _find_math_patterns(projects)
+        div = [c for c in conns if c.type == "math_lib_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        from atlas.connections import _find_math_patterns
+        projects = [_proj(f"p{i}", math_libs=["NumPy", "SciPy", "Pandas"]) for i in range(20)]
+        conns = _find_math_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", math_libs=["NumPy", "SciPy"]),
+            _proj("b", math_libs=["NumPy", "Pandas"]),
+        ]
+        conns = find_connections(projects)
+        math_types = {c.type for c in conns if "math" in c.type}
+        assert "shared_math_lib" in math_types

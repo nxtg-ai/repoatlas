@@ -381,6 +381,7 @@ def _project_has_tech(project, term: str) -> bool:
         + ts.data_viz_libs
         + ts.geo_libs
         + ts.media_libs
+        + ts.math_libs
     )
     return any(term == item.lower() for item in all_items)
 
@@ -434,6 +435,7 @@ CONNECTION_CATEGORIES = {
     "dataviz": {"shared_data_viz", "data_viz_divergence"},
     "geo": {"shared_geo_lib", "geo_lib_divergence"},
     "media": {"shared_media_lib", "media_lib_divergence"},
+    "math": {"shared_math_lib", "math_lib_divergence"},
 }
 
 
@@ -1441,12 +1443,27 @@ def top(
     n: int = typer.Option(5, "--limit", "-n", help="Number of projects to show"),
     by: str = typer.Option("health", help="Sort by: health, loc, tests, commits"),
     format: Optional[str] = typer.Option(None, "--format", "-f", help="Output format: json or csv"),
+    lang: Optional[str] = typer.Option(None, help="Filter by language (e.g. Python, TypeScript)"),
+    has: Optional[str] = typer.Option(None, help="Filter by tech (e.g. Docker, FastAPI, pytest)"),
 ):
     """Show top projects by a metric."""
     portfolio = _load_portfolio()
 
     if not portfolio.projects:
         console.print("[yellow]No projects in portfolio.[/yellow]")
+        return
+
+    candidates = portfolio.projects
+    if lang:
+        lang_lower = lang.lower()
+        candidates = [p for p in candidates
+                      if any(name.lower() == lang_lower for name in p.tech_stack.languages)]
+    if has:
+        has_lower = has.lower()
+        candidates = [p for p in candidates if _project_has_tech(p, has_lower)]
+
+    if not candidates:
+        console.print("[yellow]No projects match the filters.[/yellow]")
         return
 
     sort_keys = {
@@ -1461,7 +1478,7 @@ def top(
         console.print(f"[red]Unknown metric '{by}'. Valid: {valid}[/red]")
         raise typer.Exit(1)
 
-    projects = sorted(portfolio.projects, key=sort_keys[by], reverse=True)[:n]
+    projects = sorted(candidates, key=sort_keys[by], reverse=True)[:n]
 
     if format == "json":
         import json as json_mod

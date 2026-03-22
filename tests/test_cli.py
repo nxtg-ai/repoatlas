@@ -438,7 +438,7 @@ class TestConnections:
             runner.invoke(app, ["add", str(d)])
         result = runner.invoke(app, ["connections", "--type", "list"])
         assert result.exit_code == 0
-        assert "48 categories" in result.output
+        assert "49 categories" in result.output
 
     def test_connections_type_list_shows_types(self, portfolio_dir, tmp_path):
         runner.invoke(app, ["init"])
@@ -2401,6 +2401,72 @@ class TestTop:
         assert len(rows) == 2  # header + 1 project
         assert rows[1][0] == "1"  # rank
         assert rows[1][1] == "proj"  # name
+
+    def test_top_filter_lang(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d1 = tmp_path / "pyproj"
+        d1.mkdir()
+        p1 = Project(name="pyproj", path=str(d1),
+                     tech_stack=TechStack(languages={"Python": 100}),
+                     git_info=GitInfo(branch="main", total_commits=50),
+                     health=HealthScore(tests=0.9, git_hygiene=0.9, documentation=0.9, structure=0.9),
+                     test_file_count=10, source_file_count=20, loc=5000)
+        p1.health.compute()
+        d2 = tmp_path / "tsproj"
+        d2.mkdir()
+        p2 = Project(name="tsproj", path=str(d2),
+                     tech_stack=TechStack(languages={"TypeScript": 100}),
+                     git_info=GitInfo(branch="main", total_commits=30),
+                     health=HealthScore(tests=1.0, git_hygiene=1.0, documentation=1.0, structure=1.0),
+                     test_file_count=20, source_file_count=40, loc=8000)
+        p2.health.compute()
+        with patch("atlas.cli.scan_project", side_effect=[p1, p2]):
+            runner.invoke(app, ["add", str(d1)])
+            runner.invoke(app, ["add", str(d2)])
+        result = runner.invoke(app, ["top", "--format", "json", "--lang", "Python"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        names = [p["name"] for p in data["projects"]]
+        assert "pyproj" in names
+        assert "tsproj" not in names
+
+    def test_top_filter_has(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d1 = tmp_path / "alpha"
+        d1.mkdir()
+        p1 = Project(name="alpha", path=str(d1),
+                     tech_stack=TechStack(languages={"Python": 100}, frameworks=["FastAPI"]),
+                     git_info=GitInfo(branch="main", total_commits=50),
+                     health=HealthScore(tests=0.9, git_hygiene=0.9, documentation=0.9, structure=0.9),
+                     test_file_count=10, source_file_count=20, loc=5000)
+        p1.health.compute()
+        d2 = tmp_path / "beta"
+        d2.mkdir()
+        p2 = Project(name="beta", path=str(d2),
+                     tech_stack=TechStack(languages={"Python": 100}, frameworks=["Django"]),
+                     git_info=GitInfo(branch="main", total_commits=30),
+                     health=HealthScore(tests=1.0, git_hygiene=1.0, documentation=1.0, structure=1.0),
+                     test_file_count=20, source_file_count=40, loc=8000)
+        p2.health.compute()
+        with patch("atlas.cli.scan_project", side_effect=[p1, p2]):
+            runner.invoke(app, ["add", str(d1)])
+            runner.invoke(app, ["add", str(d2)])
+        result = runner.invoke(app, ["top", "--format", "json", "--has", "FastAPI"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        names = [p["name"] for p in data["projects"]]
+        assert "alpha" in names
+        assert "beta" not in names
+
+    def test_top_filter_no_match(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        proj = _make_project("proj", str(d))
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["top", "--lang", "Rust"])
+        assert "No projects match" in result.output
 
 
 # ---------------------------------------------------------------------------

@@ -57,6 +57,7 @@ class TechStack:
     data_viz_libs: list[str] = field(default_factory=list)
     geo_libs: list[str] = field(default_factory=list)
     media_libs: list[str] = field(default_factory=list)
+    math_libs: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -195,6 +196,7 @@ class Project:
                 "data_viz_libs": self.tech_stack.data_viz_libs,
                 "geo_libs": self.tech_stack.geo_libs,
                 "media_libs": self.tech_stack.media_libs,
+                "math_libs": self.tech_stack.math_libs,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -278,6 +280,7 @@ class Project:
                 data_viz_libs=ts.get("data_viz_libs", []),
                 geo_libs=ts.get("geo_libs", []),
                 media_libs=ts.get("media_libs", []),
+                math_libs=ts.get("math_libs", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

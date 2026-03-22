@@ -5547,3 +5547,126 @@ def detect_media_libs(project_path: Path) -> list[str]:
             _add(name)
 
     return sorted(tools)
+
+
+def detect_math_libs(project_path: Path) -> list[str]:
+    """Detect math and scientific computing libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map = {
+        "numpy": "NumPy",
+        "scipy": "SciPy",
+        "sympy": "SymPy",
+        "pandas": "Pandas",
+        "polars": "Polars",
+        "statsmodels": "statsmodels",
+        "scikit-learn": "scikit-learn",
+        "networkx": "NetworkX",
+        "numba": "Numba",
+        "dask": "Dask",
+        "modin": "Modin",
+        "vaex": "Vaex",
+        "cupy": "CuPy",
+        "jax": "JAX",
+        "pymc": "PyMC",
+        "arviz": "ArviZ",
+        "cvxpy": "CVXPY",
+    }
+    for dep, name in py_map.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    js_content = ""
+    if pkg_json.exists():
+        try:
+            js_content = pkg_json.read_text().lower()
+        except OSError:
+            pass
+
+    js_map = {
+        "mathjs": "math.js",
+        "numeric": "Numeric.js",
+        "ml-matrix": "ML-Matrix",
+        "simple-statistics": "simple-statistics",
+        "jstat": "jStat",
+        "stdlib": "stdlib",
+        "ndarray": "ndarray",
+        "tensorflow/tfjs": "TensorFlow.js",
+        "danfojs": "Danfo.js",
+        "arquero": "Arquero",
+    }
+    for dep, name in js_map.items():
+        if dep in js_content:
+            _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_content = ""
+    if go_sum.exists():
+        try:
+            go_content = go_sum.read_text().lower()
+        except OSError:
+            pass
+
+    go_map = {
+        "gonum.org/v1/gonum": "Gonum",
+        "montanaflynn/stats": "stats",
+        "james-bowman/sparse": "sparse",
+    }
+    for dep, name in go_map.items():
+        if dep.lower() in go_content:
+            _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    rust_content = ""
+    if cargo_toml.exists():
+        try:
+            rust_content = cargo_toml.read_text().lower()
+        except OSError:
+            pass
+
+    rust_map = {
+        "nalgebra": "nalgebra",
+        "ndarray": "ndarray",
+        "statrs": "statrs",
+        "peroxide": "peroxide",
+        "linfa": "Linfa",
+    }
+    for dep, name in rust_map.items():
+        if dep in rust_content:
+            _add(name)
+
+    # Java
+    java_deps_math: list[str] = []
+    for build_file in ("build.gradle", "build.gradle.kts", "pom.xml"):
+        bf = project_path / build_file
+        if bf.exists():
+            try:
+                java_deps_math.append(bf.read_text())
+            except Exception:
+                pass
+    java_content_math = " ".join(java_deps_math)
+
+    java_map_math = {
+        "commons-math": "Commons Math",
+        "ejml": "EJML",
+        "nd4j": "ND4J",
+        "tablesaw": "Tablesaw",
+        "smile": "Smile",
+    }
+    for dep, name in java_map_math.items():
+        if dep in java_content_math:
+            _add(name)
+
+    return sorted(tools)

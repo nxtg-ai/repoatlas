@@ -554,6 +554,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         media_names = ", ".join(f"{t} ({c})" for t, c in media_counter_md.most_common(8))
         lines.append(f"**Media Libs**: {has_media_md}/{n} projects · {media_names}")
 
+    # Math libs
+    has_math_md = sum(1 for p in projects if p.tech_stack.math_libs)
+    if has_math_md:
+        math_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for ml in p.tech_stack.math_libs:
+                math_counter_md[ml] += 1
+        math_names = ", ".join(f"{t} ({c})" for t, c in math_counter_md.most_common(8))
+        lines.append(f"**Math/Sci Libs**: {has_math_md}/{n} projects · {math_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -714,6 +724,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.media_libs:
             lines.append(f"- **Media**: {', '.join(p.tech_stack.media_libs[:8])}")
+
+        if p.tech_stack.math_libs:
+            lines.append(f"- **Math/Sci**: {', '.join(p.tech_stack.math_libs[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -880,6 +893,8 @@ def _connections_section(conns: list) -> list[str]:
         "geo_lib_divergence": "Geo Approach Divergence",
         "shared_media_lib": "Shared Media Lib",
         "media_lib_divergence": "Media Approach Divergence",
+        "shared_math_lib": "Shared Math/Sci Lib",
+        "math_lib_divergence": "Math/Sci Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
@@ -1292,6 +1307,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             media_counter_j[ml] += 1
     has_media_j = sum(1 for p in projects if p.tech_stack.media_libs)
 
+    # Math libs
+    math_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for ml in p.tech_stack.math_libs:
+            math_counter_j[ml] += 1
+    has_math_j = sum(1 for p in projects if p.tech_stack.math_libs)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1353,6 +1375,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "data_viz_libs": {"coverage": f"{has_dvl_j}/{n}", "libs": dict(dvl_counter_j.most_common(10))},
         "geo_libs": {"coverage": f"{has_geo_j}/{n}", "libs": dict(geo_counter_j.most_common(10))},
         "media_libs": {"coverage": f"{has_media_j}/{n}", "libs": dict(media_counter_j.most_common(10))},
+        "math_libs": {"coverage": f"{has_math_j}/{n}", "libs": dict(math_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1373,7 +1396,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1443,6 +1466,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.data_viz_libs),
             "; ".join(ts.geo_libs),
             "; ".join(ts.media_libs),
+            "; ".join(ts.math_libs),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

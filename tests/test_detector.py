@@ -55,6 +55,7 @@ from atlas.detector import (
     detect_data_viz_libs,
     detect_geo_libs,
     detect_media_libs,
+    detect_math_libs,
     walk_files,
 )
 
@@ -6156,4 +6157,99 @@ class TestDetectMediaLibs:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("pydub>=0.25\nlibrosa>=0.10\nffmpeg-python>=0.2\n")
         result = detect_media_libs(tmp_path)
+        assert result == sorted(result)
+
+
+# ---------------------------------------------------------------------------
+# detect_math_libs
+# ---------------------------------------------------------------------------
+class TestDetectMathLibs:
+    def test_empty(self, tmp_path):
+        assert detect_math_libs(tmp_path) == []
+
+    def test_python_numpy(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("numpy>=1.24\n")
+        result = detect_math_libs(tmp_path)
+        assert "NumPy" in result
+
+    def test_python_scipy(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("scipy>=1.11\n")
+        result = detect_math_libs(tmp_path)
+        assert "SciPy" in result
+
+    def test_python_pandas(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pandas>=2.0\n")
+        result = detect_math_libs(tmp_path)
+        assert "Pandas" in result
+
+    def test_python_polars(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("polars>=0.20\n")
+        result = detect_math_libs(tmp_path)
+        assert "Polars" in result
+
+    def test_python_sympy(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sympy>=1.12\n")
+        result = detect_math_libs(tmp_path)
+        assert "SymPy" in result
+
+    def test_python_sklearn(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("scikit-learn>=1.3\n")
+        result = detect_math_libs(tmp_path)
+        assert "scikit-learn" in result
+
+    def test_python_jax(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("jax>=0.4\n")
+        result = detect_math_libs(tmp_path)
+        assert "JAX" in result
+
+    def test_python_dask(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("dask>=2023.1\n")
+        result = detect_math_libs(tmp_path)
+        assert "Dask" in result
+
+    def test_js_mathjs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"mathjs": "^12.0"}}')
+        result = detect_math_libs(tmp_path)
+        assert "math.js" in result
+
+    def test_js_danfojs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"danfojs": "^1.1"}}')
+        result = detect_math_libs(tmp_path)
+        assert "Danfo.js" in result
+
+    def test_go_gonum(self, tmp_path):
+        (tmp_path / "go.sum").write_text("gonum.org/v1/gonum v0.14.0 h1:abc\n")
+        result = detect_math_libs(tmp_path)
+        assert "Gonum" in result
+
+    def test_rust_nalgebra(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nnalgebra = "0.32"')
+        result = detect_math_libs(tmp_path)
+        assert "nalgebra" in result
+
+    def test_rust_statrs(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nstatrs = "0.16"')
+        result = detect_math_libs(tmp_path)
+        assert "statrs" in result
+
+    def test_java_commons_math(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><groupId>org.apache.commons</groupId><artifactId>commons-math3</artifactId></dependency>")
+        result = detect_math_libs(tmp_path)
+        assert "Commons Math" in result
+
+    def test_java_nd4j(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'org.nd4j:nd4j-native:1.0.0'")
+        result = detect_math_libs(tmp_path)
+        assert "ND4J" in result
+
+    def test_multiple_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("numpy>=1.24\nscipy>=1.11\npandas>=2.0\n")
+        result = detect_math_libs(tmp_path)
+        assert "NumPy" in result
+        assert "SciPy" in result
+        assert "Pandas" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sympy>=1.12\nnumpy>=1.24\npandas>=2.0\n")
+        result = detect_math_libs(tmp_path)
         assert result == sorted(result)
