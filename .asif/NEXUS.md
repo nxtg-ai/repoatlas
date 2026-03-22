@@ -162,8 +162,9 @@
 | N-149 | [Data Visualization Intelligence](#n-149-data-visualization-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 | N-150 | [Doctor Sort Command](#n-150-doctor-sort-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-151 | [Geospatial & Mapping Library Detection](#n-151-geospatial--mapping-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-152 | [Geospatial Intelligence](#n-152-geospatial-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 148/151 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 149/152 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -269,7 +270,8 @@
 - Cross-project date/time intelligence (shared date/time libs, modern vs legacy paradigm divergence)
 - Cross-project image processing intelligence (shared image libs, high-level vs low-level paradigm divergence)
 - Cross-project data visualization intelligence (shared viz libs, interactive/dashboard vs static/notebook paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149
+- Cross-project geospatial intelligence (shared geo libs, mapping/visualization vs analysis/computation paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -713,6 +715,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-152: Geospatial Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project geospatial intelligence. Detects shared geo libs (shared_geo_lib — info) and mapping vs analysis paradigm divergence (geo_lib_divergence — warning). Mapping: Leaflet, Mapbox GL, MapLibre GL, OpenLayers, Cesium, Google Maps, etc. Analysis: GeoPandas, Shapely, Fiona, rasterio, GDAL, Turf.js, GeoTools, JTS, etc. Added to CONNECTION_CATEGORIES (geo), display type_labels/icons, export type_labels, recommendations type_to_category. Capped at 10 connections. 7 tests.
+**Shipped**: 2026-03-21. Total test count: 2248 → 2255. 48th intelligence feature.
 
 ### N-151: Geospatial & Mapping Library Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1

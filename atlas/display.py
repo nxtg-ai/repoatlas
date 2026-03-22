@@ -165,6 +165,8 @@ CONNECTION_ICONS = {
     "image_lib_divergence": "[yellow]⬡[/yellow]",
     "shared_data_viz": "[green]◆[/green]",
     "data_viz_divergence": "[yellow]◆[/yellow]",
+    "shared_geo_lib": "[green]◎[/green]",
+    "geo_lib_divergence": "[yellow]◎[/yellow]",
 }
 
 
@@ -984,6 +986,8 @@ def show_connections(connections: list[Connection]):
         "image_lib_divergence": "Imaging Approach Divergence",
         "shared_data_viz": "Shared Data Viz Lib",
         "data_viz_divergence": "Data Viz Approach Divergence",
+        "shared_geo_lib": "Shared Geo/Map Lib",
+        "geo_lib_divergence": "Geo Approach Divergence",
     }
 
     lines = []
@@ -1068,6 +1072,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_date_lib": "datetime", "date_lib_divergence": "datetime",
         "shared_image_lib": "imaging", "image_lib_divergence": "imaging",
         "shared_data_viz": "dataviz", "data_viz_divergence": "dataviz",
+        "shared_geo_lib": "geo", "geo_lib_divergence": "geo",
     }
 
     for conn in connections:

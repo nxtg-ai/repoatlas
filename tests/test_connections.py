@@ -5303,3 +5303,70 @@ class TestFindDataVizPatterns:
         conns = find_connections(projects)
         viz_types = {c.type for c in conns if "data_viz" in c.type}
         assert "shared_data_viz" in viz_types
+
+
+class TestFindGeoPatterns:
+    def test_shared_geo_lib(self):
+        from atlas.connections import _find_geo_patterns
+        projects = [
+            _proj("a", geo_libs=["Leaflet"]),
+            _proj("b", geo_libs=["Leaflet", "Turf.js"]),
+        ]
+        conns = _find_geo_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_geo_lib"]
+        assert len(shared) == 1
+        assert "Leaflet" in shared[0].detail
+
+    def test_no_shared_unique(self):
+        from atlas.connections import _find_geo_patterns
+        projects = [
+            _proj("a", geo_libs=["Leaflet"]),
+            _proj("b", geo_libs=["GeoPandas"]),
+        ]
+        conns = _find_geo_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_geo_lib"]
+        assert len(shared) == 0
+
+    def test_divergence_mapping_vs_analysis(self):
+        from atlas.connections import _find_geo_patterns
+        projects = [
+            _proj("a", geo_libs=["Leaflet"]),
+            _proj("b", geo_libs=["GeoPandas"]),
+        ]
+        conns = _find_geo_patterns(projects)
+        div = [c for c in conns if c.type == "geo_lib_divergence"]
+        assert len(div) == 1
+        assert "mapping" in div[0].detail
+        assert "analysis" in div[0].detail
+
+    def test_no_divergence_same_category(self):
+        from atlas.connections import _find_geo_patterns
+        projects = [
+            _proj("a", geo_libs=["Leaflet"]),
+            _proj("b", geo_libs=["Mapbox GL"]),
+        ]
+        conns = _find_geo_patterns(projects)
+        div = [c for c in conns if c.type == "geo_lib_divergence"]
+        assert len(div) == 0
+
+    def test_empty(self):
+        from atlas.connections import _find_geo_patterns
+        projects = [_proj("a"), _proj("b")]
+        assert _find_geo_patterns(projects) == []
+
+    def test_cap_at_10(self):
+        from atlas.connections import _find_geo_patterns
+        projects = [_proj(f"p{i}", geo_libs=[f"Lib{i}"]) for i in range(20)]
+        for p in projects:
+            p.tech_stack.geo_libs.append("Leaflet")
+        conns = _find_geo_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", geo_libs=["Leaflet", "GeoPandas"]),
+            _proj("b", geo_libs=["Leaflet", "Shapely"]),
+        ]
+        conns = find_connections(projects)
+        geo_types = {c.type for c in conns if "geo" in c.type}
+        assert "shared_geo_lib" in geo_types
