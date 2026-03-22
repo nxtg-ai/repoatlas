@@ -274,6 +274,7 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "geo_lib_divergence": "deps",
         "media_lib_divergence": "deps",
         "math_lib_divergence": "deps",
+        "async_lib_divergence": "deps",
     }
 
     for conn in connections:

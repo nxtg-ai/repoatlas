@@ -438,7 +438,7 @@ class TestConnections:
             runner.invoke(app, ["add", str(d)])
         result = runner.invoke(app, ["connections", "--type", "list"])
         assert result.exit_code == 0
-        assert "49 categories" in result.output
+        assert "50 categories" in result.output
 
     def test_connections_type_list_shows_types(self, portfolio_dir, tmp_path):
         runner.invoke(app, ["init"])
@@ -1185,6 +1185,75 @@ class TestDoctor:
         priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
         indices = [priority_order.get(p, 99) for p in priorities]
         assert indices == sorted(indices)
+
+    def test_doctor_project_filter_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d1 = tmp_path / "alpha"
+        d1.mkdir()
+        from atlas.models import HealthScore as HS
+        hs1 = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs1.compute()
+        p1 = Project(
+            name="alpha", path=str(d1),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs1, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        d2 = tmp_path / "beta"
+        d2.mkdir()
+        hs2 = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs2.compute()
+        p2 = Project(
+            name="beta", path=str(d2),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs2, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", side_effect=[p1, p2]):
+            runner.invoke(app, ["add", str(d1)])
+            runner.invoke(app, ["add", str(d2)])
+        result = runner.invoke(app, ["doctor", "--format", "json", "--project", "alpha"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        for rec in data["recommendations"]:
+            assert "alpha" in [p.lower() for p in rec["projects"]]
+
+    def test_doctor_project_filter_rich(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "myproj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = Project(
+            name="myproj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--project", "myproj"])
+        assert result.exit_code == 0
+
+    def test_doctor_project_filter_csv(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "myproj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = Project(
+            name="myproj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--format", "csv", "--project", "myproj"])
+        assert result.exit_code == 0
+        assert "myproj" in result.output
 
 
 # ===========================================================================

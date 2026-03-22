@@ -58,6 +58,7 @@ class TechStack:
     geo_libs: list[str] = field(default_factory=list)
     media_libs: list[str] = field(default_factory=list)
     math_libs: list[str] = field(default_factory=list)
+    async_libs: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -197,6 +198,7 @@ class Project:
                 "geo_libs": self.tech_stack.geo_libs,
                 "media_libs": self.tech_stack.media_libs,
                 "math_libs": self.tech_stack.math_libs,
+                "async_libs": self.tech_stack.async_libs,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -281,6 +283,7 @@ class Project:
                 geo_libs=ts.get("geo_libs", []),
                 media_libs=ts.get("media_libs", []),
                 math_libs=ts.get("math_libs", []),
+                async_libs=ts.get("async_libs", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

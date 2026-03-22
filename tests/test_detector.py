@@ -56,6 +56,7 @@ from atlas.detector import (
     detect_geo_libs,
     detect_media_libs,
     detect_math_libs,
+    detect_async_libs,
     walk_files,
 )
 
@@ -6252,4 +6253,104 @@ class TestDetectMathLibs:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("sympy>=1.12\nnumpy>=1.24\npandas>=2.0\n")
         result = detect_math_libs(tmp_path)
+        assert result == sorted(result)
+
+
+# ---------------------------------------------------------------------------
+# detect_async_libs
+# ---------------------------------------------------------------------------
+class TestDetectAsyncLibs:
+    def test_empty(self, tmp_path):
+        assert detect_async_libs(tmp_path) == []
+
+    def test_python_twisted(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("twisted>=23.0\n")
+        result = detect_async_libs(tmp_path)
+        assert "Twisted" in result
+
+    def test_python_trio(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("trio>=0.22\n")
+        result = detect_async_libs(tmp_path)
+        assert "trio" in result
+
+    def test_python_anyio(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("anyio>=4.0\n")
+        result = detect_async_libs(tmp_path)
+        assert "AnyIO" in result
+
+    def test_python_gevent(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("gevent>=23.0\n")
+        result = detect_async_libs(tmp_path)
+        assert "Gevent" in result
+
+    def test_python_uvloop(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("uvloop>=0.19\n")
+        result = detect_async_libs(tmp_path)
+        assert "uvloop" in result
+
+    def test_python_celery(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("celery>=5.3\n")
+        result = detect_async_libs(tmp_path)
+        assert "Celery" in result
+
+    def test_js_rxjs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"rxjs": "^7.0"}}')
+        result = detect_async_libs(tmp_path)
+        assert "RxJS" in result
+
+    def test_js_piscina(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"piscina": "^4.0"}}')
+        result = detect_async_libs(tmp_path)
+        assert "Piscina" in result
+
+    def test_js_comlink(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"comlink": "^4.4"}}')
+        result = detect_async_libs(tmp_path)
+        assert "Comlink" in result
+
+    def test_go_xsync(self, tmp_path):
+        (tmp_path / "go.sum").write_text("golang.org/x/sync v0.6.0 h1:abc\n")
+        result = detect_async_libs(tmp_path)
+        assert "x/sync" in result
+
+    def test_go_ants(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/panjf2000/ants/v2 v2.9.0 h1:abc\n")
+        result = detect_async_libs(tmp_path)
+        assert "ants" in result
+
+    def test_rust_tokio(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ntokio = { version = "1", features = ["full"] }')
+        result = detect_async_libs(tmp_path)
+        assert "Tokio" in result
+
+    def test_rust_rayon(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nrayon = "1.8"')
+        result = detect_async_libs(tmp_path)
+        assert "Rayon" in result
+
+    def test_rust_crossbeam(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ncrossbeam = "0.8"')
+        result = detect_async_libs(tmp_path)
+        assert "Crossbeam" in result
+
+    def test_java_rxjava(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("implementation 'io.reactivex.rxjava3:rxjava:3.1'")
+        result = detect_async_libs(tmp_path)
+        assert "RxJava" in result
+
+    def test_java_reactor(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><artifactId>reactor-core</artifactId></dependency>")
+        result = detect_async_libs(tmp_path)
+        assert "Project Reactor" in result
+
+    def test_multiple_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("trio>=0.22\nanyio>=4.0\nuvloop>=0.19\n")
+        result = detect_async_libs(tmp_path)
+        assert "trio" in result
+        assert "AnyIO" in result
+        assert "uvloop" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("uvloop>=0.19\nanyio>=4.0\ntrio>=0.22\n")
+        result = detect_async_libs(tmp_path)
         assert result == sorted(result)

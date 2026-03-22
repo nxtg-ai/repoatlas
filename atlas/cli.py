@@ -382,6 +382,7 @@ def _project_has_tech(project, term: str) -> bool:
         + ts.geo_libs
         + ts.media_libs
         + ts.math_libs
+        + ts.async_libs
     )
     return any(term == item.lower() for item in all_items)
 
@@ -436,6 +437,7 @@ CONNECTION_CATEGORIES = {
     "geo": {"shared_geo_lib", "geo_lib_divergence"},
     "media": {"shared_media_lib", "media_lib_divergence"},
     "math": {"shared_math_lib", "math_lib_divergence"},
+    "async": {"shared_async_lib", "async_lib_divergence"},
 }
 
 
@@ -599,6 +601,7 @@ def doctor(
     category: Optional[str] = typer.Option(None, "--category", "-c", help="Filter by category (e.g. testing, security, infra, deps, docs)"),
     priority: Optional[str] = typer.Option(None, "--priority", "-p", help="Filter by priority (critical, high, medium, low)"),
     sort: Optional[str] = typer.Option(None, "--sort", help="Sort by: priority, category"),
+    project: Optional[str] = typer.Option(None, "--project", help="Filter recommendations for a specific project"),
 ):
     """Diagnose portfolio health and suggest fixes."""
     portfolio = _load_portfolio()
@@ -608,6 +611,9 @@ def doctor(
         return
 
     recs = generate_recommendations(portfolio)
+
+    if project:
+        recs = [r for r in recs if project.lower() in [p.lower() for p in r.projects]]
 
     if category:
         cat_lower = category.lower()

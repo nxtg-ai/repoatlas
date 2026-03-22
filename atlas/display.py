@@ -171,6 +171,8 @@ CONNECTION_ICONS = {
     "media_lib_divergence": "[yellow]♪[/yellow]",
     "shared_math_lib": "[green]∑[/green]",
     "math_lib_divergence": "[yellow]∑[/yellow]",
+    "shared_async_lib": "[green]⟳[/green]",
+    "async_lib_divergence": "[yellow]⟳[/yellow]",
 }
 
 
@@ -844,6 +846,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         math_parts = [f"{ml} ({count})" for ml, count in top_math]
         lines.append(f"  [bold]Math/Sci:[/bold]  {has_math}/{n} projects · {', '.join(math_parts)}")
 
+    # Async libs
+    has_async = sum(1 for p in projects if p.tech_stack.async_libs)
+    if has_async:
+        async_counter: Counter[str] = Counter()
+        for p in projects:
+            for al in p.tech_stack.async_libs:
+                async_counter[al] += 1
+        top_async = async_counter.most_common(6)
+        async_parts = [f"{al} ({count})" for al, count in top_async]
+        lines.append(f"  [bold]Async:[/bold]    {has_async}/{n} projects · {', '.join(async_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1018,6 +1031,8 @@ def show_connections(connections: list[Connection]):
         "media_lib_divergence": "Media Approach Divergence",
         "shared_math_lib": "Shared Math/Sci Lib",
         "math_lib_divergence": "Math/Sci Approach Divergence",
+        "shared_async_lib": "Shared Async Lib",
+        "async_lib_divergence": "Async Approach Divergence",
     }
 
     lines = []
@@ -1105,6 +1120,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_geo_lib": "geo", "geo_lib_divergence": "geo",
         "shared_media_lib": "media", "media_lib_divergence": "media",
         "shared_math_lib": "math", "math_lib_divergence": "math",
+        "shared_async_lib": "async", "async_lib_divergence": "async",
     }
 
     for conn in connections:
@@ -1351,6 +1367,10 @@ def show_project_card(project: Project):
     if project.tech_stack.math_libs:
         mthl = ", ".join(project.tech_stack.math_libs[:8])
         lines.append(f"  [bold]Math/Sci:[/bold]  {mthl}")
+
+    if project.tech_stack.async_libs:
+        al = ", ".join(project.tech_stack.async_libs[:8])
+        lines.append(f"  [bold]Async:[/bold]    {al}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")
