@@ -44,7 +44,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           docs_artifacts=None, ci_config=None, runtime_versions=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
-          state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, project_license="",
+          state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, email_libs=None, project_license="",
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -102,6 +102,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             media_libs=media_libs or [],
             math_libs=math_libs or [],
             async_libs=async_libs or [],
+            email_libs=email_libs or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -5698,3 +5699,71 @@ class TestFindPdfPatterns:
         conns = find_connections(projects)
         pdf_types = {c.type for c in conns if "pdf" in c.type}
         assert "shared_pdf_lib" in pdf_types
+
+
+# ---------------------------------------------------------------------------
+# _find_email_patterns
+# ---------------------------------------------------------------------------
+class TestFindEmailPatterns:
+    def test_empty(self):
+        from atlas.connections import _find_email_patterns
+        projects = [_proj("a"), _proj("b")]
+        assert _find_email_patterns(projects) == []
+
+    def test_shared_email_lib(self):
+        from atlas.connections import _find_email_patterns
+        projects = [
+            _proj("a", email_libs=["SendGrid", "Nodemailer"]),
+            _proj("b", email_libs=["SendGrid", "Postmark"]),
+        ]
+        conns = _find_email_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_email_lib"]
+        assert len(shared) >= 1
+        assert any("SendGrid" in c.detail for c in shared)
+
+    def test_no_shared_when_disjoint(self):
+        from atlas.connections import _find_email_patterns
+        projects = [
+            _proj("a", email_libs=["SendGrid"]),
+            _proj("b", email_libs=["Nodemailer"]),
+        ]
+        conns = _find_email_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_email_lib"]
+        assert len(shared) == 0
+
+    def test_saas_smtp_divergence(self):
+        from atlas.connections import _find_email_patterns
+        projects = [
+            _proj("a", email_libs=["SendGrid", "Postmark"]),
+            _proj("b", email_libs=["Nodemailer", "Flask-Mail"]),
+        ]
+        conns = _find_email_patterns(projects)
+        div = [c for c in conns if c.type == "email_lib_divergence"]
+        assert len(div) == 1
+        assert "saas" in div[0].detail.lower()
+        assert "smtp" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        from atlas.connections import _find_email_patterns
+        projects = [
+            _proj("a", email_libs=["SendGrid"]),
+            _proj("b", email_libs=["Postmark"]),
+        ]
+        conns = _find_email_patterns(projects)
+        div = [c for c in conns if c.type == "email_lib_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        from atlas.connections import _find_email_patterns
+        projects = [_proj(f"p{i}", email_libs=["SendGrid", "Nodemailer", "Gomail"]) for i in range(20)]
+        conns = _find_email_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", email_libs=["SendGrid", "Nodemailer"]),
+            _proj("b", email_libs=["SendGrid", "Postmark"]),
+        ]
+        conns = find_connections(projects)
+        email_types = {c.type for c in conns if "email" in c.type}
+        assert "shared_email_lib" in email_types

@@ -440,6 +440,7 @@ CONNECTION_CATEGORIES = {
     "async": {"shared_async_lib", "async_lib_divergence"},
     "crypto": {"shared_crypto_lib", "crypto_lib_divergence"},
     "pdf": {"shared_pdf_lib", "pdf_lib_divergence"},
+    "email": {"shared_email_lib", "email_lib_divergence"},
 }
 
 
@@ -608,6 +609,7 @@ def doctor(
     priority: Optional[str] = typer.Option(None, "--priority", "-p", help="Filter by priority (critical, high, medium, low)"),
     sort: Optional[str] = typer.Option(None, "--sort", help="Sort by: priority, category"),
     project: Optional[str] = typer.Option(None, "--project", help="Filter recommendations for a specific project"),
+    limit: Optional[int] = typer.Option(None, "--limit", "-n", help="Max recommendations to show"),
 ):
     """Diagnose portfolio health and suggest fixes."""
     portfolio = _load_portfolio()
@@ -640,6 +642,9 @@ def doctor(
             recs.sort(key=lambda r: priority_order.get(r.priority, 99))
         elif sort_lower == "category":
             recs.sort(key=lambda r: r.category)
+
+    if limit is not None and limit > 0:
+        recs = recs[:limit]
 
     if format and format.lower() == "json":
         import json as json_mod

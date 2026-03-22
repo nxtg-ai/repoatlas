@@ -59,6 +59,7 @@ from atlas.detector import (
     detect_async_libs,
     detect_compression_libs,
     detect_email_libs,
+    detect_a11y_tools,
     walk_files,
 )
 
@@ -6542,4 +6543,102 @@ class TestDetectEmailLibs:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("sendgrid>=6.0\nresend>=0.7\nyagmail>=0.15\n")
         result = detect_email_libs(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_a11y_tools
+class TestDetectA11yTools:
+    def test_empty_project(self, tmp_path):
+        assert detect_a11y_tools(tmp_path) == []
+
+    def test_python_axe_selenium(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("axe-selenium-python>=4.0\n")
+        result = detect_a11y_tools(tmp_path)
+        assert "axe-core" in result
+
+    def test_python_playwright(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("playwright>=1.40\n")
+        result = detect_a11y_tools(tmp_path)
+        assert "Playwright" in result
+
+    def test_python_selenium(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("selenium>=4.15\n")
+        result = detect_a11y_tools(tmp_path)
+        assert "Selenium" in result
+
+    def test_python_pa11y(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pa11y>=0.1\n")
+        result = detect_a11y_tools(tmp_path)
+        assert "Pa11y" in result
+
+    def test_js_axe_core(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"axe-core":"^4.8"}}')
+        result = detect_a11y_tools(tmp_path)
+        assert "axe-core" in result
+
+    def test_js_jsx_a11y(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"eslint-plugin-jsx-a11y":"^6.8"}}')
+        result = detect_a11y_tools(tmp_path)
+        assert "jsx-a11y" in result
+
+    def test_js_react_aria(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-aria":"^3.30"}}')
+        result = detect_a11y_tools(tmp_path)
+        assert "React Aria" in result
+
+    def test_js_radix_ui(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@radix-ui/react-dialog":"^1.0"}}')
+        result = detect_a11y_tools(tmp_path)
+        assert "Radix UI" in result
+
+    def test_js_downshift(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"downshift":"^8.0"}}')
+        result = detect_a11y_tools(tmp_path)
+        assert "Downshift" in result
+
+    def test_js_focus_trap_react(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"focus-trap-react":"^10.0"}}')
+        result = detect_a11y_tools(tmp_path)
+        assert "focus-trap-react" in result
+
+    def test_js_testing_library(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"@testing-library/react":"^14.0"}}')
+        result = detect_a11y_tools(tmp_path)
+        assert "Testing Library" in result
+
+    def test_js_jest_axe(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"jest-axe":"^8.0"}}')
+        result = detect_a11y_tools(tmp_path)
+        assert "jest-axe" in result
+
+    def test_js_cypress_axe(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"cypress-axe":"^1.5"}}')
+        result = detect_a11y_tools(tmp_path)
+        assert "cypress-axe" in result
+
+    def test_js_a11y_dialog(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"a11y-dialog":"^8.0"}}')
+        result = detect_a11y_tools(tmp_path)
+        assert "a11y-dialog" in result
+
+    def test_config_accessibilityrc(self, tmp_path):
+        (tmp_path / ".accessibilityrc").write_text("{}")
+        result = detect_a11y_tools(tmp_path)
+        assert "a11y-config" in result
+
+    def test_config_pa11yci(self, tmp_path):
+        (tmp_path / ".pa11yci").write_text("{}")
+        result = detect_a11y_tools(tmp_path)
+        assert "Pa11y CI" in result
+
+    def test_multiple_js(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"axe-core":"^4.8","@radix-ui/react-dialog":"^1.0","downshift":"^8.0"}}')
+        result = detect_a11y_tools(tmp_path)
+        assert "axe-core" in result
+        assert "Radix UI" in result
+        assert "Downshift" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"focus-trap-react":"^10","axe-core":"^4","downshift":"^8"}}')
+        result = detect_a11y_tools(tmp_path)
         assert result == sorted(result)

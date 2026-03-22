@@ -177,6 +177,8 @@ CONNECTION_ICONS = {
     "crypto_lib_divergence": "[yellow]🔐[/yellow]",
     "shared_pdf_lib": "[green]📄[/green]",
     "pdf_lib_divergence": "[yellow]📄[/yellow]",
+    "shared_email_lib": "[green]✉[/green]",
+    "email_lib_divergence": "[yellow]✉[/yellow]",
 }
 
 
@@ -883,6 +885,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         email_parts = [f"{el} ({count})" for el, count in top_email]
         lines.append(f"  [bold]Email:[/bold]    {has_email}/{n} projects · {', '.join(email_parts)}")
 
+    # A11y tools
+    has_a11y = sum(1 for p in projects if p.tech_stack.a11y_tools)
+    if has_a11y:
+        a11y_counter: Counter[str] = Counter()
+        for p in projects:
+            for at in p.tech_stack.a11y_tools:
+                a11y_counter[at] += 1
+        top_a11y = a11y_counter.most_common(6)
+        a11y_parts = [f"{at} ({count})" for at, count in top_a11y]
+        lines.append(f"  [bold]A11y:[/bold]     {has_a11y}/{n} projects · {', '.join(a11y_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1063,6 +1076,8 @@ def show_connections(connections: list[Connection]):
         "crypto_lib_divergence": "Crypto Approach Divergence",
         "shared_pdf_lib": "Shared PDF/Doc Lib",
         "pdf_lib_divergence": "PDF/Doc Approach Divergence",
+        "shared_email_lib": "Shared Email Lib",
+        "email_lib_divergence": "Email Approach Divergence",
     }
 
     lines = []
@@ -1153,6 +1168,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_async_lib": "async", "async_lib_divergence": "async",
         "shared_crypto_lib": "crypto", "crypto_lib_divergence": "crypto",
         "shared_pdf_lib": "pdf", "pdf_lib_divergence": "pdf",
+        "shared_email_lib": "email", "email_lib_divergence": "email",
     }
 
     for conn in connections:
@@ -1411,6 +1427,10 @@ def show_project_card(project: Project):
     if project.tech_stack.email_libs:
         el = ", ".join(project.tech_stack.email_libs[:8])
         lines.append(f"  [bold]Email:[/bold]    {el}")
+
+    if project.tech_stack.a11y_tools:
+        at = ", ".join(project.tech_stack.a11y_tools[:8])
+        lines.append(f"  [bold]A11y:[/bold]     {at}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

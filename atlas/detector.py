@@ -6046,3 +6046,71 @@ def detect_email_libs(project_path: Path) -> list[str]:
             _add(name)
 
     return sorted(tools)
+
+
+def detect_a11y_tools(project_path: Path) -> list[str]:
+    """Detect accessibility and a11y testing/linting tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map = {
+        "axe-selenium-python": "axe-core",
+        "playwright": "Playwright",
+        "selenium": "Selenium",
+        "pa11y": "Pa11y",
+    }
+    for dep, name in py_map.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    js_content = ""
+    if pkg_json.exists():
+        try:
+            js_content = pkg_json.read_text().lower()
+        except OSError:
+            pass
+
+    js_map = {
+        "axe-core": "axe-core",
+        "@axe-core/react": "axe-core",
+        "@axe-core/playwright": "axe-core",
+        "eslint-plugin-jsx-a11y": "jsx-a11y",
+        "react-aria": "React Aria",
+        "@react-aria": "React Aria",
+        "radix-ui": "Radix UI",
+        "@radix-ui": "Radix UI",
+        "reach-ui": "Reach UI",
+        "@reach": "Reach UI",
+        "downshift": "Downshift",
+        "react-focus-lock": "react-focus-lock",
+        "focus-trap-react": "focus-trap-react",
+        "pa11y": "Pa11y",
+        "lighthouse": "Lighthouse",
+        "@testing-library": "Testing Library",
+        "jest-axe": "jest-axe",
+        "vitest-axe": "vitest-axe",
+        "cypress-axe": "cypress-axe",
+        "ally.js": "ally.js",
+        "a11y-dialog": "a11y-dialog",
+        "vue-a11y-utils": "vue-a11y-utils",
+    }
+    for dep, name in js_map.items():
+        if dep in js_content:
+            _add(name)
+
+    # Config file checks
+    if (project_path / ".accessibilityrc").exists():
+        _add("a11y-config")
+    if (project_path / ".pa11yci").exists():
+        _add("Pa11y CI")
+
+    return sorted(tools)

@@ -594,6 +594,16 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         email_names = ", ".join(f"{t} ({c})" for t, c in email_counter_md.most_common(8))
         lines.append(f"**Email Libs**: {has_email_md}/{n} projects · {email_names}")
 
+    # A11y tools
+    has_a11y_md = sum(1 for p in projects if p.tech_stack.a11y_tools)
+    if has_a11y_md:
+        a11y_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for at in p.tech_stack.a11y_tools:
+                a11y_counter_md[at] += 1
+        a11y_names = ", ".join(f"{t} ({c})" for t, c in a11y_counter_md.most_common(8))
+        lines.append(f"**A11y Tools**: {has_a11y_md}/{n} projects · {a11y_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -766,6 +776,9 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.email_libs:
             lines.append(f"- **Email**: {', '.join(p.tech_stack.email_libs[:8])}")
+
+        if p.tech_stack.a11y_tools:
+            lines.append(f"- **A11y**: {', '.join(p.tech_stack.a11y_tools[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -940,6 +953,8 @@ def _connections_section(conns: list) -> list[str]:
         "crypto_lib_divergence": "Crypto Approach Divergence",
         "shared_pdf_lib": "Shared PDF/Doc Lib",
         "pdf_lib_divergence": "PDF/Doc Approach Divergence",
+        "shared_email_lib": "Shared Email Lib",
+        "email_lib_divergence": "Email Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
@@ -1380,6 +1395,13 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             email_counter_j[el] += 1
     has_email_j = sum(1 for p in projects if p.tech_stack.email_libs)
 
+    # A11y tools
+    a11y_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for at in p.tech_stack.a11y_tools:
+            a11y_counter_j[at] += 1
+    has_a11y_j = sum(1 for p in projects if p.tech_stack.a11y_tools)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1445,6 +1467,7 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "async_libs": {"coverage": f"{has_async_j}/{n}", "libs": dict(async_counter_j.most_common(10))},
         "compression_libs": {"coverage": f"{has_compress_j}/{n}", "libs": dict(compress_counter_j.most_common(10))},
         "email_libs": {"coverage": f"{has_email_j}/{n}", "libs": dict(email_counter_j.most_common(10))},
+        "a11y_tools": {"coverage": f"{has_a11y_j}/{n}", "tools": dict(a11y_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1465,7 +1488,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1539,6 +1562,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.async_libs),
             "; ".join(ts.compression_libs),
             "; ".join(ts.email_libs),
+            "; ".join(ts.a11y_tools),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

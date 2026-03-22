@@ -438,7 +438,7 @@ class TestConnections:
             runner.invoke(app, ["add", str(d)])
         result = runner.invoke(app, ["connections", "--type", "list"])
         assert result.exit_code == 0
-        assert "52 categories" in result.output
+        assert "53 categories" in result.output
 
     def test_connections_type_list_shows_types(self, portfolio_dir, tmp_path):
         runner.invoke(app, ["init"])
@@ -1349,6 +1349,64 @@ class TestDoctor:
         result = runner.invoke(app, ["doctor", "--format", "csv", "--project", "myproj"])
         assert result.exit_code == 0
         assert "myproj" in result.output
+
+    def test_doctor_limit_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = Project(
+            name="proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--format", "json", "--limit", "2"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert len(data["recommendations"]) <= 2
+
+    def test_doctor_limit_rich(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = Project(
+            name="proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--limit", "2"])
+        assert result.exit_code == 0
+
+    def test_doctor_limit_with_sort(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "proj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = Project(
+            name="proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--format", "json", "--sort", "category", "--limit", "2"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert len(data["recommendations"]) <= 2
 
 
 # ===========================================================================

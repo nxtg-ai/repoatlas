@@ -63,6 +63,7 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_async_patterns(projects))
     connections.extend(_find_crypto_patterns(projects))
     connections.extend(_find_pdf_patterns(projects))
+    connections.extend(_find_email_patterns(projects))
     return connections
 
 
@@ -3674,6 +3675,66 @@ def _find_pdf_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="pdf_lib_divergence",
             detail=f"Mixed PDF approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_email_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project email and SMTP library patterns."""
+    connections: list[Connection] = []
+
+    # Shared email libs — same lib used by 2+ projects
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.email_libs:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_email_lib",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Email lib divergence — SaaS/API-based vs SMTP/self-hosted
+    saas = {"SendGrid", "Mailgun", "Postmark", "Resend", "Mailchimp",
+            "Mailjet", "AWS SES", "django-ses", "Plunk",
+            "MJML", "React Email"}
+    smtp = {"Nodemailer", "Flask-Mail", "django-anymail", "yagmail",
+            "redmail", "aiosmtplib", "python-emails", "envelopes",
+            "Marrow Mailer", "email-templates", "mailing",
+            "Gomail", "jordan-wright/email", "go-smtp",
+            "Lettre", "mail-send",
+            "JavaMail", "Jakarta Mail", "Spring Mail",
+            "Commons Email", "Simple Java Mail"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "saas": {}, "smtp": {},
+    }
+    cat_sets = [("saas", saas), ("smtp", smtp)]
+    for p in projects:
+        for lib in p.tech_stack.email_libs:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="email_lib_divergence",
+            detail=f"Mixed email approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

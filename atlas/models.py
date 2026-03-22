@@ -61,6 +61,7 @@ class TechStack:
     async_libs: list[str] = field(default_factory=list)
     compression_libs: list[str] = field(default_factory=list)
     email_libs: list[str] = field(default_factory=list)
+    a11y_tools: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -203,6 +204,7 @@ class Project:
                 "async_libs": self.tech_stack.async_libs,
                 "compression_libs": self.tech_stack.compression_libs,
                 "email_libs": self.tech_stack.email_libs,
+                "a11y_tools": self.tech_stack.a11y_tools,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -290,6 +292,7 @@ class Project:
                 async_libs=ts.get("async_libs", []),
                 compression_libs=ts.get("compression_libs", []),
                 email_libs=ts.get("email_libs", []),
+                a11y_tools=ts.get("a11y_tools", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),
