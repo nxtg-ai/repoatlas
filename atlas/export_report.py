@@ -848,6 +848,8 @@ def _connections_section(conns: list) -> list[str]:
         "date_lib_divergence": "Date/Time Approach Divergence",
         "shared_image_lib": "Shared Image Lib",
         "image_lib_divergence": "Imaging Approach Divergence",
+        "shared_data_viz": "Shared Data Viz Lib",
+        "data_viz_divergence": "Data Viz Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

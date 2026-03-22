@@ -5235,3 +5235,70 @@ class TestFindImageLibPatterns:
         conns = find_connections(projects)
         img_types = {c.type for c in conns if "image" in c.type}
         assert "shared_image_lib" in img_types
+
+
+class TestFindDataVizPatterns:
+    def test_shared_data_viz(self):
+        from atlas.connections import _find_data_viz_patterns
+        projects = [
+            _proj("a", data_viz_libs=["Plotly"]),
+            _proj("b", data_viz_libs=["Plotly", "D3.js"]),
+        ]
+        conns = _find_data_viz_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_data_viz"]
+        assert len(shared) == 1
+        assert "Plotly" in shared[0].detail
+
+    def test_no_shared_unique(self):
+        from atlas.connections import _find_data_viz_patterns
+        projects = [
+            _proj("a", data_viz_libs=["Matplotlib"]),
+            _proj("b", data_viz_libs=["D3.js"]),
+        ]
+        conns = _find_data_viz_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_data_viz"]
+        assert len(shared) == 0
+
+    def test_divergence_interactive_vs_static(self):
+        from atlas.connections import _find_data_viz_patterns
+        projects = [
+            _proj("a", data_viz_libs=["Dash"]),
+            _proj("b", data_viz_libs=["Matplotlib"]),
+        ]
+        conns = _find_data_viz_patterns(projects)
+        div = [c for c in conns if c.type == "data_viz_divergence"]
+        assert len(div) == 1
+        assert "interactive" in div[0].detail
+        assert "static" in div[0].detail
+
+    def test_no_divergence_same_category(self):
+        from atlas.connections import _find_data_viz_patterns
+        projects = [
+            _proj("a", data_viz_libs=["Dash"]),
+            _proj("b", data_viz_libs=["Streamlit"]),
+        ]
+        conns = _find_data_viz_patterns(projects)
+        div = [c for c in conns if c.type == "data_viz_divergence"]
+        assert len(div) == 0
+
+    def test_empty(self):
+        from atlas.connections import _find_data_viz_patterns
+        projects = [_proj("a"), _proj("b")]
+        assert _find_data_viz_patterns(projects) == []
+
+    def test_cap_at_10(self):
+        from atlas.connections import _find_data_viz_patterns
+        projects = [_proj(f"p{i}", data_viz_libs=[f"Lib{i}"]) for i in range(20)]
+        for p in projects:
+            p.tech_stack.data_viz_libs.append("D3.js")
+        conns = _find_data_viz_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", data_viz_libs=["Matplotlib", "Dash"]),
+            _proj("b", data_viz_libs=["Matplotlib", "Seaborn"]),
+        ]
+        conns = find_connections(projects)
+        viz_types = {c.type for c in conns if "data_viz" in c.type}
+        assert "shared_data_viz" in viz_types

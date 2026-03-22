@@ -429,6 +429,7 @@ CONNECTION_CATEGORIES = {
     "payments": {"shared_payment_tool", "payment_divergence"},
     "datetime": {"shared_date_lib", "date_lib_divergence"},
     "imaging": {"shared_image_lib", "image_lib_divergence"},
+    "dataviz": {"shared_data_viz", "data_viz_divergence"},
 }
 
 

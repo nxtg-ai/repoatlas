@@ -163,6 +163,8 @@ CONNECTION_ICONS = {
     "date_lib_divergence": "[yellow]⟳[/yellow]",
     "shared_image_lib": "[green]⬡[/green]",
     "image_lib_divergence": "[yellow]⬡[/yellow]",
+    "shared_data_viz": "[green]◆[/green]",
+    "data_viz_divergence": "[yellow]◆[/yellow]",
 }
 
 
@@ -969,6 +971,8 @@ def show_connections(connections: list[Connection]):
         "date_lib_divergence": "Date/Time Approach Divergence",
         "shared_image_lib": "Shared Image Lib",
         "image_lib_divergence": "Imaging Approach Divergence",
+        "shared_data_viz": "Shared Data Viz Lib",
+        "data_viz_divergence": "Data Viz Approach Divergence",
     }
 
     lines = []
@@ -1052,6 +1056,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_payment_tool": "payments", "payment_divergence": "payments",
         "shared_date_lib": "datetime", "date_lib_divergence": "datetime",
         "shared_image_lib": "imaging", "image_lib_divergence": "imaging",
+        "shared_data_viz": "dataviz", "data_viz_divergence": "dataviz",
     }
 
     for conn in connections:

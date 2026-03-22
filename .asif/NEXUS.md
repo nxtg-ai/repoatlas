@@ -159,8 +159,9 @@
 | N-146 | [PDF & Document Library Detection](#n-146-pdf--document-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-147 | [Connections Sort Command](#n-147-connections-sort-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-148 | [Data Visualization Library Detection](#n-148-data-visualization-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
+| N-149 | [Data Visualization Intelligence](#n-149-data-visualization-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 145/148 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 146/149 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -264,7 +265,8 @@
 - Cross-project payment intelligence (shared payment tools, traditional vs merchant-of-record paradigm divergence)
 - Cross-project date/time intelligence (shared date/time libs, modern vs legacy paradigm divergence)
 - Cross-project image processing intelligence (shared image libs, high-level vs low-level paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144
+- Cross-project data visualization intelligence (shared viz libs, interactive/dashboard vs static/notebook paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -707,6 +709,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-149: Data Visualization Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project data visualization intelligence. Detects shared viz libs (shared_data_viz — info) and interactive vs static paradigm divergence (data_viz_divergence — warning). Interactive: Dash, Streamlit, Gradio, Bokeh, D3.js, ECharts, Recharts, Chart.js, etc. Static: Matplotlib, Seaborn, Altair, Plotters, JFreeChart, etc. Added to CONNECTION_CATEGORIES (dataviz), display type_labels/icons, export type_labels, recommendations type_to_category. Capped at 10 connections. 7 tests.
+**Shipped**: 2026-03-21. Total test count: 2221 → 2228. 47th intelligence feature.
 
 ### N-148: Data Visualization Library Detection
 **Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
