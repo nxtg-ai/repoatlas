@@ -163,8 +163,9 @@
 | N-150 | [Doctor Sort Command](#n-150-doctor-sort-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 | N-151 | [Geospatial & Mapping Library Detection](#n-151-geospatial--mapping-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-152 | [Geospatial Intelligence](#n-152-geospatial-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-21 |
+| N-153 | [Search Sort Command](#n-153-search-sort-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 149/152 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 150/153 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -323,7 +324,8 @@
 - Status sort: `atlas status --sort name|health|loc|grade` sorts project list. Works with all filters and output formats (rich, json, csv)
 - Connections sort: `atlas connections --sort type|severity|projects` sorts connections. Works with all filters and output formats (rich, json, csv)
 - Doctor sort: `atlas doctor --sort priority|category` sorts recommendations. Works with all filters and output formats (rich, json, csv)
-- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130, N-133, N-136, N-137, N-140, N-143, N-147, N-150
+- Search sort: `atlas search <term> --sort name|health|loc` sorts search results. By name (alphabetical), health (descending), or LOC (descending). Works with JSON output format
+- **Shipped**: N-04, N-13, N-16, N-20, N-22, N-26, N-30, N-33, N-36, N-39, N-40, N-44, N-46, N-49, N-54, N-57, N-60, N-63, N-66, N-69, N-72, N-75, N-78, N-81, N-84, N-87, N-92, N-95, N-98, N-101, N-104, N-107, N-110, N-113, N-116, N-119, N-122, N-125, N-128, N-130, N-133, N-136, N-137, N-140, N-143, N-147, N-150, N-153
 
 ### DISTRIBUTION — "Get it into hands"
 - PyPI package, GitHub repo, CI pipeline
@@ -715,6 +717,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-153: Search Sort Command
+**Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Added `--sort` option to `atlas search` command. Supports sorting by name (alphabetical), health (descending), and loc (descending). Works with JSON output format. 3 tests.
+**Shipped**: 2026-03-21. Total test count: 2255 → 2258. 48th experience feature.
 
 ### N-152: Geospatial Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

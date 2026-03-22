@@ -700,6 +700,7 @@ def doctor(
 def search(
     query: str = typer.Argument(help="Search term (matches name, language, framework, or tech)"),
     format: Optional[str] = typer.Option(None, "--format", "-f", help="Output format: json"),
+    sort: Optional[str] = typer.Option(None, "--sort", help="Sort by: name, health, loc"),
 ):
     """Search portfolio projects by name, language, framework, or technology."""
     portfolio = _load_portfolio()
@@ -723,6 +724,15 @@ def search(
         if _project_has_tech(p, term):
             matches.append(p)
             continue
+
+    if sort:
+        sort_lower = sort.lower()
+        if sort_lower == "name":
+            matches.sort(key=lambda p: p.name.lower())
+        elif sort_lower == "health":
+            matches.sort(key=lambda p: p.health.overall, reverse=True)
+        elif sort_lower == "loc":
+            matches.sort(key=lambda p: p.loc, reverse=True)
 
     if format == "json":
         import json as json_mod

@@ -761,6 +761,62 @@ class TestSearch:
         assert data["total"] == 0
         assert data["projects"] == []
 
+    def test_search_sort_name_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ["charlie", "alpha", "bravo"]:
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["search", "a", "--format", "json", "--sort", "name"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        names = [p["name"] for p in data["projects"]]
+        assert names == sorted(names, key=str.lower)
+
+    def test_search_sort_health_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        from atlas.models import HealthScore as HS
+        for name, overall in [("low", 0.3), ("high", 0.9), ("mid", 0.6)]:
+            d = tmp_path / name
+            d.mkdir()
+            hs = HS(tests=overall, git_hygiene=overall, documentation=overall, structure=overall)
+            hs.compute()
+            proj = Project(
+                name=name, path=str(d),
+                tech_stack=TechStack(languages={"Python": 10}),
+                git_info=GitInfo(branch="main", total_commits=10, has_remote=True),
+                health=hs, test_file_count=5, source_file_count=20, loc=500,
+            )
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["search", "python", "--format", "json", "--sort", "health"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        percents = [p["health_percent"] for p in data["projects"]]
+        assert percents == sorted(percents, reverse=True)
+
+    def test_search_sort_loc_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name, loc in [("small", 100), ("big", 5000), ("medium", 1000)]:
+            d = tmp_path / name
+            d.mkdir()
+            proj = Project(
+                name=name, path=str(d),
+                tech_stack=TechStack(languages={"Python": 10}),
+                git_info=GitInfo(branch="main", total_commits=10, has_remote=True),
+                health=HealthScore(tests=0.8, git_hygiene=0.9, documentation=0.7, structure=0.8, overall=0.8, grade="B"),
+                test_file_count=5, source_file_count=20, loc=loc,
+            )
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["search", "python", "--format", "json", "--sort", "loc"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        locs = [p["loc"] for p in data["projects"]]
+        assert locs == sorted(locs, reverse=True)
+
 
 # ===========================================================================
 # atlas doctor
