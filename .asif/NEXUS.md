@@ -158,8 +158,9 @@
 | N-145 | [Cryptography Library Detection](#n-145-cryptography-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-146 | [PDF & Document Library Detection](#n-146-pdf--document-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 | N-147 | [Connections Sort Command](#n-147-connections-sort-command) | EXPERIENCE | SHIPPED | P1 | 2026-03-21 |
+| N-148 | [Data Visualization Library Detection](#n-148-data-visualization-library-detection) | DETECTION | SHIPPED | P1 | 2026-03-21 |
 
-**Summary**: 144/147 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 145/148 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -213,7 +214,8 @@
 - Image processing library detection: Pillow, OpenCV, scikit-image, imageio, Wand, CairoSVG, pyvips, rawpy (Python), Sharp, Jimp, node-canvas, napi-canvas, GraphicsMagick, image-size, pngjs, pixelmatch, BlurHash, Plaiceholder, IMG.LY, Cropper.js (JS/TS), imaging, gg, nfnt/resize, bild, GoCV, x/image (Go), image, imageproc, resvg, OpenCV (Rust), Thumbnailator, imgscalr, TwelveMonkeys, Scrimage (Java)
 - Cryptography library detection: cryptography, PyCryptodome, PyNaCl, bcrypt, Passlib, Argon2, pyOpenSSL (Python), CryptoJS, bcrypt.js, jose, node-forge, TweetNaCl, libsodium, OpenPGP.js, noble-curves/hashes (JS/TS), x/crypto, age, CIRCL (Go), ring, rustls, Orion, sha2, aes-gcm (Rust), Bouncy Castle, Tink, Jasypt (Java)
 - PDF & document library detection: ReportLab, WeasyPrint, xhtml2pdf, pypdf, PyMuPDF, pdfplumber, PDFMiner, python-docx, openpyxl, XlsxWriter (Python), jsPDF, pdf-lib, PDFKit, pdfmake, React-PDF, ExcelJS, SheetJS, PapaParse (JS/TS), Excelize, UniPDF, gofpdf (Go), printpdf, genpdf, lopdf (Rust), iText, Apache PDFBox, OpenPDF, JasperReports, Apache POI (Java)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146
+- Data visualization library detection: Matplotlib, Plotly, Seaborn, Bokeh, Altair, Dash, Streamlit, Gradio, pyecharts, Plotext (Python), D3.js, Chart.js, Recharts, Nivo, Victory, Visx, ECharts, Highcharts, ApexCharts, Three.js, Deck.gl, Tremor, Vega/Vega-Lite (JS/TS), go-echarts, Gonum Plot, go-chart, termui (Go), Plotters, plotlib, charming (Rust), JFreeChart, XChart, JavaFX Charts (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -705,6 +707,11 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--format json` option to `atlas doctor` command. Outputs structured JSON with total count, recommendations array (priority, category, message, projects), priority summary counts, and category breakdown. Enables CI pipeline integration and programmatic analysis of portfolio health recommendations. 3 tests.
 **Shipped**: 2026-03-21. Total test count: 1675 → 1678. 29th experience feature.
+
+### N-148: Data Visualization Library Detection
+**Pillar**: DETECTION | **Status**: SHIPPED | **Priority**: P1
+**What**: Detects data visualization and charting libraries across Python (Matplotlib, Plotly, Seaborn, Bokeh, Altair, Folium, plotnine, Pygal, HoloViews, hvPlot, Panel, Dash, Streamlit, Gradio, pydeck, bqplot, Mayavi, VisPy, pyecharts, Plotext), JS/TS (D3.js, Chart.js, Recharts, Nivo, Victory, Visx, ECharts, Highcharts, ApexCharts, Plotly.js, Three.js, Deck.gl, Observable Plot, Tremor, Frappe Charts, uPlot, Vega, Vega-Lite, Lightweight Charts, Ant Charts), Go (go-echarts, Gonum Plot, go-chart, termui, asciigraph), Rust (Plotters, plotlib, charming, textplots), Java (JFreeChart, XChart, JavaFX Charts, Processing). TechStack field, portfolio summary, project card, CSV/MD/JSON export, CLI search. 19 tests.
+**Shipped**: 2026-03-21. Total test count: 2202 → 2221. 47th detection category.
 
 ### N-147: Connections Sort Command
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1

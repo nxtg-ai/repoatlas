@@ -56,6 +56,7 @@ from atlas.detector import (
     detect_image_libs,
     detect_crypto_libs,
     detect_pdf_libs,
+    detect_data_viz_libs,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -114,6 +115,7 @@ def scan_project(project_path: Path) -> Project:
     image_libs = detect_image_libs(path)
     crypto_libs = detect_crypto_libs(path)
     pdf_libs = detect_pdf_libs(path)
+    data_viz_libs = detect_data_viz_libs(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -167,6 +169,7 @@ def scan_project(project_path: Path) -> Project:
         image_libs=image_libs,
         crypto_libs=crypto_libs,
         pdf_libs=pdf_libs,
+        data_viz_libs=data_viz_libs,
     )
 
     project = Project(

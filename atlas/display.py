@@ -792,6 +792,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         pdf_parts = [f"{pl} ({count})" for pl, count in top_pdf]
         lines.append(f"  [bold]PDF/Docs:[/bold]   {has_pdf}/{n} projects · {', '.join(pdf_parts)}")
 
+    # Data viz libs
+    has_dvl = sum(1 for p in projects if p.tech_stack.data_viz_libs)
+    if has_dvl:
+        dvl_counter: Counter[str] = Counter()
+        for p in projects:
+            for dv in p.tech_stack.data_viz_libs:
+                dvl_counter[dv] += 1
+        top_dvl = dvl_counter.most_common(6)
+        dvl_parts = [f"{dv} ({count})" for dv, count in top_dvl]
+        lines.append(f"  [bold]Data Viz:[/bold]   {has_dvl}/{n} projects · {', '.join(dvl_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1271,6 +1282,10 @@ def show_project_card(project: Project):
     if project.tech_stack.pdf_libs:
         pl = ", ".join(project.tech_stack.pdf_libs[:8])
         lines.append(f"  [bold]PDF/Docs:[/bold]   {pl}")
+
+    if project.tech_stack.data_viz_libs:
+        dv = ", ".join(project.tech_stack.data_viz_libs[:8])
+        lines.append(f"  [bold]Data Viz:[/bold]   {dv}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

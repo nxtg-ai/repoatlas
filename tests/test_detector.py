@@ -52,6 +52,7 @@ from atlas.detector import (
     detect_image_libs,
     detect_crypto_libs,
     detect_pdf_libs,
+    detect_data_viz_libs,
     walk_files,
 )
 
@@ -5869,4 +5870,101 @@ class TestDetectPdfLibs:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("weasyprint>=60.0\nreportlab>=4.0\npypdf>=3.0\n")
         result = detect_pdf_libs(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectDataVizLibs:
+    def test_empty(self, tmp_path):
+        assert detect_data_viz_libs(tmp_path) == []
+
+    def test_python_matplotlib(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("matplotlib>=3.8\n")
+        result = detect_data_viz_libs(tmp_path)
+        assert "Matplotlib" in result
+
+    def test_python_plotly(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("plotly>=5.0\n")
+        result = detect_data_viz_libs(tmp_path)
+        assert "Plotly" in result
+
+    def test_python_seaborn(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("seaborn>=0.13\n")
+        result = detect_data_viz_libs(tmp_path)
+        assert "Seaborn" in result
+
+    def test_python_bokeh(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("bokeh>=3.0\n")
+        result = detect_data_viz_libs(tmp_path)
+        assert "Bokeh" in result
+
+    def test_python_altair(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("altair>=5.0\n")
+        result = detect_data_viz_libs(tmp_path)
+        assert "Altair" in result
+
+    def test_python_dash(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("dash>=2.0\n")
+        result = detect_data_viz_libs(tmp_path)
+        assert "Dash" in result
+
+    def test_python_streamlit(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("streamlit>=1.30\n")
+        result = detect_data_viz_libs(tmp_path)
+        assert "Streamlit" in result
+
+    def test_python_gradio(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("gradio>=4.0\n")
+        result = detect_data_viz_libs(tmp_path)
+        assert "Gradio" in result
+
+    def test_js_d3(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"d3": "^7.0"}}')
+        result = detect_data_viz_libs(tmp_path)
+        assert "D3.js" in result
+
+    def test_js_chartjs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"chart.js": "^4.0"}}')
+        result = detect_data_viz_libs(tmp_path)
+        assert "Chart.js" in result
+
+    def test_js_recharts(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"recharts": "^2.0"}}')
+        result = detect_data_viz_libs(tmp_path)
+        assert "Recharts" in result
+
+    def test_js_echarts(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"echarts": "^5.0"}}')
+        result = detect_data_viz_libs(tmp_path)
+        assert "ECharts" in result
+
+    def test_js_threejs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies": {"three": "^0.160"}}')
+        result = detect_data_viz_libs(tmp_path)
+        assert "Three.js" in result
+
+    def test_go_gonum_plot(self, tmp_path):
+        (tmp_path / "go.sum").write_text("gonum.org/v1/plot v0.14.0 h1:abc\n")
+        result = detect_data_viz_libs(tmp_path)
+        assert "Gonum Plot" in result
+
+    def test_rust_plotters(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nplotters = "0.3"')
+        result = detect_data_viz_libs(tmp_path)
+        assert "Plotters" in result
+
+    def test_java_jfreechart(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><groupId>org.jfree</groupId><artifactId>jfreechart</artifactId></dependency>")
+        result = detect_data_viz_libs(tmp_path)
+        assert "JFreeChart" in result
+
+    def test_multiple_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("matplotlib>=3.8\nplotly>=5.0\nseaborn>=0.13\n")
+        result = detect_data_viz_libs(tmp_path)
+        assert "Matplotlib" in result
+        assert "Plotly" in result
+        assert "Seaborn" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("seaborn>=0.13\nmatplotlib>=3.8\nbokeh>=3.0\n")
+        result = detect_data_viz_libs(tmp_path)
         assert result == sorted(result)

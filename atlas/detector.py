@@ -5147,3 +5147,139 @@ def detect_pdf_libs(project_path: Path) -> list[str]:
             _add(name)
 
     return sorted(tools)
+
+
+def detect_data_viz_libs(project_path: Path) -> list[str]:
+    """Detect data visualization and charting libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map = {
+        "matplotlib": "Matplotlib",
+        "plotly": "Plotly",
+        "seaborn": "Seaborn",
+        "bokeh": "Bokeh",
+        "altair": "Altair",
+        "folium": "Folium",
+        "plotnine": "plotnine",
+        "pygal": "Pygal",
+        "holoviews": "HoloViews",
+        "hvplot": "hvPlot",
+        "panel": "Panel",
+        "dash": "Dash",
+        "streamlit": "Streamlit",
+        "gradio": "Gradio",
+        "pydeck": "pydeck",
+        "bqplot": "bqplot",
+        "mayavi": "Mayavi",
+        "vispy": "VisPy",
+        "pyecharts": "pyecharts",
+        "plotext": "Plotext",
+    }
+    for dep, name in py_map.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    js_content = ""
+    if pkg_json.exists():
+        try:
+            js_content = pkg_json.read_text().lower()
+        except OSError:
+            pass
+
+    js_map = {
+        "d3": "D3.js",
+        "chart.js": "Chart.js",
+        "recharts": "Recharts",
+        "@nivo/": "Nivo",
+        "victory": "Victory",
+        "@visx/": "Visx",
+        "echarts": "ECharts",
+        "highcharts": "Highcharts",
+        "apexcharts": "ApexCharts",
+        "plotly.js": "Plotly.js",
+        "three": "Three.js",
+        "@deck.gl/": "Deck.gl",
+        "@observablehq/plot": "Observable Plot",
+        "@tremor/": "Tremor",
+        "frappe-charts": "Frappe Charts",
+        "uplot": "uPlot",
+        "vega": "Vega",
+        "vega-lite": "Vega-Lite",
+        "lightweight-charts": "Lightweight Charts",
+        "@ant-design/charts": "Ant Charts",
+    }
+    for dep, name in js_map.items():
+        if dep in js_content:
+            _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_content = ""
+    if go_sum.exists():
+        try:
+            go_content = go_sum.read_text().lower()
+        except OSError:
+            pass
+
+    go_map = {
+        "go-echarts": "go-echarts",
+        "gonum.org/v1/plot": "Gonum Plot",
+        "go-chart": "go-chart",
+        "termui": "termui",
+        "asciigraph": "asciigraph",
+    }
+    for dep, name in go_map.items():
+        if dep.lower() in go_content:
+            _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    rust_content = ""
+    if cargo_toml.exists():
+        try:
+            rust_content = cargo_toml.read_text().lower()
+        except OSError:
+            pass
+
+    rust_map = {
+        "plotters": "Plotters",
+        "plotlib": "plotlib",
+        "charming": "charming",
+        "textplots": "textplots",
+    }
+    for dep, name in rust_map.items():
+        if dep in rust_content:
+            _add(name)
+
+    # Java
+    java_deps_dv = []
+    for build_file in ("build.gradle", "build.gradle.kts", "pom.xml"):
+        bf = project_path / build_file
+        if bf.exists():
+            try:
+                java_deps_dv.append(bf.read_text())
+            except Exception:
+                pass
+    java_content_dv = " ".join(java_deps_dv)
+
+    java_map_dv = {
+        "jfreechart": "JFreeChart",
+        "xchart": "XChart",
+        "javafx": "JavaFX Charts",
+        "processing": "Processing",
+    }
+    for dep, name in java_map_dv.items():
+        if dep in java_content_dv:
+            _add(name)
+
+    return sorted(tools)
