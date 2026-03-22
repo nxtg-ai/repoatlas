@@ -592,6 +592,7 @@ def doctor(
     format: Optional[str] = typer.Option(None, help="Output format: json or csv for structured output"),
     category: Optional[str] = typer.Option(None, "--category", "-c", help="Filter by category (e.g. testing, security, infra, deps, docs)"),
     priority: Optional[str] = typer.Option(None, "--priority", "-p", help="Filter by priority (critical, high, medium, low)"),
+    sort: Optional[str] = typer.Option(None, "--sort", help="Sort by: priority, category"),
 ):
     """Diagnose portfolio health and suggest fixes."""
     portfolio = _load_portfolio()
@@ -613,6 +614,14 @@ def doctor(
             console.print(f"[red]Unknown priority '{priority}'. Valid: critical, high, medium, low[/red]")
             raise typer.Exit(1)
         recs = [r for r in recs if r.priority == pri_lower]
+
+    if sort:
+        sort_lower = sort.lower()
+        if sort_lower == "priority":
+            priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+            recs.sort(key=lambda r: priority_order.get(r.priority, 99))
+        elif sort_lower == "category":
+            recs.sort(key=lambda r: r.category)
 
     if format and format.lower() == "json":
         import json as json_mod

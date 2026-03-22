@@ -1055,6 +1055,81 @@ class TestDoctor:
         assert result.exit_code == 1
         assert "Unknown priority" in result.output
 
+    def test_doctor_sort_priority_csv(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "bad-proj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = Project(
+            name="bad-proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--format", "csv", "--sort", "priority"])
+        assert result.exit_code == 0
+        import csv as csv_mod
+        import io
+        reader = csv_mod.reader(io.StringIO(result.output))
+        next(reader)  # skip header
+        rows = list(reader)
+        priorities = [r[0] for r in rows if r]
+        priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+        indices = [priority_order.get(p, 99) for p in priorities]
+        assert indices == sorted(indices)
+
+    def test_doctor_sort_category_csv(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "bad-proj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = Project(
+            name="bad-proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--format", "csv", "--sort", "category"])
+        assert result.exit_code == 0
+        import csv as csv_mod
+        import io
+        reader = csv_mod.reader(io.StringIO(result.output))
+        next(reader)  # skip header
+        rows = list(reader)
+        categories = [r[1] for r in rows if r]
+        assert categories == sorted(categories)
+
+    def test_doctor_sort_priority_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        d = tmp_path / "bad-proj"
+        d.mkdir()
+        from atlas.models import HealthScore as HS
+        hs = HS(tests=0.0, git_hygiene=0.0, documentation=0.0, structure=0.0)
+        hs.compute()
+        proj = Project(
+            name="bad-proj", path=str(d),
+            tech_stack=TechStack(languages={"Python": 10}),
+            git_info=GitInfo(branch="main", total_commits=0, has_remote=False, uncommitted_changes=100),
+            health=hs, test_file_count=0, source_file_count=50, total_file_count=50, loc=3000,
+        )
+        with patch("atlas.cli.scan_project", return_value=proj):
+            runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["doctor", "--format", "json", "--sort", "priority"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        priorities = [r["priority"] for r in data["recommendations"]]
+        priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+        indices = [priority_order.get(p, 99) for p in priorities]
+        assert indices == sorted(indices)
+
 
 # ===========================================================================
 # atlas ci
