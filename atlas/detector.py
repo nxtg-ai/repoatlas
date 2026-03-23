@@ -7474,3 +7474,242 @@ def detect_codegen_tools(project_path: Path) -> list[str]:
         _add("Buf")
 
     return sorted(tools)
+
+
+def detect_mocking_libs(project_path: Path) -> list[str]:
+    """Detect mocking, stubbing, and test fixture libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map_mock = {
+        "pytest-mock": "pytest-mock",
+        "mock": "unittest.mock",
+        "responses": "responses",
+        "httpretty": "HTTPretty",
+        "vcrpy": "VCR.py",
+        "requests-mock": "requests-mock",
+        "respx": "RESPX",
+        "aioresponses": "aioresponses",
+        "freezegun": "FreezeGun",
+        "time-machine": "time-machine",
+        "faker": "Faker",
+        "factory-boy": "Factory Boy",
+        "model-bakery": "Model Bakery",
+        "hypothesis": "Hypothesis",
+        "moto": "Moto",
+        "localstack": "LocalStack",
+        "trustme": "trustme",
+    }
+    for dep, name in py_map_mock.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_mock = pkg_json.read_text().lower()
+        except OSError:
+            js_content_mock = ""
+
+        js_map_mock = {
+            "msw": "MSW",
+            "nock": "nock",
+            "sinon": "Sinon.js",
+            "@faker-js/faker": "Faker.js",
+            "faker": "Faker.js",
+            "fishery": "Fishery",
+            "@mswjs/data": "MSW Data",
+            "miragejs": "Mirage JS",
+            "polly": "Polly.js",
+            "@pollyjs": "Polly.js",
+            "jest-mock-extended": "jest-mock-extended",
+            "test-data-bot": "test-data-bot",
+            "json-server": "JSON Server",
+            "mock-service-worker": "MSW",
+            "vitest-mock-extended": "vitest-mock-extended",
+        }
+        for dep, name in js_map_mock.items():
+            if dep in js_content_mock:
+                _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_mod = project_path / "go.mod"
+    go_content_mock = ""
+    for gf in (go_sum, go_mod):
+        if gf.exists():
+            try:
+                go_content_mock += gf.read_text().lower()
+            except OSError:
+                pass
+
+    if go_content_mock:
+        go_map_mock = {
+            "github.com/stretchr/testify": "testify",
+            "go.uber.org/mock": "gomock",
+            "github.com/golang/mock": "gomock",
+            "github.com/jarcoal/httpmock": "httpmock",
+            "github.com/h2non/gock": "gock",
+            "github.com/brianvoe/gofakeit": "GoFakeIt",
+        }
+        for dep, name in go_map_mock.items():
+            if dep in go_content_mock:
+                _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            rs_content_mock = cargo_toml.read_text().lower()
+        except OSError:
+            rs_content_mock = ""
+
+        rs_map_mock = {
+            "mockall": "mockall",
+            "mockito": "mockito-rs",
+            "wiremock": "wiremock-rs",
+            "fake": "fake-rs",
+            "proptest": "proptest",
+            "httpmock": "httpmock-rs",
+        }
+        for dep, name in rs_map_mock.items():
+            if dep in rs_content_mock:
+                _add(name)
+
+    # Java
+    pom_xml = project_path / "pom.xml"
+    build_gradle = project_path / "build.gradle"
+    build_gradle_kts = project_path / "build.gradle.kts"
+    java_content_mock = ""
+    for jf in (pom_xml, build_gradle, build_gradle_kts):
+        if jf.exists():
+            try:
+                java_content_mock += jf.read_text().lower()
+            except OSError:
+                pass
+
+    if java_content_mock:
+        java_map_mock = {
+            "mockito": "Mockito",
+            "wiremock": "WireMock",
+            "powermock": "PowerMock",
+            "easymock": "EasyMock",
+            "javafaker": "JavaFaker",
+            "datafaker": "DataFaker",
+            "testcontainers": "Testcontainers",
+        }
+        for dep, name in java_map_mock.items():
+            if dep in java_content_mock:
+                _add(name)
+
+    return sorted(tools)
+
+
+def detect_release_tools(project_path: Path) -> list[str]:
+    """Detect changelog, release, and versioning tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map_release = {
+        "bump2version": "bump2version",
+        "bumpversion": "bumpversion",
+        "python-semantic-release": "semantic-release",
+        "towncrier": "Towncrier",
+        "commitizen": "Commitizen",
+        "versioneer": "Versioneer",
+        "setuptools-scm": "setuptools-scm",
+        "pbr": "PBR",
+        "incremental": "Incremental",
+    }
+    for dep, name in py_map_release.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_release = pkg_json.read_text().lower()
+        except OSError:
+            js_content_release = ""
+
+        js_map_release = {
+            "semantic-release": "semantic-release",
+            "@semantic-release": "semantic-release",
+            "standard-version": "standard-version",
+            "@changesets/cli": "Changesets",
+            "@changesets": "Changesets",
+            "release-it": "release-it",
+            "conventional-changelog": "conventional-changelog",
+            "auto": "auto",
+            "np": "np",
+            "lerna": "Lerna",
+            "release-please": "release-please",
+            "bumpp": "bumpp",
+        }
+        for dep, name in js_map_release.items():
+            if dep in js_content_release:
+                _add(name)
+
+    # Go — goreleaser config
+    if (project_path / ".goreleaser.yml").exists() or (project_path / ".goreleaser.yaml").exists():
+        _add("GoReleaser")
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            rs_content_release = cargo_toml.read_text().lower()
+        except OSError:
+            rs_content_release = ""
+
+        if "cargo-release" in rs_content_release:
+            _add("cargo-release")
+        if "cargo-dist" in rs_content_release:
+            _add("cargo-dist")
+
+    # Java
+    pom_xml = project_path / "pom.xml"
+    build_gradle = project_path / "build.gradle"
+    java_content_release = ""
+    for jf in (pom_xml, build_gradle):
+        if jf.exists():
+            try:
+                java_content_release += jf.read_text().lower()
+            except OSError:
+                pass
+
+    if java_content_release:
+        if "maven-release-plugin" in java_content_release:
+            _add("Maven Release Plugin")
+        if "axion-release" in java_content_release:
+            _add("Axion Release Plugin")
+
+    # Config files
+    if (project_path / ".releaserc").exists() or (project_path / ".releaserc.json").exists() or (project_path / ".releaserc.yml").exists():
+        _add("semantic-release")
+    if (project_path / ".changeset").is_dir():
+        _add("Changesets")
+    if (project_path / "cliff.toml").exists() or (project_path / ".cliff.toml").exists():
+        _add("git-cliff")
+    if (project_path / ".release-it.json").exists() or (project_path / ".release-it.yml").exists():
+        _add("release-it")
+    if (project_path / "CHANGELOG.md").exists() or (project_path / "CHANGES.md").exists():
+        _add("Changelog")
+
+    return sorted(tools)

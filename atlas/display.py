@@ -207,6 +207,10 @@ CONNECTION_ICONS = {
     "grpc_divergence": "[yellow]📡[/yellow]",
     "shared_codegen_tool": "[green]⚙️[/green]",
     "codegen_divergence": "[yellow]⚙️[/yellow]",
+    "shared_mocking_lib": "[green]🎭[/green]",
+    "mocking_divergence": "[yellow]🎭[/yellow]",
+    "shared_release_tool": "[green]🏷️[/green]",
+    "release_tool_divergence": "[yellow]🏷️[/yellow]",
 }
 
 
@@ -1056,6 +1060,28 @@ def _show_portfolio_summary(portfolio: Portfolio):
         codegen_parts = [f"{cg} ({count})" for cg, count in top_codegen]
         lines.append(f"  [bold]Code Gen:[/bold]  {has_codegen}/{n} projects · {', '.join(codegen_parts)}")
 
+    # Mocking libs
+    has_mock = sum(1 for p in projects if p.tech_stack.mocking_libs)
+    if has_mock:
+        mock_counter: Counter[str] = Counter()
+        for p in projects:
+            for ml in p.tech_stack.mocking_libs:
+                mock_counter[ml] += 1
+        top_mock = mock_counter.most_common(6)
+        mock_parts = [f"{ml} ({count})" for ml, count in top_mock]
+        lines.append(f"  [bold]Mocking:[/bold]   {has_mock}/{n} projects · {', '.join(mock_parts)}")
+
+    # Release tools
+    has_release = sum(1 for p in projects if p.tech_stack.release_tools)
+    if has_release:
+        release_counter: Counter[str] = Counter()
+        for p in projects:
+            for rt in p.tech_stack.release_tools:
+                release_counter[rt] += 1
+        top_release = release_counter.most_common(6)
+        release_parts = [f"{rt} ({count})" for rt, count in top_release]
+        lines.append(f"  [bold]Releases:[/bold]  {has_release}/{n} projects · {', '.join(release_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1266,6 +1292,10 @@ def show_connections(connections: list[Connection]):
         "grpc_divergence": "RPC Approach Divergence",
         "shared_codegen_tool": "Shared Code Gen Tool",
         "codegen_divergence": "Code Gen Approach Divergence",
+        "shared_mocking_lib": "Shared Mocking Library",
+        "mocking_divergence": "Mocking Approach Divergence",
+        "shared_release_tool": "Shared Release Tool",
+        "release_tool_divergence": "Release Approach Divergence",
     }
 
     lines = []
@@ -1371,6 +1401,8 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_db_migration": "migrations", "db_migration_divergence": "migrations",
         "shared_grpc_lib": "grpc", "grpc_divergence": "grpc",
         "shared_codegen_tool": "codegen", "codegen_divergence": "codegen",
+        "shared_mocking_lib": "mocking", "mocking_divergence": "mocking",
+        "shared_release_tool": "releases", "release_tool_divergence": "releases",
     }
 
     for conn in connections:
@@ -1681,6 +1713,14 @@ def show_project_card(project: Project):
     if project.tech_stack.codegen_tools:
         cg = ", ".join(project.tech_stack.codegen_tools[:8])
         lines.append(f"  [bold]Code Gen:[/bold]  {cg}")
+
+    if project.tech_stack.mocking_libs:
+        mk = ", ".join(project.tech_stack.mocking_libs[:8])
+        lines.append(f"  [bold]Mocking:[/bold]   {mk}")
+
+    if project.tech_stack.release_tools:
+        rt = ", ".join(project.tech_stack.release_tools[:8])
+        lines.append(f"  [bold]Releases:[/bold]  {rt}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

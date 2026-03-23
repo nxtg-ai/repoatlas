@@ -459,6 +459,8 @@ CONNECTION_CATEGORIES = {
     "migrations": {"shared_db_migration", "db_migration_divergence"},
     "grpc": {"shared_grpc_lib", "grpc_divergence"},
     "codegen": {"shared_codegen_tool", "codegen_divergence"},
+    "mocking": {"shared_mocking_lib", "mocking_divergence"},
+    "releases": {"shared_release_tool", "release_tool_divergence"},
 }
 
 

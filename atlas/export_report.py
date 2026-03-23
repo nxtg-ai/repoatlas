@@ -712,6 +712,24 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         codegen_names = ", ".join(f"{t} ({c})" for t, c in codegen_counter_md.most_common(8))
         lines.append(f"**Code Gen Tools**: {has_codegen_md}/{n} projects · {codegen_names}")
 
+    has_mock_md = sum(1 for p in projects if p.tech_stack.mocking_libs)
+    if has_mock_md:
+        mock_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for ml in p.tech_stack.mocking_libs:
+                mock_counter_md[ml] += 1
+        mock_names = ", ".join(f"{t} ({c})" for t, c in mock_counter_md.most_common(8))
+        lines.append(f"**Mocking Libraries**: {has_mock_md}/{n} projects · {mock_names}")
+
+    has_release_md = sum(1 for p in projects if p.tech_stack.release_tools)
+    if has_release_md:
+        release_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for rt in p.tech_stack.release_tools:
+                release_counter_md[rt] += 1
+        release_names = ", ".join(f"{t} ({c})" for t, c in release_counter_md.most_common(8))
+        lines.append(f"**Release Tools**: {has_release_md}/{n} projects · {release_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -924,6 +942,12 @@ def _project_details(projects: list[Project]) -> list[str]:
         if p.tech_stack.codegen_tools:
             lines.append(f"- **Code Gen**: {', '.join(p.tech_stack.codegen_tools[:8])}")
 
+        if p.tech_stack.mocking_libs:
+            lines.append(f"- **Mocking**: {', '.join(p.tech_stack.mocking_libs[:8])}")
+
+        if p.tech_stack.release_tools:
+            lines.append(f"- **Releases**: {', '.join(p.tech_stack.release_tools[:8])}")
+
         if p.license:
             lines.append(f"- **License**: {p.license}")
 
@@ -1127,6 +1151,10 @@ def _connections_section(conns: list) -> list[str]:
         "grpc_divergence": "RPC Approach Divergence",
         "shared_codegen_tool": "Shared Code Gen Tool",
         "codegen_divergence": "Code Gen Approach Divergence",
+        "shared_mocking_lib": "Shared Mocking Library",
+        "mocking_divergence": "Mocking Approach Divergence",
+        "shared_release_tool": "Shared Release Tool",
+        "release_tool_divergence": "Release Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
@@ -1658,6 +1686,20 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             codegen_counter_j[cg] += 1
     has_codegen_j = sum(1 for p in projects if p.tech_stack.codegen_tools)
 
+    # Mocking libs
+    mock_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for ml in p.tech_stack.mocking_libs:
+            mock_counter_j[ml] += 1
+    has_mock_j = sum(1 for p in projects if p.tech_stack.mocking_libs)
+
+    # Release tools
+    release_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for rt in p.tech_stack.release_tools:
+            release_counter_j[rt] += 1
+    has_release_j = sum(1 for p in projects if p.tech_stack.release_tools)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1736,6 +1778,8 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "db_migration_tools": {"coverage": f"{has_mig_j}/{n}", "tools": dict(mig_counter_j.most_common(10))},
         "grpc_libs": {"coverage": f"{has_grpc_j}/{n}", "libs": dict(grpc_counter_j.most_common(10))},
         "codegen_tools": {"coverage": f"{has_codegen_j}/{n}", "tools": dict(codegen_counter_j.most_common(10))},
+        "mocking_libs": {"coverage": f"{has_mock_j}/{n}", "libs": dict(mock_counter_j.most_common(10))},
+        "release_tools": {"coverage": f"{has_release_j}/{n}", "tools": dict(release_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1756,7 +1800,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "Animation Libs", "Routing Libs", "Game Frameworks", "CMS Tools", "Rate Limiters", "DB Migration Tools", "gRPC/RPC Libs", "Code Gen Tools", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "Animation Libs", "Routing Libs", "Game Frameworks", "CMS Tools", "Rate Limiters", "DB Migration Tools", "gRPC/RPC Libs", "Code Gen Tools", "Mocking Libs", "Release Tools", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1843,6 +1887,8 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.db_migration_tools),
             "; ".join(ts.grpc_libs),
             "; ".join(ts.codegen_tools),
+            "; ".join(ts.mocking_libs),
+            "; ".join(ts.release_tools),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

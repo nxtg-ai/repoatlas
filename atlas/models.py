@@ -74,6 +74,8 @@ class TechStack:
     db_migration_tools: list[str] = field(default_factory=list)
     grpc_libs: list[str] = field(default_factory=list)
     codegen_tools: list[str] = field(default_factory=list)
+    mocking_libs: list[str] = field(default_factory=list)
+    release_tools: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -229,6 +231,8 @@ class Project:
                 "db_migration_tools": self.tech_stack.db_migration_tools,
                 "grpc_libs": self.tech_stack.grpc_libs,
                 "codegen_tools": self.tech_stack.codegen_tools,
+                "mocking_libs": self.tech_stack.mocking_libs,
+                "release_tools": self.tech_stack.release_tools,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -329,6 +333,8 @@ class Project:
                 db_migration_tools=ts.get("db_migration_tools", []),
                 grpc_libs=ts.get("grpc_libs", []),
                 codegen_tools=ts.get("codegen_tools", []),
+                mocking_libs=ts.get("mocking_libs", []),
+                release_tools=ts.get("release_tools", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

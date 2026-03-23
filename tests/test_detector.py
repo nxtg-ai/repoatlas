@@ -72,6 +72,8 @@ from atlas.detector import (
     detect_db_migration_tools,
     detect_grpc_libs,
     detect_codegen_tools,
+    detect_mocking_libs,
+    detect_release_tools,
     walk_files,
 )
 
@@ -7762,4 +7764,178 @@ class TestDetectCodegenTools:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("grpcio-tools==1.60\ncookiecutter==2.5\n")
         result = detect_codegen_tools(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectMockingLibs:
+    def test_empty(self, tmp_path):
+        assert detect_mocking_libs(tmp_path) == []
+
+    def test_python_pytest_mock(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pytest-mock==3.12\n")
+        result = detect_mocking_libs(tmp_path)
+        assert "pytest-mock" in result
+
+    def test_python_responses(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("responses==0.25\n")
+        result = detect_mocking_libs(tmp_path)
+        assert "responses" in result
+
+    def test_python_faker(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("faker==22.0\n")
+        result = detect_mocking_libs(tmp_path)
+        assert "Faker" in result
+
+    def test_python_factory_boy(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("factory-boy==3.3\n")
+        result = detect_mocking_libs(tmp_path)
+        assert "Factory Boy" in result
+
+    def test_python_hypothesis(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("hypothesis==6.92\n")
+        result = detect_mocking_libs(tmp_path)
+        assert "Hypothesis" in result
+
+    def test_python_moto(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("moto==5.0\n")
+        result = detect_mocking_libs(tmp_path)
+        assert "Moto" in result
+
+    def test_js_msw(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"msw":"^2.0"}}')
+        result = detect_mocking_libs(tmp_path)
+        assert "MSW" in result
+
+    def test_js_nock(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"nock":"^13"}}')
+        result = detect_mocking_libs(tmp_path)
+        assert "nock" in result
+
+    def test_js_sinon(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"sinon":"^17"}}')
+        result = detect_mocking_libs(tmp_path)
+        assert "Sinon.js" in result
+
+    def test_js_faker(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"@faker-js/faker":"^8"}}')
+        result = detect_mocking_libs(tmp_path)
+        assert "Faker.js" in result
+
+    def test_go_testify(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/stretchr/testify v1.8\n")
+        result = detect_mocking_libs(tmp_path)
+        assert "testify" in result
+
+    def test_go_gomock(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire go.uber.org/mock v0.4\n")
+        result = detect_mocking_libs(tmp_path)
+        assert "gomock" in result
+
+    def test_rust_mockall(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dev-dependencies]\nmockall = "0.12"\n')
+        result = detect_mocking_libs(tmp_path)
+        assert "mockall" in result
+
+    def test_java_mockito(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><artifactId>mockito-core</artifactId></dependency>")
+        result = detect_mocking_libs(tmp_path)
+        assert "Mockito" in result
+
+    def test_java_testcontainers(self, tmp_path):
+        (tmp_path / "build.gradle").write_text('testImplementation "org.testcontainers:testcontainers:1.19"')
+        result = detect_mocking_libs(tmp_path)
+        assert "Testcontainers" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pytest-mock==3.12\nfaker==22.0\n")
+        (tmp_path / "package.json").write_text('{"devDependencies":{"msw":"^2.0"}}')
+        result = detect_mocking_libs(tmp_path)
+        assert "pytest-mock" in result
+        assert "MSW" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pytest-mock==3.12\nfaker==22.0\nresponses==0.25\n")
+        result = detect_mocking_libs(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectReleaseTools:
+    def test_empty(self, tmp_path):
+        assert detect_release_tools(tmp_path) == []
+
+    def test_python_commitizen(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("commitizen==3.13\n")
+        result = detect_release_tools(tmp_path)
+        assert "Commitizen" in result
+
+    def test_python_towncrier(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("towncrier==23.11\n")
+        result = detect_release_tools(tmp_path)
+        assert "Towncrier" in result
+
+    def test_python_bump2version(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("bump2version==1.0\n")
+        result = detect_release_tools(tmp_path)
+        assert "bump2version" in result
+
+    def test_js_semantic_release(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"semantic-release":"^23"}}')
+        result = detect_release_tools(tmp_path)
+        assert "semantic-release" in result
+
+    def test_js_changesets(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"@changesets/cli":"^2"}}')
+        result = detect_release_tools(tmp_path)
+        assert "Changesets" in result
+
+    def test_js_release_it(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"release-it":"^17"}}')
+        result = detect_release_tools(tmp_path)
+        assert "release-it" in result
+
+    def test_js_lerna(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"lerna":"^8"}}')
+        result = detect_release_tools(tmp_path)
+        assert "Lerna" in result
+
+    def test_go_goreleaser(self, tmp_path):
+        (tmp_path / ".goreleaser.yml").write_text("builds:\n  - main: ./cmd\n")
+        result = detect_release_tools(tmp_path)
+        assert "GoReleaser" in result
+
+    def test_releaserc_config(self, tmp_path):
+        (tmp_path / ".releaserc").write_text("{}")
+        result = detect_release_tools(tmp_path)
+        assert "semantic-release" in result
+
+    def test_changeset_dir(self, tmp_path):
+        (tmp_path / ".changeset").mkdir()
+        result = detect_release_tools(tmp_path)
+        assert "Changesets" in result
+
+    def test_git_cliff_config(self, tmp_path):
+        (tmp_path / "cliff.toml").write_text("[changelog]\n")
+        result = detect_release_tools(tmp_path)
+        assert "git-cliff" in result
+
+    def test_changelog_file(self, tmp_path):
+        (tmp_path / "CHANGELOG.md").write_text("# Changelog\n")
+        result = detect_release_tools(tmp_path)
+        assert "Changelog" in result
+
+    def test_java_maven_release(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<plugin><artifactId>maven-release-plugin</artifactId></plugin>")
+        result = detect_release_tools(tmp_path)
+        assert "Maven Release Plugin" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("commitizen==3.13\n")
+        (tmp_path / "package.json").write_text('{"devDependencies":{"@changesets/cli":"^2"}}')
+        result = detect_release_tools(tmp_path)
+        assert "Commitizen" in result
+        assert "Changesets" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("commitizen==3.13\nbump2version==1.0\n")
+        result = detect_release_tools(tmp_path)
         assert result == sorted(result)

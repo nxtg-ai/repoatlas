@@ -46,6 +46,8 @@ from atlas.connections import (
     _find_db_migration_patterns,
     _find_grpc_patterns,
     _find_codegen_patterns,
+    _find_mocking_patterns,
+    _find_release_tool_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -58,7 +60,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
           state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, email_libs=None, compression_libs=None, scraping_libs=None, project_license="",
-          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None, game_frameworks=None, cms_tools=None, rate_limiters=None, db_migration_tools=None, grpc_libs=None, codegen_tools=None,
+          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None, game_frameworks=None, cms_tools=None, rate_limiters=None, db_migration_tools=None, grpc_libs=None, codegen_tools=None, mocking_libs=None, release_tools=None,
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -131,6 +133,8 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             db_migration_tools=db_migration_tools or [],
             grpc_libs=grpc_libs or [],
             codegen_tools=codegen_tools or [],
+            mocking_libs=mocking_libs or [],
+            release_tools=release_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -6610,3 +6614,113 @@ class TestFindCodegenPatterns:
         conns = find_connections(projects)
         codegen_types = {c.type for c in conns if "codegen" in c.type}
         assert "shared_codegen_tool" in codegen_types
+
+
+class TestFindMockingPatterns:
+    def test_empty(self):
+        conns = _find_mocking_patterns([])
+        assert conns == []
+
+    def test_single_project(self):
+        projects = [_proj("a", mocking_libs=["pytest-mock"])]
+        conns = _find_mocking_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_mocking(self):
+        projects = [
+            _proj("a", mocking_libs=["pytest-mock"]),
+            _proj("b", mocking_libs=["pytest-mock"]),
+        ]
+        conns = _find_mocking_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_mocking_lib"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_http_vs_unit(self):
+        projects = [
+            _proj("a", mocking_libs=["MSW"]),
+            _proj("b", mocking_libs=["Sinon.js"]),
+        ]
+        conns = _find_mocking_patterns(projects)
+        div = [c for c in conns if c.type == "mocking_divergence"]
+        assert len(div) == 1
+        assert "http/service" in div[0].detail.lower()
+        assert "unit/object" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", mocking_libs=["MSW"]),
+            _proj("b", mocking_libs=["nock"]),
+        ]
+        conns = _find_mocking_patterns(projects)
+        div = [c for c in conns if c.type == "mocking_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", mocking_libs=["MSW", "Sinon.js", "nock"]) for i in range(20)]
+        conns = _find_mocking_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", mocking_libs=["pytest-mock", "MSW"]),
+            _proj("b", mocking_libs=["pytest-mock", "Mockito"]),
+        ]
+        conns = find_connections(projects)
+        mock_types = {c.type for c in conns if "mocking" in c.type}
+        assert "shared_mocking_lib" in mock_types
+
+
+class TestFindReleaseToolPatterns:
+    def test_empty(self):
+        conns = _find_release_tool_patterns([])
+        assert conns == []
+
+    def test_single_project(self):
+        projects = [_proj("a", release_tools=["semantic-release"])]
+        conns = _find_release_tool_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_release(self):
+        projects = [
+            _proj("a", release_tools=["semantic-release"]),
+            _proj("b", release_tools=["semantic-release"]),
+        ]
+        conns = _find_release_tool_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_release_tool"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_automated_vs_manual(self):
+        projects = [
+            _proj("a", release_tools=["semantic-release"]),
+            _proj("b", release_tools=["standard-version"]),
+        ]
+        conns = _find_release_tool_patterns(projects)
+        div = [c for c in conns if c.type == "release_tool_divergence"]
+        assert len(div) == 1
+        assert "automated" in div[0].detail.lower()
+        assert "manual" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", release_tools=["semantic-release"]),
+            _proj("b", release_tools=["Changesets"]),
+        ]
+        conns = _find_release_tool_patterns(projects)
+        div = [c for c in conns if c.type == "release_tool_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", release_tools=["semantic-release", "standard-version"]) for i in range(20)]
+        conns = _find_release_tool_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", release_tools=["semantic-release", "standard-version"]),
+            _proj("b", release_tools=["semantic-release", "Changelog"]),
+        ]
+        conns = find_connections(projects)
+        release_types = {c.type for c in conns if "release" in c.type}
+        assert "shared_release_tool" in release_types

@@ -78,6 +78,8 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_db_migration_patterns(projects))
     connections.extend(_find_grpc_patterns(projects))
     connections.extend(_find_codegen_patterns(projects))
+    connections.extend(_find_mocking_patterns(projects))
+    connections.extend(_find_release_tool_patterns(projects))
     return connections
 
 
@@ -811,6 +813,117 @@ def _find_codegen_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="codegen_divergence",
             detail=f"Mixed codegen approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_mocking_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project mocking and test fixture patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.mocking_libs:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_mocking_lib",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Mocking divergence — HTTP mocking (MSW, nock, responses, WireMock) vs unit mocking (Mockito, gomock, mockall)
+    http_mocking = {"MSW", "nock", "responses", "HTTPretty", "VCR.py", "requests-mock",
+                    "RESPX", "aioresponses", "WireMock", "wiremock-rs", "httpmock",
+                    "httpmock-rs", "gock", "Polly.js", "Mirage JS", "JSON Server", "Moto", "LocalStack"}
+    unit_mocking = {"pytest-mock", "unittest.mock", "Sinon.js", "jest-mock-extended",
+                    "vitest-mock-extended", "testify", "gomock", "mockall", "mockito-rs",
+                    "Mockito", "PowerMock", "EasyMock"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "HTTP/service": {}, "unit/object": {},
+    }
+    cat_sets = [("HTTP/service", http_mocking), ("unit/object", unit_mocking)]
+    for p in projects:
+        for lib in p.tech_stack.mocking_libs:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="mocking_divergence",
+            detail=f"Mixed mocking approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_release_tool_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project release and changelog patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.release_tools:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_release_tool",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Release tool divergence — automated (semantic-release, Changesets, release-please) vs manual (standard-version, np, bump2version)
+    automated = {"semantic-release", "Changesets", "release-please", "auto",
+                 "Lerna", "GoReleaser", "cargo-release", "cargo-dist",
+                 "Maven Release Plugin", "Axion Release Plugin",
+                 "Commitizen", "python-semantic-release", "setuptools-scm"}
+    manual = {"standard-version", "conventional-changelog", "np", "release-it",
+              "bump2version", "bumpversion", "bumpp", "Versioneer",
+              "PBR", "Incremental", "Towncrier", "git-cliff", "Changelog"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "automated": {}, "manual": {},
+    }
+    cat_sets = [("automated", automated), ("manual", manual)]
+    for p in projects:
+        for lib in p.tech_stack.release_tools:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="release_tool_divergence",
+            detail=f"Mixed release approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

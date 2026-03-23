@@ -76,6 +76,8 @@ from atlas.detector import (
     detect_db_migration_tools,
     detect_grpc_libs,
     detect_codegen_tools,
+    detect_mocking_libs,
+    detect_release_tools,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -154,6 +156,8 @@ def scan_project(project_path: Path) -> Project:
     db_migration_tools = detect_db_migration_tools(path)
     grpc_libs = detect_grpc_libs(path)
     codegen_tools = detect_codegen_tools(path)
+    mocking_libs = detect_mocking_libs(path)
+    release_tools = detect_release_tools(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -227,6 +231,8 @@ def scan_project(project_path: Path) -> Project:
         db_migration_tools=db_migration_tools,
         grpc_libs=grpc_libs,
         codegen_tools=codegen_tools,
+        mocking_libs=mocking_libs,
+        release_tools=release_tools,
     )
 
     project = Project(
