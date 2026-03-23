@@ -6228,3 +6228,150 @@ def detect_scraping_libs(project_path: Path) -> list[str]:
                     _add(name)
 
     return sorted(tools)
+
+
+def detect_desktop_frameworks(project_path: Path) -> list[str]:
+    """Detect desktop and cross-platform GUI frameworks."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map = {
+        "pyqt5": "PyQt5",
+        "pyqt6": "PyQt6",
+        "pyside2": "PySide2",
+        "pyside6": "PySide6",
+        "wxpython": "wxPython",
+        "kivy": "Kivy",
+        "dearpygui": "DearPyGui",
+        "customtkinter": "CustomTkinter",
+        "flet": "Flet",
+        "pysimplegui": "PySimpleGUI",
+        "toga": "Toga",
+        "textual": "Textual",
+        "pyglet": "pyglet",
+    }
+    for dep, name in py_map.items():
+        if dep in python_deps:
+            _add(name)
+
+    # Check for tkinter imports in Python files
+    pyproject = project_path / "pyproject.toml"
+    if pyproject.exists():
+        try:
+            content = pyproject.read_text().lower()
+            if "tkinter" in content:
+                _add("Tkinter")
+        except OSError:
+            pass
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content = pkg_json.read_text().lower()
+        except OSError:
+            js_content = ""
+
+        js_map_desktop = {
+            "electron": "Electron",
+            "@electron/": "Electron",
+            "electron-builder": "Electron",
+            "tauri": "Tauri",
+            "@tauri-apps": "Tauri",
+            "nw": "NW.js",
+            "nw-builder": "NW.js",
+            "neutralinojs": "Neutralino",
+            "@neutralinojs": "Neutralino",
+            "@capacitor/core": "Capacitor",
+            "react-native": "React Native",
+            "@ionic/": "Ionic",
+        }
+        for dep, name in js_map_desktop.items():
+            if dep in js_content:
+                _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    if go_sum.exists():
+        try:
+            go_content = go_sum.read_text()
+        except OSError:
+            go_content = ""
+
+        desktop_go_map = {
+            "fyne.io/fyne": "Fyne",
+            "github.com/nicoria/wails": "Wails",
+            "github.com/nicoria/wails/v2": "Wails",
+            "github.com/nicoria/wails/v3": "Wails",
+            "github.com/nicoria/wails/": "Wails",
+            "github.com/nicoria/go-gtk": "go-gtk",
+            "gioui.org": "Gio",
+            "github.com/nicoria/lorca": "Lorca",
+        }
+        # Wails uses github.com/wailsapp/wails
+        if "github.com/wailsapp/wails" in go_content:
+            _add("Wails")
+        if "fyne.io/fyne" in go_content:
+            _add("Fyne")
+        if "gioui.org" in go_content:
+            _add("Gio")
+        if "github.com/nicoria/lorca" in go_content or "github.com/nicoria/go-gtk" in go_content:
+            pass  # handled above
+        if "github.com/nicoria/go-astilectron" in go_content:
+            _add("go-astilectron")
+
+    # Rust
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            rust_content = cargo.read_text()
+        except OSError:
+            rust_content = ""
+
+        desktop_rust_map = {
+            "iced": "Iced",
+            "dioxus": "Dioxus",
+            "slint": "Slint",
+            "egui": "egui",
+            "druid": "druid",
+            "tauri": "Tauri",
+            "gtk-rs": "gtk-rs",
+            "gtk4": "gtk-rs",
+        }
+        for dep, name in desktop_rust_map.items():
+            if dep in rust_content:
+                _add(name)
+
+    # Java
+    for java_file in ("pom.xml", "build.gradle", "build.gradle.kts"):
+        jf = project_path / java_file
+        if jf.exists():
+            try:
+                java_content_desktop = jf.read_text()
+            except OSError:
+                java_content_desktop = ""
+
+            java_map_desktop = {
+                "javafx": "JavaFX",
+                "openjfx": "JavaFX",
+                "javax.swing": "Swing",
+                "swt": "SWT",
+                "compose-desktop": "Compose Desktop",
+                "compose.desktop": "Compose Desktop",
+            }
+            for dep, name in java_map_desktop.items():
+                if dep in java_content_desktop.lower():
+                    _add(name)
+
+    # Tauri config file
+    if (project_path / "tauri.conf.json").exists() or (project_path / "src-tauri").is_dir():
+        _add("Tauri")
+
+    return sorted(tools)

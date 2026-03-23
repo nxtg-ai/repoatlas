@@ -33,6 +33,7 @@ from atlas.connections import (
     _find_config_tool_patterns,
     _find_caching_patterns,
     _find_template_engine_patterns,
+    _find_a11y_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -45,6 +46,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
           state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, email_libs=None, compression_libs=None, scraping_libs=None, project_license="",
+          desktop_frameworks=None, a11y_tools=None,
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -105,6 +107,8 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             email_libs=email_libs or [],
             compression_libs=compression_libs or [],
             scraping_libs=scraping_libs or [],
+            desktop_frameworks=desktop_frameworks or [],
+            a11y_tools=a11y_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -5837,3 +5841,62 @@ class TestFindCompressionPatterns:
         conns = find_connections(projects)
         comp_types = {c.type for c in conns if "compression" in c.type}
         assert "shared_compression_lib" in comp_types
+
+
+class TestFindA11yPatterns:
+    def test_empty(self):
+        projects = [_proj("a"), _proj("b")]
+        assert _find_a11y_patterns(projects) == []
+
+    def test_shared_a11y_tool(self):
+        projects = [
+            _proj("a", a11y_tools=["axe-core", "jsx-a11y"]),
+            _proj("b", a11y_tools=["axe-core", "Pa11y"]),
+        ]
+        conns = _find_a11y_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_a11y_tool"]
+        assert len(shared) >= 1
+        assert any("axe-core" in c.detail for c in shared)
+
+    def test_no_shared_when_disjoint(self):
+        projects = [
+            _proj("a", a11y_tools=["axe-core"]),
+            _proj("b", a11y_tools=["Pa11y"]),
+        ]
+        conns = _find_a11y_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_a11y_tool"]
+        assert len(shared) == 0
+
+    def test_testing_component_divergence(self):
+        projects = [
+            _proj("a", a11y_tools=["axe-core", "jest-axe"]),
+            _proj("b", a11y_tools=["React Aria", "Radix UI"]),
+        ]
+        conns = _find_a11y_patterns(projects)
+        div = [c for c in conns if c.type == "a11y_divergence"]
+        assert len(div) == 1
+        assert "testing" in div[0].detail.lower()
+        assert "component" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", a11y_tools=["axe-core"]),
+            _proj("b", a11y_tools=["jest-axe"]),
+        ]
+        conns = _find_a11y_patterns(projects)
+        div = [c for c in conns if c.type == "a11y_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", a11y_tools=["axe-core", "React Aria", "Pa11y"]) for i in range(20)]
+        conns = _find_a11y_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", a11y_tools=["axe-core", "jest-axe"]),
+            _proj("b", a11y_tools=["axe-core", "Radix UI"]),
+        ]
+        conns = find_connections(projects)
+        a11y_types = {c.type for c in conns if "a11y" in c.type}
+        assert "shared_a11y_tool" in a11y_types

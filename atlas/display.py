@@ -181,6 +181,8 @@ CONNECTION_ICONS = {
     "email_lib_divergence": "[yellow]✉[/yellow]",
     "shared_compression_lib": "[green]🗜[/green]",
     "compression_lib_divergence": "[yellow]🗜[/yellow]",
+    "shared_a11y_tool": "[green]♿[/green]",
+    "a11y_divergence": "[yellow]♿[/yellow]",
 }
 
 
@@ -909,6 +911,17 @@ def _show_portfolio_summary(portfolio: Portfolio):
         scraping_parts = [f"{sl} ({count})" for sl, count in top_scraping]
         lines.append(f"  [bold]Scraping:[/bold]  {has_scraping}/{n} projects · {', '.join(scraping_parts)}")
 
+    # Desktop frameworks
+    has_desktop = sum(1 for p in projects if p.tech_stack.desktop_frameworks)
+    if has_desktop:
+        desktop_counter: Counter[str] = Counter()
+        for p in projects:
+            for df in p.tech_stack.desktop_frameworks:
+                desktop_counter[df] += 1
+        top_desktop = desktop_counter.most_common(6)
+        desktop_parts = [f"{df} ({count})" for df, count in top_desktop]
+        lines.append(f"  [bold]Desktop:[/bold]   {has_desktop}/{n} projects · {', '.join(desktop_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1093,6 +1106,8 @@ def show_connections(connections: list[Connection]):
         "email_lib_divergence": "Email Approach Divergence",
         "shared_compression_lib": "Shared Compression Lib",
         "compression_lib_divergence": "Compression Approach Divergence",
+        "shared_a11y_tool": "Shared A11y Tool",
+        "a11y_divergence": "A11y Approach Divergence",
     }
 
     lines = []
@@ -1185,6 +1200,7 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_pdf_lib": "pdf", "pdf_lib_divergence": "pdf",
         "shared_email_lib": "email", "email_lib_divergence": "email",
         "shared_compression_lib": "compression", "compression_lib_divergence": "compression",
+        "shared_a11y_tool": "a11y", "a11y_divergence": "a11y",
     }
 
     for conn in connections:
@@ -1451,6 +1467,10 @@ def show_project_card(project: Project):
     if project.tech_stack.scraping_libs:
         scr = ", ".join(project.tech_stack.scraping_libs[:8])
         lines.append(f"  [bold]Scraping:[/bold]  {scr}")
+
+    if project.tech_stack.desktop_frameworks:
+        dsk = ", ".join(project.tech_stack.desktop_frameworks[:8])
+        lines.append(f"  [bold]Desktop:[/bold]   {dsk}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

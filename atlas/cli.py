@@ -162,6 +162,7 @@ def status(
     format: Optional[str] = typer.Option(None, help="Output format: json or csv"),
     grades: bool = typer.Option(False, "--grades", help="Show grade distribution summary"),
     sort: Optional[str] = typer.Option(None, help="Sort by: name, health, loc, grade"),
+    limit: Optional[int] = typer.Option(None, "--limit", "-n", help="Limit number of projects displayed"),
 ):
     """Display the portfolio dashboard."""
     portfolio = _load_portfolio()
@@ -221,6 +222,9 @@ def status(
             display_projects.sort(key=lambda p: p.loc, reverse=True)
         elif sort_lower == "grade":
             display_projects.sort(key=lambda p: (grade_rank.get(p.health.grade, 99), p.name.lower()))
+
+    if limit is not None and limit > 0:
+        display_projects = display_projects[:limit]
 
     if grades:
         from collections import Counter
@@ -442,6 +446,7 @@ CONNECTION_CATEGORIES = {
     "pdf": {"shared_pdf_lib", "pdf_lib_divergence"},
     "email": {"shared_email_lib", "email_lib_divergence"},
     "compression": {"shared_compression_lib", "compression_lib_divergence"},
+    "a11y": {"shared_a11y_tool", "a11y_divergence"},
 }
 
 

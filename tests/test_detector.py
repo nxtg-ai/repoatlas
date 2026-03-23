@@ -61,6 +61,7 @@ from atlas.detector import (
     detect_email_libs,
     detect_a11y_tools,
     detect_scraping_libs,
+    detect_desktop_frameworks,
     walk_files,
 )
 
@@ -6745,4 +6746,127 @@ class TestDetectScrapingLibs:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("scrapy>=2.11\nbeautifulsoup4>=4.12\nlxml>=5.0\n")
         result = detect_scraping_libs(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_desktop_frameworks
+class TestDetectDesktopFrameworks:
+    def test_empty_project(self, tmp_path):
+        assert detect_desktop_frameworks(tmp_path) == []
+
+    def test_python_pyqt5(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pyqt5>=5.15\n")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "PyQt5" in result
+
+    def test_python_pyqt6(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pyqt6>=6.6\n")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "PyQt6" in result
+
+    def test_python_pyside6(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pyside6>=6.6\n")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "PySide6" in result
+
+    def test_python_kivy(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("kivy>=2.3\n")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Kivy" in result
+
+    def test_python_customtkinter(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("customtkinter>=5.2\n")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "CustomTkinter" in result
+
+    def test_python_flet(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("flet>=0.21\n")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Flet" in result
+
+    def test_python_textual(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("textual>=0.50\n")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Textual" in result
+
+    def test_python_toga(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("toga>=0.4\n")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Toga" in result
+
+    def test_python_tkinter_pyproject(self, tmp_path):
+        (tmp_path / "pyproject.toml").write_text('[tool.mypy]\n# uses tkinter\n')
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Tkinter" in result
+
+    def test_js_electron(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"electron":"^28.0"}}')
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Electron" in result
+
+    def test_js_tauri(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@tauri-apps/api":"^1.5"}}')
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Tauri" in result
+
+    def test_js_react_native(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-native":"^0.73"}}')
+        result = detect_desktop_frameworks(tmp_path)
+        assert "React Native" in result
+
+    def test_js_neutralino(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@neutralinojs/lib":"^5.0"}}')
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Neutralino" in result
+
+    def test_go_fyne(self, tmp_path):
+        (tmp_path / "go.sum").write_text("fyne.io/fyne v2.4.0 h1:abc\n")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Fyne" in result
+
+    def test_go_wails(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/wailsapp/wails/v2 v2.7.0 h1:abc\n")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Wails" in result
+
+    def test_rust_iced(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\niced = "0.12"\n')
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Iced" in result
+
+    def test_rust_dioxus(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ndioxus = "0.5"\n')
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Dioxus" in result
+
+    def test_java_javafx(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency>javafx</dependency>")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "JavaFX" in result
+
+    def test_java_swing(self, tmp_path):
+        (tmp_path / "build.gradle").write_text("import javax.swing.*\n")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Swing" in result
+
+    def test_tauri_config(self, tmp_path):
+        (tmp_path / "tauri.conf.json").write_text("{}")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Tauri" in result
+
+    def test_tauri_src_dir(self, tmp_path):
+        (tmp_path / "src-tauri").mkdir()
+        result = detect_desktop_frameworks(tmp_path)
+        assert "Tauri" in result
+
+    def test_multiple_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pyqt6>=6.6\nkivy>=2.3\nflet>=0.21\n")
+        result = detect_desktop_frameworks(tmp_path)
+        assert "PyQt6" in result
+        assert "Kivy" in result
+        assert "Flet" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("kivy>=2.3\nflet>=0.21\npyqt6>=6.6\n")
+        result = detect_desktop_frameworks(tmp_path)
         assert result == sorted(result)

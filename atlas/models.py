@@ -63,6 +63,7 @@ class TechStack:
     email_libs: list[str] = field(default_factory=list)
     a11y_tools: list[str] = field(default_factory=list)
     scraping_libs: list[str] = field(default_factory=list)
+    desktop_frameworks: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -207,6 +208,7 @@ class Project:
                 "email_libs": self.tech_stack.email_libs,
                 "a11y_tools": self.tech_stack.a11y_tools,
                 "scraping_libs": self.tech_stack.scraping_libs,
+                "desktop_frameworks": self.tech_stack.desktop_frameworks,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -296,6 +298,7 @@ class Project:
                 email_libs=ts.get("email_libs", []),
                 a11y_tools=ts.get("a11y_tools", []),
                 scraping_libs=ts.get("scraping_libs", []),
+                desktop_frameworks=ts.get("desktop_frameworks", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

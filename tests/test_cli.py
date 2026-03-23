@@ -332,6 +332,50 @@ class TestStatus:
         assert result.exit_code == 0
         assert "proj" in result.output
 
+    def test_status_limit_json(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for i in range(5):
+            d = tmp_path / f"proj{i}"
+            d.mkdir()
+            proj = _make_project(f"proj{i}", str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--format", "json", "--limit", "2"])
+        assert result.exit_code == 0
+        import json as json_mod
+        data = json_mod.loads(result.output)
+        assert len(data["projects"]) == 2
+
+    def test_status_limit_csv(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for i in range(5):
+            d = tmp_path / f"proj{i}"
+            d.mkdir()
+            proj = _make_project(f"proj{i}", str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--format", "csv", "--limit", "3"])
+        assert result.exit_code == 0
+        import csv as csv_mod
+        import io
+        rows = [r for r in csv_mod.reader(io.StringIO(result.output)) if r]
+        assert len(rows) == 4  # header + 3
+
+    def test_status_limit_with_sort(self, portfolio_dir, tmp_path):
+        runner.invoke(app, ["init"])
+        for name in ["alpha", "bravo", "charlie", "delta"]:
+            d = tmp_path / name
+            d.mkdir()
+            proj = _make_project(name, str(d))
+            with patch("atlas.cli.scan_project", return_value=proj):
+                runner.invoke(app, ["add", str(d)])
+        result = runner.invoke(app, ["status", "--format", "csv", "--sort", "name", "--limit", "2"])
+        assert result.exit_code == 0
+        import csv as csv_mod
+        import io
+        rows = [r for r in csv_mod.reader(io.StringIO(result.output)) if r]
+        assert len(rows) == 3  # header + 2
+
 
 # ===========================================================================
 # atlas connections
@@ -438,7 +482,7 @@ class TestConnections:
             runner.invoke(app, ["add", str(d)])
         result = runner.invoke(app, ["connections", "--type", "list"])
         assert result.exit_code == 0
-        assert "54 categories" in result.output
+        assert "55 categories" in result.output
 
     def test_connections_type_list_shows_types(self, portfolio_dir, tmp_path):
         runner.invoke(app, ["init"])

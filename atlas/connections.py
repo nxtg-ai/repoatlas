@@ -65,7 +65,64 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_pdf_patterns(projects))
     connections.extend(_find_email_patterns(projects))
     connections.extend(_find_compression_patterns(projects))
+    connections.extend(_find_a11y_patterns(projects))
     return connections
+
+
+def _find_a11y_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project accessibility tool patterns."""
+    connections: list[Connection] = []
+
+    # Shared a11y tools — same tool used by 2+ projects
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.a11y_tools:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_a11y_tool",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # A11y divergence — testing/auditing vs component/runtime
+    testing = {"axe-core", "Pa11y", "Pa11y CI", "Lighthouse", "jest-axe",
+               "vitest-axe", "cypress-axe", "jsx-a11y", "Testing Library",
+               "Selenium", "Playwright", "a11y-config"}
+    component = {"React Aria", "Radix UI", "Reach UI", "Downshift",
+                 "react-focus-lock", "focus-trap-react", "ally.js",
+                 "a11y-dialog", "vue-a11y-utils"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "testing": {}, "component": {},
+    }
+    cat_sets = [("testing", testing), ("component", component)]
+    for p in projects:
+        for lib in p.tech_stack.a11y_tools:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="a11y_divergence",
+            detail=f"Mixed a11y approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
 
 
 def _find_shared_deps(projects: list[Project]) -> list[Connection]:
