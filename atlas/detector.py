@@ -6983,3 +6983,238 @@ def detect_cms_tools(project_path: Path) -> list[str]:
                 pass
 
     return sorted(tools)
+
+
+def detect_rate_limiters(project_path: Path) -> list[str]:
+    """Detect rate limiting and API protection libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map_rl = {
+        "slowapi": "SlowAPI",
+        "flask-limiter": "Flask-Limiter",
+        "django-ratelimit": "django-ratelimit",
+        "django-axes": "django-axes",
+        "limits": "Limits",
+        "ratelimit": "ratelimit",
+        "aiolimiter": "aiolimiter",
+        "fastapi-limiter": "fastapi-limiter",
+        "token-bucket": "Token Bucket",
+    }
+    for dep, name in py_map_rl.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_rl = pkg_json.read_text().lower()
+        except OSError:
+            js_content_rl = ""
+
+        js_map_rl = {
+            "express-rate-limit": "express-rate-limit",
+            "rate-limiter-flexible": "rate-limiter-flexible",
+            "@nestjs/throttler": "NestJS Throttler",
+            "bottleneck": "Bottleneck",
+            "p-throttle": "p-throttle",
+            "limiter": "Limiter",
+            "@upstash/ratelimit": "Upstash Ratelimit",
+            "express-slow-down": "express-slow-down",
+            "express-brute": "express-brute",
+        }
+        for dep, name in js_map_rl.items():
+            if dep in js_content_rl:
+                _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_mod = project_path / "go.mod"
+    go_content_rl = ""
+    for gf in (go_sum, go_mod):
+        if gf.exists():
+            try:
+                go_content_rl += gf.read_text().lower()
+            except OSError:
+                pass
+
+    if go_content_rl:
+        go_map_rl = {
+            "ulule/limiter": "Limiter",
+            "didip/tollbooth": "Tollbooth",
+            "sethvargo/go-limiter": "go-limiter",
+            "juju/ratelimit": "juju/ratelimit",
+            "x/time/rate": "x/time/rate",
+        }
+        for dep, name in go_map_rl.items():
+            if dep in go_content_rl:
+                _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            rs_content_rl = cargo_toml.read_text().lower()
+        except OSError:
+            rs_content_rl = ""
+
+        rs_map_rl = {
+            "governor": "Governor",
+            "actix-limitation": "actix-limitation",
+            "tower-rate-limit": "tower-rate-limit",
+            "rate-limit": "rate-limit",
+        }
+        for dep, name in rs_map_rl.items():
+            if dep in rs_content_rl:
+                _add(name)
+
+    # Java
+    pom_xml = project_path / "pom.xml"
+    build_gradle = project_path / "build.gradle"
+    build_gradle_kts = project_path / "build.gradle.kts"
+    java_content_rl = ""
+    for jf in (pom_xml, build_gradle, build_gradle_kts):
+        if jf.exists():
+            try:
+                java_content_rl += jf.read_text().lower()
+            except OSError:
+                pass
+
+    if java_content_rl:
+        java_map_rl = {
+            "bucket4j": "Bucket4j",
+            "resilience4j-ratelimiter": "Resilience4j",
+            "guava": "Guava RateLimiter",
+        }
+        for dep, name in java_map_rl.items():
+            if dep in java_content_rl:
+                _add(name)
+
+    return sorted(tools)
+
+
+def detect_db_migration_tools(project_path: Path) -> list[str]:
+    """Detect database migration and schema management tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map_mig = {
+        "alembic": "Alembic",
+        "django": "Django Migrations",
+        "yoyo-migrations": "Yoyo",
+        "migrate": "migrate",
+        "peewee-migrate": "peewee-migrate",
+        "aerich": "Aerich",
+        "piccolo": "Piccolo Migrations",
+    }
+    for dep, name in py_map_mig.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_mig = pkg_json.read_text().lower()
+        except OSError:
+            js_content_mig = ""
+
+        js_map_mig = {
+            "knex": "Knex Migrations",
+            "prisma": "Prisma Migrate",
+            "@prisma": "Prisma Migrate",
+            "typeorm": "TypeORM Migrations",
+            "sequelize": "Sequelize Migrations",
+            "drizzle-kit": "Drizzle Kit",
+            "db-migrate": "db-migrate",
+            "umzug": "Umzug",
+            "node-pg-migrate": "node-pg-migrate",
+            "kysely": "Kysely Migrations",
+            "mikro-orm": "MikroORM Migrations",
+            "@mikro-orm": "MikroORM Migrations",
+            "mongoose-migrate": "mongoose-migrate",
+        }
+        for dep, name in js_map_mig.items():
+            if dep in js_content_mig:
+                _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_mod = project_path / "go.mod"
+    go_content_mig = ""
+    for gf in (go_sum, go_mod):
+        if gf.exists():
+            try:
+                go_content_mig += gf.read_text().lower()
+            except OSError:
+                pass
+
+    if go_content_mig:
+        go_map_mig = {
+            "golang-migrate/migrate": "golang-migrate",
+            "pressly/goose": "Goose",
+            "rubenv/sql-migrate": "sql-migrate",
+            "amacneil/dbmate": "dbmate",
+            "atlas": "Atlas",
+        }
+        for dep, name in go_map_mig.items():
+            if dep in go_content_mig:
+                _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            rs_content_mig = cargo_toml.read_text().lower()
+        except OSError:
+            rs_content_mig = ""
+
+        rs_map_mig = {
+            "diesel_migrations": "Diesel Migrations",
+            "sea-orm-migration": "SeaORM Migrations",
+            "sqlx-migrate": "sqlx Migrations",
+            "refinery": "Refinery",
+            "barrel": "Barrel",
+        }
+        for dep, name in rs_map_mig.items():
+            if dep in rs_content_mig:
+                _add(name)
+
+    # Java
+    pom_xml = project_path / "pom.xml"
+    build_gradle = project_path / "build.gradle"
+    build_gradle_kts = project_path / "build.gradle.kts"
+    java_content_mig = ""
+    for jf in (pom_xml, build_gradle, build_gradle_kts):
+        if jf.exists():
+            try:
+                java_content_mig += jf.read_text().lower()
+            except OSError:
+                pass
+
+    if java_content_mig:
+        java_map_mig = {
+            "flyway": "Flyway",
+            "liquibase": "Liquibase",
+            "mybatis-migrations": "MyBatis Migrations",
+        }
+        for dep, name in java_map_mig.items():
+            if dep in java_content_mig:
+                _add(name)
+
+    return sorted(tools)

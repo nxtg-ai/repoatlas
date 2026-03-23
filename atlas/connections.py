@@ -74,6 +74,8 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_routing_lib_patterns(projects))
     connections.extend(_find_game_framework_patterns(projects))
     connections.extend(_find_cms_patterns(projects))
+    connections.extend(_find_rate_limiter_patterns(projects))
+    connections.extend(_find_db_migration_patterns(projects))
     return connections
 
 
@@ -579,6 +581,124 @@ def _find_cms_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="cms_divergence",
             detail=f"Mixed CMS approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_rate_limiter_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project rate limiting patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.rate_limiters:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_rate_limiter",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Rate limiter divergence — middleware vs library
+    middleware = {"express-rate-limit", "express-slow-down", "express-brute",
+                  "NestJS Throttler", "SlowAPI", "Flask-Limiter",
+                  "django-ratelimit", "django-axes", "actix-limitation",
+                  "tower-rate-limit", "fastapi-limiter"}
+    library = {"rate-limiter-flexible", "Bottleneck", "p-throttle",
+               "Upstash Ratelimit", "Limiter", "Limits", "ratelimit",
+               "aiolimiter", "Token Bucket", "Tollbooth", "go-limiter",
+               "juju/ratelimit", "x/time/rate", "Governor", "rate-limit",
+               "Bucket4j", "Resilience4j", "Guava RateLimiter"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "middleware": {}, "library": {},
+    }
+    cat_sets = [("middleware", middleware), ("library", library)]
+    for p in projects:
+        for lib in p.tech_stack.rate_limiters:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="rate_limiter_divergence",
+            detail=f"Mixed rate limiting approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_db_migration_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project database migration patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.db_migration_tools:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_db_migration",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # DB migration divergence — ORM-integrated vs standalone
+    orm_integrated = {"Alembic", "Django Migrations", "Prisma Migrate",
+                      "TypeORM Migrations", "Sequelize Migrations",
+                      "Drizzle Kit", "MikroORM Migrations", "Kysely Migrations",
+                      "Diesel Migrations", "SeaORM Migrations",
+                      "Aerich", "Piccolo Migrations", "peewee-migrate",
+                      "mongoose-migrate"}
+    standalone = {"Flyway", "Liquibase", "golang-migrate", "Goose",
+                  "sql-migrate", "dbmate", "Atlas", "db-migrate",
+                  "Umzug", "node-pg-migrate", "Yoyo", "migrate",
+                  "Refinery", "Barrel", "sqlx Migrations",
+                  "Knex Migrations", "MyBatis Migrations"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "ORM-integrated": {}, "standalone": {},
+    }
+    cat_sets = [("ORM-integrated", orm_integrated), ("standalone", standalone)]
+    for p in projects:
+        for lib in p.tech_stack.db_migration_tools:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="db_migration_divergence",
+            detail=f"Mixed migration approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

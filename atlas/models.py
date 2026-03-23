@@ -70,6 +70,8 @@ class TechStack:
     routing_libs: list[str] = field(default_factory=list)
     game_frameworks: list[str] = field(default_factory=list)
     cms_tools: list[str] = field(default_factory=list)
+    rate_limiters: list[str] = field(default_factory=list)
+    db_migration_tools: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -221,6 +223,8 @@ class Project:
                 "routing_libs": self.tech_stack.routing_libs,
                 "game_frameworks": self.tech_stack.game_frameworks,
                 "cms_tools": self.tech_stack.cms_tools,
+                "rate_limiters": self.tech_stack.rate_limiters,
+                "db_migration_tools": self.tech_stack.db_migration_tools,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -317,6 +321,8 @@ class Project:
                 routing_libs=ts.get("routing_libs", []),
                 game_frameworks=ts.get("game_frameworks", []),
                 cms_tools=ts.get("cms_tools", []),
+                rate_limiters=ts.get("rate_limiters", []),
+                db_migration_tools=ts.get("db_migration_tools", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

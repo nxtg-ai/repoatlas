@@ -455,6 +455,8 @@ CONNECTION_CATEGORIES = {
     "routing": {"shared_routing_lib", "routing_lib_divergence"},
     "games": {"shared_game_framework", "game_framework_divergence"},
     "cms": {"shared_cms", "cms_divergence"},
+    "rate-limiting": {"shared_rate_limiter", "rate_limiter_divergence"},
+    "migrations": {"shared_db_migration", "db_migration_divergence"},
 }
 
 

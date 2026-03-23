@@ -68,6 +68,8 @@ from atlas.detector import (
     detect_routing_libs,
     detect_game_frameworks,
     detect_cms_tools,
+    detect_rate_limiters,
+    detect_db_migration_tools,
     walk_files,
 )
 
@@ -7419,4 +7421,154 @@ class TestDetectCmsTools:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "package.json").write_text('{"dependencies":{"contentful":"^10.0","@strapi/strapi":"^4.0"}}')
         result = detect_cms_tools(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_rate_limiters
+class TestDetectRateLimiters:
+    def test_empty_project(self, tmp_path):
+        assert detect_rate_limiters(tmp_path) == []
+
+    def test_python_slowapi(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("slowapi==0.1.9\n")
+        result = detect_rate_limiters(tmp_path)
+        assert "SlowAPI" in result
+
+    def test_python_flask_limiter(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("flask-limiter==3.5\n")
+        result = detect_rate_limiters(tmp_path)
+        assert "Flask-Limiter" in result
+
+    def test_python_django_ratelimit(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("django-ratelimit==4.1\n")
+        result = detect_rate_limiters(tmp_path)
+        assert "django-ratelimit" in result
+
+    def test_js_express_rate_limit(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"express-rate-limit":"^7.0"}}')
+        result = detect_rate_limiters(tmp_path)
+        assert "express-rate-limit" in result
+
+    def test_js_rate_limiter_flexible(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"rate-limiter-flexible":"^4.0"}}')
+        result = detect_rate_limiters(tmp_path)
+        assert "rate-limiter-flexible" in result
+
+    def test_js_upstash(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@upstash/ratelimit":"^1.0"}}')
+        result = detect_rate_limiters(tmp_path)
+        assert "Upstash Ratelimit" in result
+
+    def test_js_bottleneck(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"bottleneck":"^2.19"}}')
+        result = detect_rate_limiters(tmp_path)
+        assert "Bottleneck" in result
+
+    def test_go_tollbooth(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/didip/tollbooth v6.0.0\n")
+        result = detect_rate_limiters(tmp_path)
+        assert "Tollbooth" in result
+
+    def test_rust_governor(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ngovernor = "0.6"\n')
+        result = detect_rate_limiters(tmp_path)
+        assert "Governor" in result
+
+    def test_java_bucket4j(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><artifactId>bucket4j-core</artifactId></dependency>")
+        result = detect_rate_limiters(tmp_path)
+        assert "Bucket4j" in result
+
+    def test_java_resilience4j(self, tmp_path):
+        (tmp_path / "build.gradle").write_text('implementation "io.github.resilience4j:resilience4j-ratelimiter:2.0"')
+        result = detect_rate_limiters(tmp_path)
+        assert "Resilience4j" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"express-rate-limit":"^7.0","bottleneck":"^2.19"}}')
+        result = detect_rate_limiters(tmp_path)
+        assert "express-rate-limit" in result
+        assert "Bottleneck" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"express-rate-limit":"^7.0","bottleneck":"^2.19"}}')
+        result = detect_rate_limiters(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_db_migration_tools
+class TestDetectDbMigrationTools:
+    def test_empty_project(self, tmp_path):
+        assert detect_db_migration_tools(tmp_path) == []
+
+    def test_python_alembic(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("alembic==1.13\n")
+        result = detect_db_migration_tools(tmp_path)
+        assert "Alembic" in result
+
+    def test_python_django(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("django==5.0\n")
+        result = detect_db_migration_tools(tmp_path)
+        assert "Django Migrations" in result
+
+    def test_js_prisma(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@prisma/client":"^5.0"}}')
+        result = detect_db_migration_tools(tmp_path)
+        assert "Prisma Migrate" in result
+
+    def test_js_drizzle_kit(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"drizzle-kit":"^0.20"}}')
+        result = detect_db_migration_tools(tmp_path)
+        assert "Drizzle Kit" in result
+
+    def test_js_knex(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"knex":"^3.0"}}')
+        result = detect_db_migration_tools(tmp_path)
+        assert "Knex Migrations" in result
+
+    def test_js_typeorm(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"typeorm":"^0.3"}}')
+        result = detect_db_migration_tools(tmp_path)
+        assert "TypeORM Migrations" in result
+
+    def test_go_golang_migrate(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/golang-migrate/migrate v4.0.0\n")
+        result = detect_db_migration_tools(tmp_path)
+        assert "golang-migrate" in result
+
+    def test_go_goose(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/pressly/goose v3.0.0\n")
+        result = detect_db_migration_tools(tmp_path)
+        assert "Goose" in result
+
+    def test_rust_diesel(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ndiesel_migrations = "2.0"\n')
+        result = detect_db_migration_tools(tmp_path)
+        assert "Diesel Migrations" in result
+
+    def test_rust_refinery(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nrefinery = "0.8"\n')
+        result = detect_db_migration_tools(tmp_path)
+        assert "Refinery" in result
+
+    def test_java_flyway(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><artifactId>flyway-core</artifactId></dependency>")
+        result = detect_db_migration_tools(tmp_path)
+        assert "Flyway" in result
+
+    def test_java_liquibase(self, tmp_path):
+        (tmp_path / "build.gradle").write_text('implementation "org.liquibase:liquibase-core:4.25"')
+        result = detect_db_migration_tools(tmp_path)
+        assert "Liquibase" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("alembic==1.13\n")
+        (tmp_path / "package.json").write_text('{"dependencies":{"knex":"^3.0"}}')
+        result = detect_db_migration_tools(tmp_path)
+        assert "Alembic" in result
+        assert "Knex Migrations" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("alembic==1.13\ndjango==5.0\n")
+        result = detect_db_migration_tools(tmp_path)
         assert result == sorted(result)

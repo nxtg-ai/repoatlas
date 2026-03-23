@@ -288,6 +288,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "routing_lib_divergence": "deps",
         "game_framework_divergence": "deps",
         "cms_divergence": "deps",
+        "rate_limiter_divergence": "infra",
+        "db_migration_divergence": "deps",
     }
 
     for conn in connections:

@@ -196,8 +196,10 @@
 | N-183 | [Routing Library Detection + Intelligence](#n-183-routing-library-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 | N-184 | [Game Development Framework Detection + Intelligence](#n-184-game-development-framework-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 | N-185 | [CMS & Headless CMS Detection + Intelligence](#n-185-cms--headless-cms-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
+| N-186 | [Rate Limiting Detection + Intelligence](#n-186-rate-limiting-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
+| N-187 | [Database Migration Detection + Intelligence](#n-187-database-migration-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 
-**Summary**: 182/185 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 184/187 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -267,7 +269,9 @@
 - Routing library detection: Flask Routes, FastAPI Router, Django URLs, Starlette/aiohttp/Sanic/Falcon/Bottle Routes (Python), React Router, TanStack Router, Vue Router, Angular Router, Wouter, SvelteKit Router, Expo Router, React Navigation, Navigo, Reach Router (JS/TS), Gorilla Mux, Chi, Gin Router, Echo Router, Fiber Router, httprouter (Go), Axum/Actix Web/Warp/Rocket Router (Rust), Spring MVC/WebFlux Router, Javalin Router, Spark Java Router (Java)
 - Game development framework detection: Pygame, Arcade, pyglet, Panda3D, Ursina, Pyxel, Cocos2d, Ren'Py (Python), Phaser, PixiJS, Three.js, Babylon.js, Kaboom.js, Excalibur, melonJS, PlayCanvas, A-Frame, Matter.js, Cannon.js, Planck.js (JS/TS), Ebiten, Pixel, g3n (Go), Bevy, ggez, macroquad, Piston, Amethyst, Fyrox, Tetra (Rust), LibGDX, LWJGL, jMonkeyEngine, Slick2D (Java)
 - CMS & headless CMS detection: Wagtail, django CMS, Mezzanine, Pelican, Lektor, Nikola (Python), Strapi, Sanity, Contentful, Ghost, KeystoneJS, Payload CMS, Directus, TinaCMS, Contentlayer, Nextra, Builder.io, Storyblok, Prismic, WordPress, Decap CMS, Hygraph (JS/TS), Hugo (Go/config), Jekyll (Ruby) — via deps, config files, and directory markers
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157, N-160, N-163, N-167, N-169, N-172, N-175, N-180, N-181, N-182, N-183, N-184, N-185
+- Rate limiting detection: SlowAPI, Flask-Limiter, django-ratelimit, django-axes, Limits, aiolimiter (Python), express-rate-limit, rate-limiter-flexible, NestJS Throttler, Bottleneck, Upstash Ratelimit, express-slow-down (JS/TS), Tollbooth, go-limiter, x/time/rate (Go), Governor, actix-limitation, tower-rate-limit (Rust), Bucket4j, Resilience4j, Guava RateLimiter (Java)
+- Database migration detection: Alembic, Django Migrations, Yoyo, Aerich, Piccolo Migrations (Python), Prisma Migrate, Drizzle Kit, Knex/TypeORM/Sequelize/MikroORM Migrations, db-migrate, Umzug (JS/TS), golang-migrate, Goose, sql-migrate, dbmate (Go), Diesel/SeaORM/sqlx Migrations, Refinery (Rust), Flyway, Liquibase, MyBatis Migrations (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157, N-160, N-163, N-167, N-169, N-172, N-175, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -334,7 +338,9 @@
 - Cross-project routing library intelligence (shared routing libs, framework-integrated vs standalone paradigm divergence)
 - Cross-project game framework intelligence (shared game frameworks, 2D vs 3D paradigm divergence)
 - Cross-project CMS intelligence (shared CMS tools, headless/API-first vs traditional/monolithic paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173, N-176, N-178, N-179, N-180, N-181, N-182, N-183, N-184, N-185
+- Cross-project rate limiter intelligence (shared rate limiters, middleware vs library paradigm divergence)
+- Cross-project database migration intelligence (shared migration tools, ORM-integrated vs standalone paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173, N-176, N-178, N-179, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -857,6 +863,16 @@
 **Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Bundled detection + intelligence for CMS and headless CMS tools. Detection: Python (Wagtail, django CMS, Mezzanine, Pelican, Lektor, MkDocs, Nikola), JS/TS (Strapi, Sanity, Contentful, Ghost, KeystoneJS, Payload CMS, Directus, TinaCMS, Contentlayer, Nextra, Builder.io, Storyblok, Prismic, WordPress, Decap CMS, Hygraph), Go/config (Hugo — via hugo.toml/yaml/json/config.toml), Ruby (Jekyll — via _config.yml + Gemfile). Intelligence: shared_cms (info), cms_divergence headless (Strapi, Sanity, Contentful) vs traditional (WordPress, Wagtail, Hugo) (warning). TechStack field `cms_tools`, CONNECTION_CATEGORIES (cms), display icons (📰), export/display type_labels, recommendations mapping. Capped at 10. 16 detection tests + 7 intelligence tests = 23 tests.
 **Shipped**: 2026-03-22. Total test count: 2656.
+
+### N-186: Rate Limiting Detection + Intelligence
+**Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Bundled detection + intelligence for rate limiting libraries. Detection: Python (SlowAPI, Flask-Limiter, django-ratelimit, django-axes, Limits, aiolimiter, fastapi-limiter, Token Bucket), JS/TS (express-rate-limit, rate-limiter-flexible, NestJS Throttler, Bottleneck, p-throttle, Upstash Ratelimit, express-slow-down), Go (Tollbooth, go-limiter, juju/ratelimit, x/time/rate), Rust (Governor, actix-limitation, tower-rate-limit), Java (Bucket4j, Resilience4j, Guava RateLimiter). Intelligence: shared_rate_limiter (info), rate_limiter_divergence middleware (express-rate-limit, SlowAPI) vs library (Bottleneck, rate-limiter-flexible, Governor) (warning). TechStack field `rate_limiters`, CONNECTION_CATEGORIES (rate-limiting), display icons (🚦), export/display type_labels, recommendations mapping. Capped at 10. 14 detection tests + 7 intelligence tests = 21 tests.
+**Shipped**: 2026-03-22. Total test count: 2677.
+
+### N-187: Database Migration Detection + Intelligence
+**Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Bundled detection + intelligence for database migration tools. Detection: Python (Alembic, Django Migrations, Yoyo, Aerich, Piccolo Migrations), JS/TS (Prisma Migrate, Drizzle Kit, Knex/TypeORM/Sequelize/MikroORM/Kysely Migrations, db-migrate, Umzug, node-pg-migrate), Go (golang-migrate, Goose, sql-migrate, dbmate, Atlas), Rust (Diesel/SeaORM/sqlx Migrations, Refinery, Barrel), Java (Flyway, Liquibase, MyBatis Migrations). Intelligence: shared_db_migration (info), db_migration_divergence ORM-integrated (Alembic, Prisma Migrate, Django Migrations) vs standalone (Flyway, golang-migrate, Goose) (warning). TechStack field `db_migration_tools`, CONNECTION_CATEGORIES (migrations), display icons (🔄), export/display type_labels, recommendations mapping. Capped at 10. 15 detection tests + 7 intelligence tests = 22 tests.
+**Shipped**: 2026-03-22. Total test count: 2699.
 
 ### N-173: Compression Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

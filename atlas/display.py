@@ -199,6 +199,10 @@ CONNECTION_ICONS = {
     "game_framework_divergence": "[yellow]🎮[/yellow]",
     "shared_cms": "[green]📰[/green]",
     "cms_divergence": "[yellow]📰[/yellow]",
+    "shared_rate_limiter": "[green]🚦[/green]",
+    "rate_limiter_divergence": "[yellow]🚦[/yellow]",
+    "shared_db_migration": "[green]🔄[/green]",
+    "db_migration_divergence": "[yellow]🔄[/yellow]",
 }
 
 
@@ -1004,6 +1008,28 @@ def _show_portfolio_summary(portfolio: Portfolio):
         cms_parts = [f"{ct} ({count})" for ct, count in top_cms]
         lines.append(f"  [bold]CMS:[/bold]       {has_cms}/{n} projects · {', '.join(cms_parts)}")
 
+    # Rate limiters
+    has_rl = sum(1 for p in projects if p.tech_stack.rate_limiters)
+    if has_rl:
+        rl_counter: Counter[str] = Counter()
+        for p in projects:
+            for rl in p.tech_stack.rate_limiters:
+                rl_counter[rl] += 1
+        top_rl = rl_counter.most_common(6)
+        rl_parts = [f"{rl} ({count})" for rl, count in top_rl]
+        lines.append(f"  [bold]Rate Limit:[/bold] {has_rl}/{n} projects · {', '.join(rl_parts)}")
+
+    # DB migrations
+    has_mig = sum(1 for p in projects if p.tech_stack.db_migration_tools)
+    if has_mig:
+        mig_counter: Counter[str] = Counter()
+        for p in projects:
+            for mt in p.tech_stack.db_migration_tools:
+                mig_counter[mt] += 1
+        top_mig = mig_counter.most_common(6)
+        mig_parts = [f"{mt} ({count})" for mt, count in top_mig]
+        lines.append(f"  [bold]Migrations:[/bold] {has_mig}/{n} projects · {', '.join(mig_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1206,6 +1232,10 @@ def show_connections(connections: list[Connection]):
         "game_framework_divergence": "Game Framework Approach Divergence",
         "shared_cms": "Shared CMS",
         "cms_divergence": "CMS Approach Divergence",
+        "shared_rate_limiter": "Shared Rate Limiter",
+        "rate_limiter_divergence": "Rate Limiter Approach Divergence",
+        "shared_db_migration": "Shared DB Migration",
+        "db_migration_divergence": "DB Migration Approach Divergence",
     }
 
     lines = []
@@ -1307,6 +1337,8 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_routing_lib": "routing", "routing_lib_divergence": "routing",
         "shared_game_framework": "games", "game_framework_divergence": "games",
         "shared_cms": "cms", "cms_divergence": "cms",
+        "shared_rate_limiter": "rate-limiting", "rate_limiter_divergence": "rate-limiting",
+        "shared_db_migration": "migrations", "db_migration_divergence": "migrations",
     }
 
     for conn in connections:
@@ -1601,6 +1633,14 @@ def show_project_card(project: Project):
     if project.tech_stack.cms_tools:
         cms = ", ".join(project.tech_stack.cms_tools[:8])
         lines.append(f"  [bold]CMS:[/bold]       {cms}")
+
+    if project.tech_stack.rate_limiters:
+        rlt = ", ".join(project.tech_stack.rate_limiters[:8])
+        lines.append(f"  [bold]Rate Limit:[/bold] {rlt}")
+
+    if project.tech_stack.db_migration_tools:
+        mig = ", ".join(project.tech_stack.db_migration_tools[:8])
+        lines.append(f"  [bold]Migrations:[/bold] {mig}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

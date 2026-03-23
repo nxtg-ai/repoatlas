@@ -42,6 +42,8 @@ from atlas.connections import (
     _find_routing_lib_patterns,
     _find_game_framework_patterns,
     _find_cms_patterns,
+    _find_rate_limiter_patterns,
+    _find_db_migration_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -54,7 +56,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
           state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, email_libs=None, compression_libs=None, scraping_libs=None, project_license="",
-          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None, game_frameworks=None, cms_tools=None,
+          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None, game_frameworks=None, cms_tools=None, rate_limiters=None, db_migration_tools=None,
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -123,6 +125,8 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             routing_libs=routing_libs or [],
             game_frameworks=game_frameworks or [],
             cms_tools=cms_tools or [],
+            rate_limiters=rate_limiters or [],
+            db_migration_tools=db_migration_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -6378,3 +6382,117 @@ class TestFindCmsPatterns:
         conns = find_connections(projects)
         cms_types = {c.type for c in conns if "cms" in c.type}
         assert "shared_cms" in cms_types
+
+
+# ---------------------------------------------------------------------------
+# Rate limiter patterns
+# ---------------------------------------------------------------------------
+class TestFindRateLimiterPatterns:
+    def test_no_projects(self):
+        assert _find_rate_limiter_patterns([]) == []
+
+    def test_single_project(self):
+        projects = [_proj("a", rate_limiters=["express-rate-limit"])]
+        conns = _find_rate_limiter_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_rate_limiter(self):
+        projects = [
+            _proj("a", rate_limiters=["express-rate-limit"]),
+            _proj("b", rate_limiters=["express-rate-limit"]),
+        ]
+        conns = _find_rate_limiter_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_rate_limiter"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_middleware_vs_library(self):
+        projects = [
+            _proj("a", rate_limiters=["express-rate-limit"]),
+            _proj("b", rate_limiters=["Bottleneck"]),
+        ]
+        conns = _find_rate_limiter_patterns(projects)
+        div = [c for c in conns if c.type == "rate_limiter_divergence"]
+        assert len(div) == 1
+        assert "middleware" in div[0].detail.lower()
+        assert "library" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", rate_limiters=["express-rate-limit"]),
+            _proj("b", rate_limiters=["SlowAPI"]),
+        ]
+        conns = _find_rate_limiter_patterns(projects)
+        div = [c for c in conns if c.type == "rate_limiter_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", rate_limiters=["express-rate-limit", "Bottleneck"]) for i in range(20)]
+        conns = _find_rate_limiter_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", rate_limiters=["express-rate-limit", "Bottleneck"]),
+            _proj("b", rate_limiters=["express-rate-limit", "rate-limiter-flexible"]),
+        ]
+        conns = find_connections(projects)
+        rl_types = {c.type for c in conns if "rate_limiter" in c.type}
+        assert "shared_rate_limiter" in rl_types
+
+
+# ---------------------------------------------------------------------------
+# DB migration patterns
+# ---------------------------------------------------------------------------
+class TestFindDbMigrationPatterns:
+    def test_no_projects(self):
+        assert _find_db_migration_patterns([]) == []
+
+    def test_single_project(self):
+        projects = [_proj("a", db_migration_tools=["Alembic"])]
+        conns = _find_db_migration_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_db_migration(self):
+        projects = [
+            _proj("a", db_migration_tools=["Alembic"]),
+            _proj("b", db_migration_tools=["Alembic"]),
+        ]
+        conns = _find_db_migration_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_db_migration"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_orm_vs_standalone(self):
+        projects = [
+            _proj("a", db_migration_tools=["Alembic"]),
+            _proj("b", db_migration_tools=["Flyway"]),
+        ]
+        conns = _find_db_migration_patterns(projects)
+        div = [c for c in conns if c.type == "db_migration_divergence"]
+        assert len(div) == 1
+        assert "orm-integrated" in div[0].detail.lower()
+        assert "standalone" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", db_migration_tools=["Alembic"]),
+            _proj("b", db_migration_tools=["Django Migrations"]),
+        ]
+        conns = _find_db_migration_patterns(projects)
+        div = [c for c in conns if c.type == "db_migration_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", db_migration_tools=["Alembic", "Flyway", "Goose"]) for i in range(20)]
+        conns = _find_db_migration_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", db_migration_tools=["Alembic", "Flyway"]),
+            _proj("b", db_migration_tools=["Alembic", "golang-migrate"]),
+        ]
+        conns = find_connections(projects)
+        mig_types = {c.type for c in conns if "db_migration" in c.type}
+        assert "shared_db_migration" in mig_types
