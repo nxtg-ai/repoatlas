@@ -457,6 +457,8 @@ CONNECTION_CATEGORIES = {
     "cms": {"shared_cms", "cms_divergence"},
     "rate-limiting": {"shared_rate_limiter", "rate_limiter_divergence"},
     "migrations": {"shared_db_migration", "db_migration_divergence"},
+    "grpc": {"shared_grpc_lib", "grpc_divergence"},
+    "codegen": {"shared_codegen_tool", "codegen_divergence"},
 }
 
 

@@ -44,6 +44,8 @@ from atlas.connections import (
     _find_cms_patterns,
     _find_rate_limiter_patterns,
     _find_db_migration_patterns,
+    _find_grpc_patterns,
+    _find_codegen_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -56,7 +58,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
           state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, email_libs=None, compression_libs=None, scraping_libs=None, project_license="",
-          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None, game_frameworks=None, cms_tools=None, rate_limiters=None, db_migration_tools=None,
+          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None, game_frameworks=None, cms_tools=None, rate_limiters=None, db_migration_tools=None, grpc_libs=None, codegen_tools=None,
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -127,6 +129,8 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             cms_tools=cms_tools or [],
             rate_limiters=rate_limiters or [],
             db_migration_tools=db_migration_tools or [],
+            grpc_libs=grpc_libs or [],
+            codegen_tools=codegen_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -6496,3 +6500,113 @@ class TestFindDbMigrationPatterns:
         conns = find_connections(projects)
         mig_types = {c.type for c in conns if "db_migration" in c.type}
         assert "shared_db_migration" in mig_types
+
+
+class TestFindGrpcPatterns:
+    def test_empty(self):
+        conns = _find_grpc_patterns([])
+        assert conns == []
+
+    def test_single_project(self):
+        projects = [_proj("a", grpc_libs=["gRPC"])]
+        conns = _find_grpc_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_grpc(self):
+        projects = [
+            _proj("a", grpc_libs=["gRPC"]),
+            _proj("b", grpc_libs=["gRPC"]),
+        ]
+        conns = _find_grpc_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_grpc_lib"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_schema_vs_dynamic(self):
+        projects = [
+            _proj("a", grpc_libs=["gRPC"]),
+            _proj("b", grpc_libs=["JSON-RPC"]),
+        ]
+        conns = _find_grpc_patterns(projects)
+        div = [c for c in conns if c.type == "grpc_divergence"]
+        assert len(div) == 1
+        assert "schema-based" in div[0].detail.lower()
+        assert "dynamic" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", grpc_libs=["gRPC"]),
+            _proj("b", grpc_libs=["tRPC"]),
+        ]
+        conns = _find_grpc_patterns(projects)
+        div = [c for c in conns if c.type == "grpc_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", grpc_libs=["gRPC", "JSON-RPC", "tRPC"]) for i in range(20)]
+        conns = _find_grpc_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", grpc_libs=["gRPC", "JSON-RPC"]),
+            _proj("b", grpc_libs=["gRPC", "RPyC"]),
+        ]
+        conns = find_connections(projects)
+        grpc_types = {c.type for c in conns if "grpc" in c.type}
+        assert "shared_grpc_lib" in grpc_types
+
+
+class TestFindCodegenPatterns:
+    def test_empty(self):
+        conns = _find_codegen_patterns([])
+        assert conns == []
+
+    def test_single_project(self):
+        projects = [_proj("a", codegen_tools=["protoc"])]
+        conns = _find_codegen_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_codegen(self):
+        projects = [
+            _proj("a", codegen_tools=["protoc"]),
+            _proj("b", codegen_tools=["protoc"]),
+        ]
+        conns = _find_codegen_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_codegen_tool"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_schema_vs_template(self):
+        projects = [
+            _proj("a", codegen_tools=["protoc"]),
+            _proj("b", codegen_tools=["Plop"]),
+        ]
+        conns = _find_codegen_patterns(projects)
+        div = [c for c in conns if c.type == "codegen_divergence"]
+        assert len(div) == 1
+        assert "schema-driven" in div[0].detail.lower()
+        assert "template-driven" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", codegen_tools=["protoc"]),
+            _proj("b", codegen_tools=["GraphQL Codegen"]),
+        ]
+        conns = _find_codegen_patterns(projects)
+        div = [c for c in conns if c.type == "codegen_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", codegen_tools=["protoc", "Plop", "Buf"]) for i in range(20)]
+        conns = _find_codegen_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", codegen_tools=["protoc", "Plop"]),
+            _proj("b", codegen_tools=["protoc", "Cookiecutter"]),
+        ]
+        conns = find_connections(projects)
+        codegen_types = {c.type for c in conns if "codegen" in c.type}
+        assert "shared_codegen_tool" in codegen_types

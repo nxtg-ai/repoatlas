@@ -7218,3 +7218,259 @@ def detect_db_migration_tools(project_path: Path) -> list[str]:
                 _add(name)
 
     return sorted(tools)
+
+
+def detect_grpc_libs(project_path: Path) -> list[str]:
+    """Detect gRPC and RPC framework libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map_grpc = {
+        "grpcio": "gRPC",
+        "grpcio-tools": "gRPC",
+        "betterproto": "betterproto",
+        "thrift": "Apache Thrift",
+        "rpyc": "RPyC",
+        "pyro5": "Pyro5",
+        "pyro4": "Pyro4",
+        "zerorpc": "zerorpc",
+        "jsonrpcserver": "JSON-RPC",
+        "jsonrpcclient": "JSON-RPC",
+    }
+    for dep, name in py_map_grpc.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_grpc = pkg_json.read_text().lower()
+        except OSError:
+            js_content_grpc = ""
+
+        js_map_grpc = {
+            "@grpc/grpc-js": "gRPC",
+            "@trpc/server": "tRPC",
+            "@trpc/client": "tRPC",
+            "@trpc/react-query": "tRPC",
+            "@connectrpc/connect": "ConnectRPC",
+            "@bufbuild/connect": "ConnectRPC",
+            "json-rpc-2.0": "JSON-RPC",
+            "jayson": "JSON-RPC",
+            "jsonrpc-lite": "JSON-RPC",
+            "nice-grpc": "nice-grpc",
+            "mali": "Mali",
+        }
+        for dep, name in js_map_grpc.items():
+            if dep in js_content_grpc:
+                _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_mod = project_path / "go.mod"
+    go_content_grpc = ""
+    for gf in (go_sum, go_mod):
+        if gf.exists():
+            try:
+                go_content_grpc += gf.read_text().lower()
+            except OSError:
+                pass
+
+    if go_content_grpc:
+        go_map_grpc = {
+            "google.golang.org/grpc": "gRPC",
+            "connectrpc.com/connect": "ConnectRPC",
+            "github.com/twitchtv/twirp": "Twirp",
+            "github.com/apache/thrift": "Apache Thrift",
+            "github.com/smallnest/rpcx": "rpcx",
+        }
+        for dep, name in go_map_grpc.items():
+            if dep in go_content_grpc:
+                _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            rs_content_grpc = cargo_toml.read_text().lower()
+        except OSError:
+            rs_content_grpc = ""
+
+        rs_map_grpc = {
+            "tonic": "Tonic",
+            "tarpc": "tarpc",
+            "capnp-rpc": "Cap'n Proto",
+            "prost": "Prost",
+        }
+        for dep, name in rs_map_grpc.items():
+            if dep in rs_content_grpc:
+                _add(name)
+
+    # Java
+    pom_xml = project_path / "pom.xml"
+    build_gradle = project_path / "build.gradle"
+    build_gradle_kts = project_path / "build.gradle.kts"
+    java_content_grpc = ""
+    for jf in (pom_xml, build_gradle, build_gradle_kts):
+        if jf.exists():
+            try:
+                java_content_grpc += jf.read_text().lower()
+            except OSError:
+                pass
+
+    if java_content_grpc:
+        java_map_grpc = {
+            "grpc-netty": "gRPC",
+            "grpc-stub": "gRPC",
+            "grpc-protobuf": "gRPC",
+            "grpc-spring-boot-starter": "gRPC",
+            "dubbo": "Apache Dubbo",
+            "avro-ipc": "Apache Avro RPC",
+        }
+        for dep, name in java_map_grpc.items():
+            if dep in java_content_grpc:
+                _add(name)
+
+    # Proto files as gRPC indicator
+    for f in project_path.iterdir():
+        if f.suffix == ".proto" and f.is_file():
+            _add("Protobuf")
+            break
+
+    return sorted(tools)
+
+
+def detect_codegen_tools(project_path: Path) -> list[str]:
+    """Detect code generation tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map_codegen = {
+        "grpcio-tools": "protoc",
+        "betterproto": "betterproto Codegen",
+        "datamodel-code-generator": "datamodel-code-generator",
+        "pydantic-to-typescript": "pydantic-to-typescript",
+        "openapi-python-client": "OpenAPI Generator",
+        "cookiecutter": "Cookiecutter",
+        "copier": "Copier",
+    }
+    for dep, name in py_map_codegen.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_codegen = pkg_json.read_text().lower()
+        except OSError:
+            js_content_codegen = ""
+
+        js_map_codegen = {
+            "@graphql-codegen/cli": "GraphQL Codegen",
+            "@graphql-codegen": "GraphQL Codegen",
+            "openapi-typescript": "openapi-typescript",
+            "openapi-typescript-codegen": "openapi-typescript",
+            "swagger-typescript-api": "swagger-typescript-api",
+            "@openapitools/openapi-generator-cli": "OpenAPI Generator",
+            "ts-proto": "ts-proto",
+            "@bufbuild/buf": "Buf",
+            "@bufbuild/protoc-gen-es": "Buf",
+            "quicktype": "quicktype",
+            "json-schema-to-typescript": "json-schema-to-typescript",
+            "prisma": "Prisma Generate",
+            "plop": "Plop",
+            "hygen": "Hygen",
+        }
+        for dep, name in js_map_codegen.items():
+            if dep in js_content_codegen:
+                _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_mod = project_path / "go.mod"
+    go_content_codegen = ""
+    for gf in (go_sum, go_mod):
+        if gf.exists():
+            try:
+                go_content_codegen += gf.read_text().lower()
+            except OSError:
+                pass
+
+    if go_content_codegen:
+        go_map_codegen = {
+            "github.com/sqlc-dev/sqlc": "sqlc",
+            "github.com/kyleconroy/sqlc": "sqlc",
+            "github.com/99designs/gqlgen": "gqlgen",
+            "github.com/deepmap/oapi-codegen": "oapi-codegen",
+            "entgo.io/ent": "Ent",
+            "github.com/bufbuild/buf": "Buf",
+        }
+        for dep, name in go_map_codegen.items():
+            if dep in go_content_codegen:
+                _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            rs_content_codegen = cargo_toml.read_text().lower()
+        except OSError:
+            rs_content_codegen = ""
+
+        rs_map_codegen = {
+            "prost-build": "Prost Build",
+            "tonic-build": "Tonic Build",
+            "bindgen": "bindgen",
+            "cbindgen": "cbindgen",
+        }
+        for dep, name in rs_map_codegen.items():
+            if dep in rs_content_codegen:
+                _add(name)
+
+    # Java
+    pom_xml = project_path / "pom.xml"
+    build_gradle = project_path / "build.gradle"
+    build_gradle_kts = project_path / "build.gradle.kts"
+    java_content_codegen = ""
+    for jf in (pom_xml, build_gradle, build_gradle_kts):
+        if jf.exists():
+            try:
+                java_content_codegen += jf.read_text().lower()
+            except OSError:
+                pass
+
+    if java_content_codegen:
+        java_map_codegen = {
+            "protobuf-maven-plugin": "protoc",
+            "openapi-generator-maven-plugin": "OpenAPI Generator",
+            "swagger-codegen": "Swagger Codegen",
+            "mapstruct": "MapStruct",
+            "lombok": "Lombok",
+            "jooq-codegen": "jOOQ Codegen",
+            "immutables": "Immutables",
+        }
+        for dep, name in java_map_codegen.items():
+            if dep in java_content_codegen:
+                _add(name)
+
+    # Buf config file
+    if (project_path / "buf.yaml").exists() or (project_path / "buf.gen.yaml").exists():
+        _add("Buf")
+
+    return sorted(tools)

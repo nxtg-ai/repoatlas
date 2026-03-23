@@ -70,6 +70,8 @@ from atlas.detector import (
     detect_cms_tools,
     detect_rate_limiters,
     detect_db_migration_tools,
+    detect_grpc_libs,
+    detect_codegen_tools,
     walk_files,
 )
 
@@ -7571,4 +7573,193 @@ class TestDetectDbMigrationTools:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("alembic==1.13\ndjango==5.0\n")
         result = detect_db_migration_tools(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectGrpcLibs:
+    def test_empty(self, tmp_path):
+        assert detect_grpc_libs(tmp_path) == []
+
+    def test_python_grpcio(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("grpcio==1.60\n")
+        result = detect_grpc_libs(tmp_path)
+        assert "gRPC" in result
+
+    def test_python_thrift(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("thrift==0.16\n")
+        result = detect_grpc_libs(tmp_path)
+        assert "Apache Thrift" in result
+
+    def test_python_rpyc(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("rpyc==5.3\n")
+        result = detect_grpc_libs(tmp_path)
+        assert "RPyC" in result
+
+    def test_js_trpc(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@trpc/server":"^10"}}')
+        result = detect_grpc_libs(tmp_path)
+        assert "tRPC" in result
+
+    def test_js_grpc(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@grpc/grpc-js":"^1.9"}}')
+        result = detect_grpc_libs(tmp_path)
+        assert "gRPC" in result
+
+    def test_js_connectrpc(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@connectrpc/connect":"^1.0"}}')
+        result = detect_grpc_libs(tmp_path)
+        assert "ConnectRPC" in result
+
+    def test_js_jsonrpc(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"jayson":"^4.0"}}')
+        result = detect_grpc_libs(tmp_path)
+        assert "JSON-RPC" in result
+
+    def test_go_grpc(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire google.golang.org/grpc v1.60\n")
+        result = detect_grpc_libs(tmp_path)
+        assert "gRPC" in result
+
+    def test_go_twirp(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/twitchtv/twirp v8.0\n")
+        result = detect_grpc_libs(tmp_path)
+        assert "Twirp" in result
+
+    def test_rust_tonic(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ntonic = "0.10"\n')
+        result = detect_grpc_libs(tmp_path)
+        assert "Tonic" in result
+
+    def test_rust_tarpc(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\ntarpc = "0.33"\n')
+        result = detect_grpc_libs(tmp_path)
+        assert "tarpc" in result
+
+    def test_java_grpc(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><artifactId>grpc-netty</artifactId></dependency>")
+        result = detect_grpc_libs(tmp_path)
+        assert "gRPC" in result
+
+    def test_java_dubbo(self, tmp_path):
+        (tmp_path / "build.gradle").write_text('implementation "org.apache.dubbo:dubbo:3.2"')
+        result = detect_grpc_libs(tmp_path)
+        assert "Apache Dubbo" in result
+
+    def test_proto_file(self, tmp_path):
+        (tmp_path / "service.proto").write_text('syntax = "proto3";')
+        result = detect_grpc_libs(tmp_path)
+        assert "Protobuf" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("grpcio==1.60\n")
+        (tmp_path / "package.json").write_text('{"dependencies":{"@trpc/server":"^10"}}')
+        result = detect_grpc_libs(tmp_path)
+        assert "gRPC" in result
+        assert "tRPC" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("grpcio==1.60\nthrift==0.16\n")
+        result = detect_grpc_libs(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectCodegenTools:
+    def test_empty(self, tmp_path):
+        assert detect_codegen_tools(tmp_path) == []
+
+    def test_python_protoc(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("grpcio-tools==1.60\n")
+        result = detect_codegen_tools(tmp_path)
+        assert "protoc" in result
+
+    def test_python_cookiecutter(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("cookiecutter==2.5\n")
+        result = detect_codegen_tools(tmp_path)
+        assert "Cookiecutter" in result
+
+    def test_python_datamodel_codegen(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("datamodel-code-generator==0.25\n")
+        result = detect_codegen_tools(tmp_path)
+        assert "datamodel-code-generator" in result
+
+    def test_js_graphql_codegen(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"@graphql-codegen/cli":"^5"}}')
+        result = detect_codegen_tools(tmp_path)
+        assert "GraphQL Codegen" in result
+
+    def test_js_openapi_generator(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"@openapitools/openapi-generator-cli":"^2"}}')
+        result = detect_codegen_tools(tmp_path)
+        assert "OpenAPI Generator" in result
+
+    def test_js_plop(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"plop":"^4"}}')
+        result = detect_codegen_tools(tmp_path)
+        assert "Plop" in result
+
+    def test_js_hygen(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"hygen":"^6"}}')
+        result = detect_codegen_tools(tmp_path)
+        assert "Hygen" in result
+
+    def test_js_ts_proto(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"ts-proto":"^1"}}')
+        result = detect_codegen_tools(tmp_path)
+        assert "ts-proto" in result
+
+    def test_go_sqlc(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/sqlc-dev/sqlc v1.25\n")
+        result = detect_codegen_tools(tmp_path)
+        assert "sqlc" in result
+
+    def test_go_gqlgen(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/99designs/gqlgen v0.17\n")
+        result = detect_codegen_tools(tmp_path)
+        assert "gqlgen" in result
+
+    def test_go_ent(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire entgo.io/ent v0.13\n")
+        result = detect_codegen_tools(tmp_path)
+        assert "Ent" in result
+
+    def test_rust_prost_build(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[build-dependencies]\nprost-build = "0.12"\n')
+        result = detect_codegen_tools(tmp_path)
+        assert "Prost Build" in result
+
+    def test_rust_bindgen(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[build-dependencies]\nbindgen = "0.69"\n')
+        result = detect_codegen_tools(tmp_path)
+        assert "bindgen" in result
+
+    def test_java_lombok(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><artifactId>lombok</artifactId></dependency>")
+        result = detect_codegen_tools(tmp_path)
+        assert "Lombok" in result
+
+    def test_java_mapstruct(self, tmp_path):
+        (tmp_path / "build.gradle").write_text('implementation "org.mapstruct:mapstruct:1.5"')
+        result = detect_codegen_tools(tmp_path)
+        assert "MapStruct" in result
+
+    def test_buf_config(self, tmp_path):
+        (tmp_path / "buf.yaml").write_text("version: v1\n")
+        result = detect_codegen_tools(tmp_path)
+        assert "Buf" in result
+
+    def test_buf_gen_config(self, tmp_path):
+        (tmp_path / "buf.gen.yaml").write_text("version: v1\n")
+        result = detect_codegen_tools(tmp_path)
+        assert "Buf" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("grpcio-tools==1.60\n")
+        (tmp_path / "package.json").write_text('{"devDependencies":{"@graphql-codegen/cli":"^5"}}')
+        result = detect_codegen_tools(tmp_path)
+        assert "protoc" in result
+        assert "GraphQL Codegen" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("grpcio-tools==1.60\ncookiecutter==2.5\n")
+        result = detect_codegen_tools(tmp_path)
         assert result == sorted(result)

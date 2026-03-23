@@ -203,6 +203,10 @@ CONNECTION_ICONS = {
     "rate_limiter_divergence": "[yellow]🚦[/yellow]",
     "shared_db_migration": "[green]🔄[/green]",
     "db_migration_divergence": "[yellow]🔄[/yellow]",
+    "shared_grpc_lib": "[green]📡[/green]",
+    "grpc_divergence": "[yellow]📡[/yellow]",
+    "shared_codegen_tool": "[green]⚙️[/green]",
+    "codegen_divergence": "[yellow]⚙️[/yellow]",
 }
 
 
@@ -1030,6 +1034,28 @@ def _show_portfolio_summary(portfolio: Portfolio):
         mig_parts = [f"{mt} ({count})" for mt, count in top_mig]
         lines.append(f"  [bold]Migrations:[/bold] {has_mig}/{n} projects · {', '.join(mig_parts)}")
 
+    # gRPC/RPC libs
+    has_grpc = sum(1 for p in projects if p.tech_stack.grpc_libs)
+    if has_grpc:
+        grpc_counter: Counter[str] = Counter()
+        for p in projects:
+            for gl in p.tech_stack.grpc_libs:
+                grpc_counter[gl] += 1
+        top_grpc = grpc_counter.most_common(6)
+        grpc_parts = [f"{gl} ({count})" for gl, count in top_grpc]
+        lines.append(f"  [bold]gRPC/RPC:[/bold]  {has_grpc}/{n} projects · {', '.join(grpc_parts)}")
+
+    # Code gen tools
+    has_codegen = sum(1 for p in projects if p.tech_stack.codegen_tools)
+    if has_codegen:
+        codegen_counter: Counter[str] = Counter()
+        for p in projects:
+            for cg in p.tech_stack.codegen_tools:
+                codegen_counter[cg] += 1
+        top_codegen = codegen_counter.most_common(6)
+        codegen_parts = [f"{cg} ({count})" for cg, count in top_codegen]
+        lines.append(f"  [bold]Code Gen:[/bold]  {has_codegen}/{n} projects · {', '.join(codegen_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1236,6 +1262,10 @@ def show_connections(connections: list[Connection]):
         "rate_limiter_divergence": "Rate Limiter Approach Divergence",
         "shared_db_migration": "Shared DB Migration",
         "db_migration_divergence": "DB Migration Approach Divergence",
+        "shared_grpc_lib": "Shared gRPC/RPC Library",
+        "grpc_divergence": "RPC Approach Divergence",
+        "shared_codegen_tool": "Shared Code Gen Tool",
+        "codegen_divergence": "Code Gen Approach Divergence",
     }
 
     lines = []
@@ -1339,6 +1369,8 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_cms": "cms", "cms_divergence": "cms",
         "shared_rate_limiter": "rate-limiting", "rate_limiter_divergence": "rate-limiting",
         "shared_db_migration": "migrations", "db_migration_divergence": "migrations",
+        "shared_grpc_lib": "grpc", "grpc_divergence": "grpc",
+        "shared_codegen_tool": "codegen", "codegen_divergence": "codegen",
     }
 
     for conn in connections:
@@ -1641,6 +1673,14 @@ def show_project_card(project: Project):
     if project.tech_stack.db_migration_tools:
         mig = ", ".join(project.tech_stack.db_migration_tools[:8])
         lines.append(f"  [bold]Migrations:[/bold] {mig}")
+
+    if project.tech_stack.grpc_libs:
+        grpc = ", ".join(project.tech_stack.grpc_libs[:8])
+        lines.append(f"  [bold]gRPC/RPC:[/bold]  {grpc}")
+
+    if project.tech_stack.codegen_tools:
+        cg = ", ".join(project.tech_stack.codegen_tools[:8])
+        lines.append(f"  [bold]Code Gen:[/bold]  {cg}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

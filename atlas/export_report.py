@@ -694,6 +694,24 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         mig_names = ", ".join(f"{t} ({c})" for t, c in mig_counter_md.most_common(8))
         lines.append(f"**DB Migration Tools**: {has_mig_md}/{n} projects · {mig_names}")
 
+    has_grpc_md = sum(1 for p in projects if p.tech_stack.grpc_libs)
+    if has_grpc_md:
+        grpc_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for gl in p.tech_stack.grpc_libs:
+                grpc_counter_md[gl] += 1
+        grpc_names = ", ".join(f"{t} ({c})" for t, c in grpc_counter_md.most_common(8))
+        lines.append(f"**gRPC/RPC Libraries**: {has_grpc_md}/{n} projects · {grpc_names}")
+
+    has_codegen_md = sum(1 for p in projects if p.tech_stack.codegen_tools)
+    if has_codegen_md:
+        codegen_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for cg in p.tech_stack.codegen_tools:
+                codegen_counter_md[cg] += 1
+        codegen_names = ", ".join(f"{t} ({c})" for t, c in codegen_counter_md.most_common(8))
+        lines.append(f"**Code Gen Tools**: {has_codegen_md}/{n} projects · {codegen_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -900,6 +918,12 @@ def _project_details(projects: list[Project]) -> list[str]:
         if p.tech_stack.db_migration_tools:
             lines.append(f"- **Migrations**: {', '.join(p.tech_stack.db_migration_tools[:8])}")
 
+        if p.tech_stack.grpc_libs:
+            lines.append(f"- **gRPC/RPC**: {', '.join(p.tech_stack.grpc_libs[:8])}")
+
+        if p.tech_stack.codegen_tools:
+            lines.append(f"- **Code Gen**: {', '.join(p.tech_stack.codegen_tools[:8])}")
+
         if p.license:
             lines.append(f"- **License**: {p.license}")
 
@@ -1099,6 +1123,10 @@ def _connections_section(conns: list) -> list[str]:
         "rate_limiter_divergence": "Rate Limiter Approach Divergence",
         "shared_db_migration": "Shared DB Migration",
         "db_migration_divergence": "DB Migration Approach Divergence",
+        "shared_grpc_lib": "Shared gRPC/RPC Library",
+        "grpc_divergence": "RPC Approach Divergence",
+        "shared_codegen_tool": "Shared Code Gen Tool",
+        "codegen_divergence": "Code Gen Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
@@ -1616,6 +1644,20 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             mig_counter_j[mt] += 1
     has_mig_j = sum(1 for p in projects if p.tech_stack.db_migration_tools)
 
+    # gRPC/RPC libs
+    grpc_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for gl in p.tech_stack.grpc_libs:
+            grpc_counter_j[gl] += 1
+    has_grpc_j = sum(1 for p in projects if p.tech_stack.grpc_libs)
+
+    # Code gen tools
+    codegen_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for cg in p.tech_stack.codegen_tools:
+            codegen_counter_j[cg] += 1
+    has_codegen_j = sum(1 for p in projects if p.tech_stack.codegen_tools)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1692,6 +1734,8 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "cms_tools": {"coverage": f"{has_cms_j}/{n}", "tools": dict(cms_counter_j.most_common(10))},
         "rate_limiters": {"coverage": f"{has_rl_j}/{n}", "tools": dict(rl_counter_j.most_common(10))},
         "db_migration_tools": {"coverage": f"{has_mig_j}/{n}", "tools": dict(mig_counter_j.most_common(10))},
+        "grpc_libs": {"coverage": f"{has_grpc_j}/{n}", "libs": dict(grpc_counter_j.most_common(10))},
+        "codegen_tools": {"coverage": f"{has_codegen_j}/{n}", "tools": dict(codegen_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1712,7 +1756,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "Animation Libs", "Routing Libs", "Game Frameworks", "CMS Tools", "Rate Limiters", "DB Migration Tools", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "Animation Libs", "Routing Libs", "Game Frameworks", "CMS Tools", "Rate Limiters", "DB Migration Tools", "gRPC/RPC Libs", "Code Gen Tools", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1797,6 +1841,8 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.cms_tools),
             "; ".join(ts.rate_limiters),
             "; ".join(ts.db_migration_tools),
+            "; ".join(ts.grpc_libs),
+            "; ".join(ts.codegen_tools),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

@@ -198,8 +198,10 @@
 | N-185 | [CMS & Headless CMS Detection + Intelligence](#n-185-cms--headless-cms-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 | N-186 | [Rate Limiting Detection + Intelligence](#n-186-rate-limiting-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 | N-187 | [Database Migration Detection + Intelligence](#n-187-database-migration-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
+| N-188 | [gRPC & RPC Framework Detection + Intelligence](#n-188-grpc--rpc-framework-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
+| N-189 | [Code Generation Tool Detection + Intelligence](#n-189-code-generation-tool-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 
-**Summary**: 184/187 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 186/189 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -271,7 +273,9 @@
 - CMS & headless CMS detection: Wagtail, django CMS, Mezzanine, Pelican, Lektor, Nikola (Python), Strapi, Sanity, Contentful, Ghost, KeystoneJS, Payload CMS, Directus, TinaCMS, Contentlayer, Nextra, Builder.io, Storyblok, Prismic, WordPress, Decap CMS, Hygraph (JS/TS), Hugo (Go/config), Jekyll (Ruby) — via deps, config files, and directory markers
 - Rate limiting detection: SlowAPI, Flask-Limiter, django-ratelimit, django-axes, Limits, aiolimiter (Python), express-rate-limit, rate-limiter-flexible, NestJS Throttler, Bottleneck, Upstash Ratelimit, express-slow-down (JS/TS), Tollbooth, go-limiter, x/time/rate (Go), Governor, actix-limitation, tower-rate-limit (Rust), Bucket4j, Resilience4j, Guava RateLimiter (Java)
 - Database migration detection: Alembic, Django Migrations, Yoyo, Aerich, Piccolo Migrations (Python), Prisma Migrate, Drizzle Kit, Knex/TypeORM/Sequelize/MikroORM Migrations, db-migrate, Umzug (JS/TS), golang-migrate, Goose, sql-migrate, dbmate (Go), Diesel/SeaORM/sqlx Migrations, Refinery (Rust), Flyway, Liquibase, MyBatis Migrations (Java)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157, N-160, N-163, N-167, N-169, N-172, N-175, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187
+- gRPC & RPC framework detection: gRPC, betterproto, Apache Thrift, RPyC, Pyro5, zerorpc, JSON-RPC (Python), tRPC, ConnectRPC, nice-grpc, Mali (JS/TS), Twirp, rpcx (Go), Tonic, tarpc, Cap'n Proto, Prost (Rust), Apache Dubbo, Apache Avro RPC (Java), Protobuf (.proto files)
+- Code generation tool detection: protoc, datamodel-code-generator, Cookiecutter, Copier (Python), GraphQL Codegen, OpenAPI Generator, openapi-typescript, ts-proto, Buf, Plop, Hygen, Prisma Generate (JS/TS), sqlc, gqlgen, oapi-codegen, Ent (Go), Prost Build, Tonic Build, bindgen, cbindgen (Rust), MapStruct, Lombok, jOOQ Codegen, Immutables (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157, N-160, N-163, N-167, N-169, N-172, N-175, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187, N-188, N-189
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -340,7 +344,9 @@
 - Cross-project CMS intelligence (shared CMS tools, headless/API-first vs traditional/monolithic paradigm divergence)
 - Cross-project rate limiter intelligence (shared rate limiters, middleware vs library paradigm divergence)
 - Cross-project database migration intelligence (shared migration tools, ORM-integrated vs standalone paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173, N-176, N-178, N-179, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187
+- Cross-project gRPC/RPC intelligence (shared RPC libs, schema-based vs dynamic paradigm divergence)
+- Cross-project code generation intelligence (shared codegen tools, schema-driven vs template-driven paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173, N-176, N-178, N-179, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187, N-188, N-189
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -873,6 +879,16 @@
 **Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Bundled detection + intelligence for database migration tools. Detection: Python (Alembic, Django Migrations, Yoyo, Aerich, Piccolo Migrations), JS/TS (Prisma Migrate, Drizzle Kit, Knex/TypeORM/Sequelize/MikroORM/Kysely Migrations, db-migrate, Umzug, node-pg-migrate), Go (golang-migrate, Goose, sql-migrate, dbmate, Atlas), Rust (Diesel/SeaORM/sqlx Migrations, Refinery, Barrel), Java (Flyway, Liquibase, MyBatis Migrations). Intelligence: shared_db_migration (info), db_migration_divergence ORM-integrated (Alembic, Prisma Migrate, Django Migrations) vs standalone (Flyway, golang-migrate, Goose) (warning). TechStack field `db_migration_tools`, CONNECTION_CATEGORIES (migrations), display icons (🔄), export/display type_labels, recommendations mapping. Capped at 10. 15 detection tests + 7 intelligence tests = 22 tests.
 **Shipped**: 2026-03-22. Total test count: 2699.
+
+### N-188: gRPC & RPC Framework Detection + Intelligence
+**Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Bundled detection + intelligence for gRPC and RPC framework libraries. Detection: Python (gRPC, betterproto, Apache Thrift, RPyC, Pyro5, Pyro4, zerorpc, JSON-RPC), JS/TS (gRPC, tRPC, ConnectRPC, JSON-RPC, nice-grpc, Mali), Go (gRPC, ConnectRPC, Twirp, Apache Thrift, rpcx), Rust (Tonic, tarpc, Cap'n Proto, Prost), Java (gRPC, Apache Dubbo, Apache Avro RPC), Protobuf (.proto files). Intelligence: shared_grpc_lib (info), grpc_divergence schema-based (gRPC, tRPC, ConnectRPC, Protobuf) vs dynamic (JSON-RPC, RPyC, zerorpc) (warning). TechStack field `grpc_libs`, CONNECTION_CATEGORIES (grpc), display icons (📡), export/display type_labels, recommendations mapping. Capped at 10. 17 detection tests + 7 intelligence tests = 24 tests.
+**Shipped**: 2026-03-22. Total test count: 2723.
+
+### N-189: Code Generation Tool Detection + Intelligence
+**Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Bundled detection + intelligence for code generation tools. Detection: Python (protoc, datamodel-code-generator, Cookiecutter, Copier, OpenAPI Generator, betterproto Codegen, pydantic-to-typescript), JS/TS (GraphQL Codegen, OpenAPI Generator, openapi-typescript, swagger-typescript-api, ts-proto, Buf, quicktype, json-schema-to-typescript, Prisma Generate, Plop, Hygen), Go (sqlc, gqlgen, oapi-codegen, Ent, Buf), Rust (Prost Build, Tonic Build, bindgen, cbindgen), Java (protoc, OpenAPI Generator, Swagger Codegen, MapStruct, Lombok, jOOQ Codegen, Immutables), Buf config (buf.yaml/buf.gen.yaml). Intelligence: shared_codegen_tool (info), codegen_divergence schema-driven (protoc, GraphQL Codegen, OpenAPI Generator, sqlc) vs template-driven (Plop, Hygen, Cookiecutter, Lombok) (warning). TechStack field `codegen_tools`, CONNECTION_CATEGORIES (codegen), display icons (⚙️), export/display type_labels, recommendations mapping. Capped at 10. 20 detection tests + 7 intelligence tests = 27 tests.
+**Shipped**: 2026-03-22. Total test count: 2750.
 
 ### N-173: Compression Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
