@@ -66,6 +66,8 @@ from atlas.detector import (
     detect_form_libs,
     detect_animation_libs,
     detect_routing_libs,
+    detect_game_frameworks,
+    detect_cms_tools,
     walk_files,
 )
 
@@ -7242,4 +7244,179 @@ class TestDetectRoutingLibs:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "package.json").write_text('{"dependencies":{"vue-router":"^4.0","react-router-dom":"^6.22"}}')
         result = detect_routing_libs(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_game_frameworks
+class TestDetectGameFrameworks:
+    def test_empty_project(self, tmp_path):
+        assert detect_game_frameworks(tmp_path) == []
+
+    def test_python_pygame(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pygame==2.5\n")
+        result = detect_game_frameworks(tmp_path)
+        assert "Pygame" in result
+
+    def test_python_arcade(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("arcade==2.7\n")
+        result = detect_game_frameworks(tmp_path)
+        assert "Arcade" in result
+
+    def test_python_panda3d(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("panda3d==1.10\n")
+        result = detect_game_frameworks(tmp_path)
+        assert "Panda3D" in result
+
+    def test_python_ursina(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("ursina==5.0\n")
+        result = detect_game_frameworks(tmp_path)
+        assert "Ursina" in result
+
+    def test_js_phaser(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"phaser":"^3.70"}}')
+        result = detect_game_frameworks(tmp_path)
+        assert "Phaser" in result
+
+    def test_js_pixijs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"pixi.js":"^7.3"}}')
+        result = detect_game_frameworks(tmp_path)
+        assert "PixiJS" in result
+
+    def test_js_three(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"three":"^0.160"}}')
+        result = detect_game_frameworks(tmp_path)
+        assert "Three.js" in result
+
+    def test_js_babylon(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@babylonjs/core":"^6.0"}}')
+        result = detect_game_frameworks(tmp_path)
+        assert "Babylon.js" in result
+
+    def test_js_kaboom(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"kaboom":"^3000"}}')
+        result = detect_game_frameworks(tmp_path)
+        assert "Kaboom.js" in result
+
+    def test_go_ebiten(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/hajimehoshi/ebiten v2.6.0\n")
+        result = detect_game_frameworks(tmp_path)
+        assert "Ebiten" in result
+
+    def test_rust_bevy(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nbevy = "0.12"\n')
+        result = detect_game_frameworks(tmp_path)
+        assert "Bevy" in result
+
+    def test_rust_macroquad(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nmacroquad = "0.4"\n')
+        result = detect_game_frameworks(tmp_path)
+        assert "macroquad" in result
+
+    def test_java_libgdx(self, tmp_path):
+        (tmp_path / "build.gradle").write_text('implementation "com.badlogicgames.gdx:libgdx:1.12"')
+        result = detect_game_frameworks(tmp_path)
+        assert "LibGDX" in result
+
+    def test_js_matter(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"matter-js":"^0.20"}}')
+        result = detect_game_frameworks(tmp_path)
+        assert "Matter.js" in result
+
+    def test_multiple_js(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"phaser":"^3.70","pixi.js":"^7.3"}}')
+        result = detect_game_frameworks(tmp_path)
+        assert "Phaser" in result
+        assert "PixiJS" in result
+
+    def test_dedup(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pygame==2.5\npygame-ce==2.3\n")
+        result = detect_game_frameworks(tmp_path)
+        assert result.count("Pygame") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"three":"^0.160","phaser":"^3.70"}}')
+        result = detect_game_frameworks(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_cms_tools
+class TestDetectCmsTools:
+    def test_empty_project(self, tmp_path):
+        assert detect_cms_tools(tmp_path) == []
+
+    def test_python_wagtail(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("wagtail==6.0\n")
+        result = detect_cms_tools(tmp_path)
+        assert "Wagtail" in result
+
+    def test_python_django_cms(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("django-cms==4.0\n")
+        result = detect_cms_tools(tmp_path)
+        assert "django CMS" in result
+
+    def test_python_pelican(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pelican==4.9\n")
+        result = detect_cms_tools(tmp_path)
+        assert "Pelican" in result
+
+    def test_js_strapi(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@strapi/strapi":"^4.0"}}')
+        result = detect_cms_tools(tmp_path)
+        assert "Strapi" in result
+
+    def test_js_sanity(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@sanity/client":"^6.0"}}')
+        result = detect_cms_tools(tmp_path)
+        assert "Sanity" in result
+
+    def test_js_contentful(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"contentful":"^10.0"}}')
+        result = detect_cms_tools(tmp_path)
+        assert "Contentful" in result
+
+    def test_js_payload(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@payloadcms/next":"^3.0"}}')
+        result = detect_cms_tools(tmp_path)
+        assert "Payload CMS" in result
+
+    def test_js_directus(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@directus/sdk":"^14.0"}}')
+        result = detect_cms_tools(tmp_path)
+        assert "Directus" in result
+
+    def test_js_storyblok(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@storyblok/react":"^3.0"}}')
+        result = detect_cms_tools(tmp_path)
+        assert "Storyblok" in result
+
+    def test_js_prismic(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@prismicio/client":"^7.0"}}')
+        result = detect_cms_tools(tmp_path)
+        assert "Prismic" in result
+
+    def test_hugo_config(self, tmp_path):
+        (tmp_path / "hugo.toml").write_text('title = "My Site"\n')
+        result = detect_cms_tools(tmp_path)
+        assert "Hugo" in result
+
+    def test_jekyll(self, tmp_path):
+        (tmp_path / "_config.yml").write_text("title: My Site\n")
+        (tmp_path / "Gemfile").write_text('gem "jekyll", "~> 4.3"\n')
+        result = detect_cms_tools(tmp_path)
+        assert "Jekyll" in result
+
+    def test_multiple_js(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@strapi/strapi":"^4.0","contentful":"^10.0"}}')
+        result = detect_cms_tools(tmp_path)
+        assert "Strapi" in result
+        assert "Contentful" in result
+
+    def test_dedup(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@strapi/strapi":"^4.0","strapi":"^4.0"}}')
+        result = detect_cms_tools(tmp_path)
+        assert result.count("Strapi") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"contentful":"^10.0","@strapi/strapi":"^4.0"}}')
+        result = detect_cms_tools(tmp_path)
         assert result == sorted(result)

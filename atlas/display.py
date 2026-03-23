@@ -195,6 +195,10 @@ CONNECTION_ICONS = {
     "animation_lib_divergence": "[yellow]🎬[/yellow]",
     "shared_routing_lib": "[green]🔀[/green]",
     "routing_lib_divergence": "[yellow]🔀[/yellow]",
+    "shared_game_framework": "[green]🎮[/green]",
+    "game_framework_divergence": "[yellow]🎮[/yellow]",
+    "shared_cms": "[green]📰[/green]",
+    "cms_divergence": "[yellow]📰[/yellow]",
 }
 
 
@@ -978,6 +982,28 @@ def _show_portfolio_summary(portfolio: Portfolio):
         routing_parts = [f"{rl} ({count})" for rl, count in top_routing]
         lines.append(f"  [bold]Routing:[/bold]   {has_routing}/{n} projects · {', '.join(routing_parts)}")
 
+    # Game frameworks
+    has_games = sum(1 for p in projects if p.tech_stack.game_frameworks)
+    if has_games:
+        game_counter: Counter[str] = Counter()
+        for p in projects:
+            for gf in p.tech_stack.game_frameworks:
+                game_counter[gf] += 1
+        top_games = game_counter.most_common(6)
+        game_parts = [f"{gf} ({count})" for gf, count in top_games]
+        lines.append(f"  [bold]Games:[/bold]     {has_games}/{n} projects · {', '.join(game_parts)}")
+
+    # CMS tools
+    has_cms = sum(1 for p in projects if p.tech_stack.cms_tools)
+    if has_cms:
+        cms_counter: Counter[str] = Counter()
+        for p in projects:
+            for ct in p.tech_stack.cms_tools:
+                cms_counter[ct] += 1
+        top_cms = cms_counter.most_common(6)
+        cms_parts = [f"{ct} ({count})" for ct, count in top_cms]
+        lines.append(f"  [bold]CMS:[/bold]       {has_cms}/{n} projects · {', '.join(cms_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1176,6 +1202,10 @@ def show_connections(connections: list[Connection]):
         "animation_lib_divergence": "Animation Approach Divergence",
         "shared_routing_lib": "Shared Routing Lib",
         "routing_lib_divergence": "Routing Approach Divergence",
+        "shared_game_framework": "Shared Game Framework",
+        "game_framework_divergence": "Game Framework Approach Divergence",
+        "shared_cms": "Shared CMS",
+        "cms_divergence": "CMS Approach Divergence",
     }
 
     lines = []
@@ -1275,6 +1305,8 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_form_lib": "forms", "form_lib_divergence": "forms",
         "shared_animation_lib": "animation", "animation_lib_divergence": "animation",
         "shared_routing_lib": "routing", "routing_lib_divergence": "routing",
+        "shared_game_framework": "games", "game_framework_divergence": "games",
+        "shared_cms": "cms", "cms_divergence": "cms",
     }
 
     for conn in connections:
@@ -1561,6 +1593,14 @@ def show_project_card(project: Project):
     if project.tech_stack.routing_libs:
         rtg = ", ".join(project.tech_stack.routing_libs[:8])
         lines.append(f"  [bold]Routing:[/bold]   {rtg}")
+
+    if project.tech_stack.game_frameworks:
+        gmf = ", ".join(project.tech_stack.game_frameworks[:8])
+        lines.append(f"  [bold]Games:[/bold]     {gmf}")
+
+    if project.tech_stack.cms_tools:
+        cms = ", ".join(project.tech_stack.cms_tools[:8])
+        lines.append(f"  [bold]CMS:[/bold]       {cms}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

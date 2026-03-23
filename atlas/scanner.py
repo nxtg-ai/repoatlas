@@ -70,6 +70,8 @@ from atlas.detector import (
     detect_form_libs,
     detect_animation_libs,
     detect_routing_libs,
+    detect_game_frameworks,
+    detect_cms_tools,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -142,6 +144,8 @@ def scan_project(project_path: Path) -> Project:
     form_libs = detect_form_libs(path)
     animation_libs = detect_animation_libs(path)
     routing_libs = detect_routing_libs(path)
+    game_frameworks = detect_game_frameworks(path)
+    cms_tools = detect_cms_tools(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -209,6 +213,8 @@ def scan_project(project_path: Path) -> Project:
         form_libs=form_libs,
         animation_libs=animation_libs,
         routing_libs=routing_libs,
+        game_frameworks=game_frameworks,
+        cms_tools=cms_tools,
     )
 
     project = Project(

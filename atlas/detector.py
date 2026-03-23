@@ -6752,3 +6752,234 @@ def detect_routing_libs(project_path: Path) -> list[str]:
                 _add(name)
 
     return sorted(tools)
+
+
+def detect_game_frameworks(project_path: Path) -> list[str]:
+    """Detect game development frameworks and engines."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map_game = {
+        "pygame": "Pygame",
+        "pygame-ce": "Pygame",
+        "arcade": "Arcade",
+        "pyglet": "pyglet",
+        "panda3d": "Panda3D",
+        "ursina": "Ursina",
+        "godot": "Godot",
+        "pyxel": "Pyxel",
+        "cocos2d": "Cocos2d",
+        "renpy": "Ren'Py",
+    }
+    for dep, name in py_map_game.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_game = pkg_json.read_text().lower()
+        except OSError:
+            js_content_game = ""
+
+        js_map_game = {
+            "phaser": "Phaser",
+            "pixi.js": "PixiJS",
+            "@pixi": "PixiJS",
+            "three": "Three.js",
+            "babylonjs": "Babylon.js",
+            "@babylonjs": "Babylon.js",
+            "kaboom": "Kaboom.js",
+            "excalibur": "Excalibur",
+            "melonjs": "melonJS",
+            "playcanvas": "PlayCanvas",
+            "aframe": "A-Frame",
+            "cannon-es": "Cannon.js",
+            "matter-js": "Matter.js",
+            "planck": "Planck.js",
+            "gdevelop": "GDevelop",
+        }
+        for dep, name in js_map_game.items():
+            if dep in js_content_game:
+                _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_mod = project_path / "go.mod"
+    go_content_game = ""
+    for gf in (go_sum, go_mod):
+        if gf.exists():
+            try:
+                go_content_game += gf.read_text().lower()
+            except OSError:
+                pass
+
+    if go_content_game:
+        go_map_game = {
+            "hajimehoshi/ebiten": "Ebiten",
+            "faiface/pixel": "Pixel",
+            "g3n/engine": "g3n",
+            "go-gl/glfw": "Go GL",
+        }
+        for dep, name in go_map_game.items():
+            if dep in go_content_game:
+                _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            rs_content_game = cargo_toml.read_text().lower()
+        except OSError:
+            rs_content_game = ""
+
+        rs_map_game = {
+            "bevy": "Bevy",
+            "ggez": "ggez",
+            "macroquad": "macroquad",
+            "piston": "Piston",
+            "amethyst": "Amethyst",
+            "fyrox": "Fyrox",
+            "tetra": "Tetra",
+        }
+        for dep, name in rs_map_game.items():
+            if dep in rs_content_game:
+                _add(name)
+
+    # Java
+    pom_xml = project_path / "pom.xml"
+    build_gradle = project_path / "build.gradle"
+    build_gradle_kts = project_path / "build.gradle.kts"
+    java_content_game = ""
+    for jf in (pom_xml, build_gradle, build_gradle_kts):
+        if jf.exists():
+            try:
+                java_content_game += jf.read_text().lower()
+            except OSError:
+                pass
+
+    if java_content_game:
+        java_map_game = {
+            "libgdx": "LibGDX",
+            "lwjgl": "LWJGL",
+            "jmonkeyengine": "jMonkeyEngine",
+            "slick2d": "Slick2D",
+        }
+        for dep, name in java_map_game.items():
+            if dep in java_content_game:
+                _add(name)
+
+    return sorted(tools)
+
+
+def detect_cms_tools(project_path: Path) -> list[str]:
+    """Detect CMS and headless CMS tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map_cms = {
+        "wagtail": "Wagtail",
+        "django-cms": "django CMS",
+        "mezzanine": "Mezzanine",
+        "pelican": "Pelican",
+        "lektor": "Lektor",
+        "mkdocs": "MkDocs",
+        "nikola": "Nikola",
+    }
+    for dep, name in py_map_cms.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_cms = pkg_json.read_text().lower()
+        except OSError:
+            js_content_cms = ""
+
+        js_map_cms = {
+            "@strapi": "Strapi",
+            "strapi": "Strapi",
+            "@sanity": "Sanity",
+            "sanity": "Sanity",
+            "contentful": "Contentful",
+            "@contentful": "Contentful",
+            "ghost": "Ghost",
+            "@ghost": "Ghost",
+            "@keystonejs": "KeystoneJS",
+            "payload": "Payload CMS",
+            "@payloadcms": "Payload CMS",
+            "directus": "Directus",
+            "@directus": "Directus",
+            "tinacms": "TinaCMS",
+            "@tinacms": "TinaCMS",
+            "contentlayer": "Contentlayer",
+            "nextra": "Nextra",
+            "@builder.io": "Builder.io",
+            "storyblok": "Storyblok",
+            "@storyblok": "Storyblok",
+            "prismic": "Prismic",
+            "@prismicio": "Prismic",
+            "wordpress": "WordPress",
+            "@wordpress": "WordPress",
+            "decap-cms": "Decap CMS",
+            "netlify-cms": "Decap CMS",
+            "hygraph": "Hygraph",
+            "@hygraph": "Hygraph",
+        }
+        for dep, name in js_map_cms.items():
+            if dep in js_content_cms:
+                _add(name)
+
+    # Go — Hugo and similar
+    go_sum = project_path / "go.sum"
+    go_mod = project_path / "go.mod"
+    go_content_cms = ""
+    for gf in (go_sum, go_mod):
+        if gf.exists():
+            try:
+                go_content_cms += gf.read_text().lower()
+            except OSError:
+                pass
+
+    if go_content_cms:
+        go_map_cms = {
+            "gohugo.io/hugo": "Hugo",
+        }
+        for dep, name in go_map_cms.items():
+            if dep in go_content_cms:
+                _add(name)
+
+    # Detect Hugo via config files
+    for hugo_config in ("hugo.toml", "hugo.yaml", "hugo.json", "config.toml"):
+        if (project_path / hugo_config).exists():
+            _add("Hugo")
+            break
+
+    # Detect Jekyll
+    if (project_path / "_config.yml").exists():
+        gemfile = project_path / "Gemfile"
+        if gemfile.exists():
+            try:
+                if "jekyll" in gemfile.read_text().lower():
+                    _add("Jekyll")
+            except OSError:
+                pass
+
+    return sorted(tools)

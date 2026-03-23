@@ -453,6 +453,8 @@ CONNECTION_CATEGORIES = {
     "forms": {"shared_form_lib", "form_lib_divergence"},
     "animation": {"shared_animation_lib", "animation_lib_divergence"},
     "routing": {"shared_routing_lib", "routing_lib_divergence"},
+    "games": {"shared_game_framework", "game_framework_divergence"},
+    "cms": {"shared_cms", "cms_divergence"},
 }
 
 

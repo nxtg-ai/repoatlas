@@ -68,6 +68,8 @@ class TechStack:
     form_libs: list[str] = field(default_factory=list)
     animation_libs: list[str] = field(default_factory=list)
     routing_libs: list[str] = field(default_factory=list)
+    game_frameworks: list[str] = field(default_factory=list)
+    cms_tools: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -217,6 +219,8 @@ class Project:
                 "form_libs": self.tech_stack.form_libs,
                 "animation_libs": self.tech_stack.animation_libs,
                 "routing_libs": self.tech_stack.routing_libs,
+                "game_frameworks": self.tech_stack.game_frameworks,
+                "cms_tools": self.tech_stack.cms_tools,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -311,6 +315,8 @@ class Project:
                 form_libs=ts.get("form_libs", []),
                 animation_libs=ts.get("animation_libs", []),
                 routing_libs=ts.get("routing_libs", []),
+                game_frameworks=ts.get("game_frameworks", []),
+                cms_tools=ts.get("cms_tools", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

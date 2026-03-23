@@ -72,6 +72,8 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_form_lib_patterns(projects))
     connections.extend(_find_animation_lib_patterns(projects))
     connections.extend(_find_routing_lib_patterns(projects))
+    connections.extend(_find_game_framework_patterns(projects))
+    connections.extend(_find_cms_patterns(projects))
     return connections
 
 
@@ -464,6 +466,119 @@ def _find_routing_lib_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="routing_lib_divergence",
             detail=f"Mixed routing approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_game_framework_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project game development framework patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.game_frameworks:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_game_framework",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Game framework divergence — 2D vs 3D
+    two_d = {"Pygame", "Arcade", "Pyxel", "Phaser", "PixiJS",
+             "Kaboom.js", "melonJS", "Excalibur", "Matter.js",
+             "Planck.js", "pyglet", "ggez", "macroquad", "Tetra",
+             "Cocos2d", "Ebiten", "Pixel", "Slick2D", "A-Frame"}
+    three_d = {"Three.js", "Babylon.js", "PlayCanvas", "Bevy",
+               "Piston", "Amethyst", "Fyrox", "Panda3D", "Ursina",
+               "LibGDX", "LWJGL", "jMonkeyEngine", "g3n", "Godot",
+               "Cannon.js", "Ren'Py", "GDevelop"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "2D": {}, "3D": {},
+    }
+    cat_sets = [("2D", two_d), ("3D", three_d)]
+    for p in projects:
+        for lib in p.tech_stack.game_frameworks:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="game_framework_divergence",
+            detail=f"Mixed game approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_cms_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project CMS and headless CMS patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.cms_tools:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_cms",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # CMS divergence — headless/API-first vs traditional/monolithic
+    headless = {"Strapi", "Sanity", "Contentful", "Directus",
+                "KeystoneJS", "Payload CMS", "TinaCMS", "Contentlayer",
+                "Builder.io", "Storyblok", "Prismic", "Hygraph",
+                "Decap CMS"}
+    traditional = {"WordPress", "Wagtail", "django CMS", "Ghost",
+                   "Mezzanine", "Hugo", "Jekyll", "Pelican",
+                   "Lektor", "Nextra", "Nikola", "MkDocs"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "headless": {}, "traditional": {},
+    }
+    cat_sets = [("headless", headless), ("traditional", traditional)]
+    for p in projects:
+        for lib in p.tech_stack.cms_tools:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="cms_divergence",
+            detail=f"Mixed CMS approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

@@ -482,7 +482,7 @@ class TestConnections:
             runner.invoke(app, ["add", str(d)])
         result = runner.invoke(app, ["connections", "--type", "list"])
         assert result.exit_code == 0
-        assert "61 categories" in result.output
+        assert "63 categories" in result.output
 
     def test_connections_type_list_shows_types(self, portfolio_dir, tmp_path):
         runner.invoke(app, ["init"])

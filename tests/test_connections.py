@@ -40,6 +40,8 @@ from atlas.connections import (
     _find_form_lib_patterns,
     _find_animation_lib_patterns,
     _find_routing_lib_patterns,
+    _find_game_framework_patterns,
+    _find_cms_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -52,7 +54,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
           state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, email_libs=None, compression_libs=None, scraping_libs=None, project_license="",
-          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None,
+          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None, game_frameworks=None, cms_tools=None,
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -119,6 +121,8 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             form_libs=form_libs or [],
             animation_libs=animation_libs or [],
             routing_libs=routing_libs or [],
+            game_frameworks=game_frameworks or [],
+            cms_tools=cms_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -6260,3 +6264,117 @@ class TestFindRoutingLibPatterns:
         conns = find_connections(projects)
         route_types = {c.type for c in conns if "routing" in c.type}
         assert "shared_routing_lib" in route_types
+
+
+# ---------------------------------------------------------------------------
+# Game framework patterns
+# ---------------------------------------------------------------------------
+class TestFindGameFrameworkPatterns:
+    def test_no_projects(self):
+        assert _find_game_framework_patterns([]) == []
+
+    def test_single_project(self):
+        projects = [_proj("a", game_frameworks=["Pygame"])]
+        conns = _find_game_framework_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_game_framework(self):
+        projects = [
+            _proj("a", game_frameworks=["Pygame"]),
+            _proj("b", game_frameworks=["Pygame"]),
+        ]
+        conns = _find_game_framework_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_game_framework"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_2d_vs_3d(self):
+        projects = [
+            _proj("a", game_frameworks=["Phaser"]),
+            _proj("b", game_frameworks=["Three.js"]),
+        ]
+        conns = _find_game_framework_patterns(projects)
+        div = [c for c in conns if c.type == "game_framework_divergence"]
+        assert len(div) == 1
+        assert "2D" in div[0].detail
+        assert "3D" in div[0].detail
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", game_frameworks=["Phaser"]),
+            _proj("b", game_frameworks=["PixiJS"]),
+        ]
+        conns = _find_game_framework_patterns(projects)
+        div = [c for c in conns if c.type == "game_framework_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", game_frameworks=["Phaser", "Three.js", "Bevy"]) for i in range(20)]
+        conns = _find_game_framework_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", game_frameworks=["Pygame", "Phaser"]),
+            _proj("b", game_frameworks=["Pygame", "Three.js"]),
+        ]
+        conns = find_connections(projects)
+        game_types = {c.type for c in conns if "game" in c.type}
+        assert "shared_game_framework" in game_types
+
+
+# ---------------------------------------------------------------------------
+# CMS patterns
+# ---------------------------------------------------------------------------
+class TestFindCmsPatterns:
+    def test_no_projects(self):
+        assert _find_cms_patterns([]) == []
+
+    def test_single_project(self):
+        projects = [_proj("a", cms_tools=["Strapi"])]
+        conns = _find_cms_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_cms(self):
+        projects = [
+            _proj("a", cms_tools=["Strapi"]),
+            _proj("b", cms_tools=["Strapi"]),
+        ]
+        conns = _find_cms_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_cms"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_headless_vs_traditional(self):
+        projects = [
+            _proj("a", cms_tools=["Strapi"]),
+            _proj("b", cms_tools=["WordPress"]),
+        ]
+        conns = _find_cms_patterns(projects)
+        div = [c for c in conns if c.type == "cms_divergence"]
+        assert len(div) == 1
+        assert "headless" in div[0].detail.lower()
+        assert "traditional" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", cms_tools=["Strapi"]),
+            _proj("b", cms_tools=["Sanity"]),
+        ]
+        conns = _find_cms_patterns(projects)
+        div = [c for c in conns if c.type == "cms_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", cms_tools=["Strapi", "WordPress", "Hugo"]) for i in range(20)]
+        conns = _find_cms_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", cms_tools=["Strapi", "WordPress"]),
+            _proj("b", cms_tools=["Strapi", "Sanity"]),
+        ]
+        conns = find_connections(projects)
+        cms_types = {c.type for c in conns if "cms" in c.type}
+        assert "shared_cms" in cms_types
