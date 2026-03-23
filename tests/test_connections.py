@@ -50,6 +50,8 @@ from atlas.connections import (
     _find_release_tool_patterns,
     _find_e2e_testing_patterns,
     _find_monorepo_patterns,
+    _find_error_tracking_patterns,
+    _find_ssg_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -62,7 +64,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
           state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, email_libs=None, compression_libs=None, scraping_libs=None, project_license="",
-          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None, game_frameworks=None, cms_tools=None, rate_limiters=None, db_migration_tools=None, grpc_libs=None, codegen_tools=None, mocking_libs=None, release_tools=None, e2e_testing=None, monorepo_tools=None,
+          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None, game_frameworks=None, cms_tools=None, rate_limiters=None, db_migration_tools=None, grpc_libs=None, codegen_tools=None, mocking_libs=None, release_tools=None, e2e_testing=None, monorepo_tools=None, error_tracking=None, static_site_generators=None,
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -139,6 +141,8 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             release_tools=release_tools or [],
             e2e_testing=e2e_testing or [],
             monorepo_tools=monorepo_tools or [],
+            error_tracking=error_tracking or [],
+            static_site_generators=static_site_generators or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -6837,3 +6841,113 @@ class TestFindMonorepoPatterns:
         conns = find_connections(projects)
         mono_types = {c.type for c in conns if "monorepo" in c.type}
         assert "shared_monorepo_tool" in mono_types
+
+
+class TestFindErrorTrackingPatterns:
+    def test_empty(self):
+        conns = _find_error_tracking_patterns([])
+        assert conns == []
+
+    def test_single_project(self):
+        projects = [_proj("a", error_tracking=["Sentry"])]
+        conns = _find_error_tracking_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_tracker(self):
+        projects = [
+            _proj("a", error_tracking=["Sentry"]),
+            _proj("b", error_tracking=["Sentry"]),
+        ]
+        conns = _find_error_tracking_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_error_tracker"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_hosted_vs_agent(self):
+        projects = [
+            _proj("a", error_tracking=["Sentry"]),
+            _proj("b", error_tracking=["Datadog APM"]),
+        ]
+        conns = _find_error_tracking_patterns(projects)
+        div = [c for c in conns if c.type == "error_tracking_divergence"]
+        assert len(div) == 1
+        assert "hosted" in div[0].detail.lower()
+        assert "agent-based" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", error_tracking=["Sentry"]),
+            _proj("b", error_tracking=["Rollbar"]),
+        ]
+        conns = _find_error_tracking_patterns(projects)
+        div = [c for c in conns if c.type == "error_tracking_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", error_tracking=["Sentry", "Datadog APM"]) for i in range(20)]
+        conns = _find_error_tracking_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", error_tracking=["Sentry", "Datadog APM"]),
+            _proj("b", error_tracking=["Sentry", "Rollbar"]),
+        ]
+        conns = find_connections(projects)
+        et_types = {c.type for c in conns if "error" in c.type}
+        assert "shared_error_tracker" in et_types
+
+
+class TestFindSsgPatterns:
+    def test_empty(self):
+        conns = _find_ssg_patterns([])
+        assert conns == []
+
+    def test_single_project(self):
+        projects = [_proj("a", static_site_generators=["Next.js"])]
+        conns = _find_ssg_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_ssg(self):
+        projects = [
+            _proj("a", static_site_generators=["Next.js"]),
+            _proj("b", static_site_generators=["Next.js"]),
+        ]
+        conns = _find_ssg_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_ssg"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_app_vs_docs(self):
+        projects = [
+            _proj("a", static_site_generators=["Next.js"]),
+            _proj("b", static_site_generators=["MkDocs"]),
+        ]
+        conns = _find_ssg_patterns(projects)
+        div = [c for c in conns if c.type == "ssg_divergence"]
+        assert len(div) == 1
+        assert "app-framework" in div[0].detail.lower()
+        assert "docs-focused" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", static_site_generators=["Next.js"]),
+            _proj("b", static_site_generators=["Gatsby"]),
+        ]
+        conns = _find_ssg_patterns(projects)
+        div = [c for c in conns if c.type == "ssg_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", static_site_generators=["Next.js", "MkDocs"]) for i in range(20)]
+        conns = _find_ssg_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", static_site_generators=["Next.js", "MkDocs"]),
+            _proj("b", static_site_generators=["Next.js", "Sphinx"]),
+        ]
+        conns = find_connections(projects)
+        ssg_types = {c.type for c in conns if "ssg" in c.type}
+        assert "shared_ssg" in ssg_types

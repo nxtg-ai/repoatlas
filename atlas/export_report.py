@@ -748,6 +748,24 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         mono_names = ", ".join(f"{t} ({c})" for t, c in mono_counter_md.most_common(8))
         lines.append(f"**Monorepo Tools**: {has_mono_md}/{n} projects · {mono_names}")
 
+    has_et_md = sum(1 for p in projects if p.tech_stack.error_tracking)
+    if has_et_md:
+        et_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for e in p.tech_stack.error_tracking:
+                et_counter_md[e] += 1
+        et_names = ", ".join(f"{t} ({c})" for t, c in et_counter_md.most_common(8))
+        lines.append(f"**Error Tracking**: {has_et_md}/{n} projects · {et_names}")
+
+    has_ssg_md = sum(1 for p in projects if p.tech_stack.static_site_generators)
+    if has_ssg_md:
+        ssg_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for s in p.tech_stack.static_site_generators:
+                ssg_counter_md[s] += 1
+        ssg_names = ", ".join(f"{t} ({c})" for t, c in ssg_counter_md.most_common(8))
+        lines.append(f"**Static Site Generators**: {has_ssg_md}/{n} projects · {ssg_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -972,6 +990,12 @@ def _project_details(projects: list[Project]) -> list[str]:
         if p.tech_stack.monorepo_tools:
             lines.append(f"- **Monorepo**: {', '.join(p.tech_stack.monorepo_tools[:8])}")
 
+        if p.tech_stack.error_tracking:
+            lines.append(f"- **Error Tracking**: {', '.join(p.tech_stack.error_tracking[:8])}")
+
+        if p.tech_stack.static_site_generators:
+            lines.append(f"- **SSG**: {', '.join(p.tech_stack.static_site_generators[:8])}")
+
         if p.license:
             lines.append(f"- **License**: {p.license}")
 
@@ -1183,6 +1207,10 @@ def _connections_section(conns: list) -> list[str]:
         "e2e_divergence": "E2E Testing Approach Divergence",
         "shared_monorepo_tool": "Shared Monorepo Tool",
         "monorepo_divergence": "Monorepo Approach Divergence",
+        "shared_error_tracker": "Shared Error Tracker",
+        "error_tracking_divergence": "Error Tracking Approach Divergence",
+        "shared_ssg": "Shared Static Site Generator",
+        "ssg_divergence": "SSG Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
@@ -1742,6 +1770,20 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             mono_counter_j[m] += 1
     has_mono_j = sum(1 for p in projects if p.tech_stack.monorepo_tools)
 
+    # Error tracking
+    et_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for e in p.tech_stack.error_tracking:
+            et_counter_j[e] += 1
+    has_et_j = sum(1 for p in projects if p.tech_stack.error_tracking)
+
+    # Static site generators
+    ssg_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for s in p.tech_stack.static_site_generators:
+            ssg_counter_j[s] += 1
+    has_ssg_j = sum(1 for p in projects if p.tech_stack.static_site_generators)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1824,6 +1866,8 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "release_tools": {"coverage": f"{has_release_j}/{n}", "tools": dict(release_counter_j.most_common(10))},
         "e2e_testing": {"coverage": f"{has_e2e_j}/{n}", "tools": dict(e2e_counter_j.most_common(10))},
         "monorepo_tools": {"coverage": f"{has_mono_j}/{n}", "tools": dict(mono_counter_j.most_common(10))},
+        "error_tracking": {"coverage": f"{has_et_j}/{n}", "tools": dict(et_counter_j.most_common(10))},
+        "static_site_generators": {"coverage": f"{has_ssg_j}/{n}", "tools": dict(ssg_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1844,7 +1888,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "Animation Libs", "Routing Libs", "Game Frameworks", "CMS Tools", "Rate Limiters", "DB Migration Tools", "gRPC/RPC Libs", "Code Gen Tools", "Mocking Libs", "Release Tools", "E2E Testing", "Monorepo Tools", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "Animation Libs", "Routing Libs", "Game Frameworks", "CMS Tools", "Rate Limiters", "DB Migration Tools", "gRPC/RPC Libs", "Code Gen Tools", "Mocking Libs", "Release Tools", "E2E Testing", "Monorepo Tools", "Error Tracking", "Static Site Generators", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1935,6 +1979,8 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.release_tools),
             "; ".join(ts.e2e_testing),
             "; ".join(ts.monorepo_tools),
+            "; ".join(ts.error_tracking),
+            "; ".join(ts.static_site_generators),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

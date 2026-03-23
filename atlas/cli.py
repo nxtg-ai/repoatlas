@@ -463,6 +463,8 @@ CONNECTION_CATEGORIES = {
     "releases": {"shared_release_tool", "release_tool_divergence"},
     "e2e": {"shared_e2e_tool", "e2e_divergence"},
     "monorepo": {"shared_monorepo_tool", "monorepo_divergence"},
+    "errors": {"shared_error_tracker", "error_tracking_divergence"},
+    "ssg": {"shared_ssg", "ssg_divergence"},
 }
 
 

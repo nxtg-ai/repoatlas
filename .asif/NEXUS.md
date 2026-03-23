@@ -204,8 +204,10 @@
 | N-191 | [Changelog & Release Tool Detection + Intelligence](#n-191-changelog--release-tool-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 | N-192 | [E2E & Browser Testing Detection + Intelligence](#n-192-e2e--browser-testing-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 | N-193 | [Monorepo Tool Detection + Intelligence](#n-193-monorepo-tool-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
+| N-194 | [Error Tracking & APM Detection + Intelligence](#n-194-error-tracking--apm-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
+| N-195 | [Static Site Generator Detection + Intelligence](#n-195-static-site-generator-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 
-**Summary**: 190/193 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 192/195 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -283,7 +285,9 @@
 - Changelog & release tool detection: Commitizen, Towncrier, bump2version, setuptools-scm (Python), semantic-release, Changesets, release-it, Lerna, release-please (JS/TS), GoReleaser (Go), cargo-release, cargo-dist (Rust), Maven Release Plugin (Java), config files (.releaserc, .changeset, cliff.toml, CHANGELOG.md)
 - E2E & browser testing detection: Selenium, Playwright, Splinter, Behave, Locust, Appium (Python), Cypress, WebdriverIO, Puppeteer, TestCafe, Nightwatch, Detox, CodeceptJS (JS/TS), chromedp, Rod (Go), thirtyfour, fantoccini (Rust), Selenide, Cucumber, Karate, REST Assured (Java), config files (cypress.config, playwright.config)
 - Monorepo tool detection: Nx, Turborepo, Lerna, Changesets, Rush, Moon, pnpm Workspaces (JS/TS), Bazel, Pants, Buck2 (polyglot), Go Workspaces (Go), Cargo Workspaces (Rust), config files (nx.json, turbo.json, lerna.json, rush.json, pnpm-workspace.yaml)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157, N-160, N-163, N-167, N-169, N-172, N-175, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187, N-188, N-189, N-190, N-191, N-192, N-193
+- Error tracking & APM detection: Sentry, Datadog APM, New Relic, Elastic APM, OpenTelemetry, Rollbar, Bugsnag, Honeybadger, Airbrake, Pyroscope (Python), LogRocket, Highlight, AppSignal (JS/TS), across Go/Rust/Java
+- Static site generator detection: MkDocs, Sphinx, Pelican, Nikola, Lektor (Python), Next.js, Gatsby, Astro, Nuxt, SvelteKit, Eleventy, VitePress, VuePress, Docusaurus, Remix, Hexo (JS/TS), Hugo (Go), Jekyll, Middleman (Ruby), config files
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157, N-160, N-163, N-167, N-169, N-172, N-175, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187, N-188, N-189, N-190, N-191, N-192, N-193, N-194, N-195
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -358,7 +362,9 @@
 - Cross-project release tool intelligence (shared release tools, automated vs manual release paradigm divergence)
 - Cross-project E2E testing intelligence (shared E2E tools, modern vs traditional paradigm divergence)
 - Cross-project monorepo intelligence (shared monorepo tools, JS-native vs polyglot paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173, N-176, N-178, N-179, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187, N-188, N-189, N-190, N-191, N-192, N-193
+- Cross-project error tracking intelligence (shared error trackers, hosted vs agent-based paradigm divergence)
+- Cross-project SSG intelligence (shared static site generators, app-framework vs docs-focused paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173, N-176, N-178, N-179, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187, N-188, N-189, N-190, N-191, N-192, N-193, N-194, N-195
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -921,6 +927,16 @@
 **Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Bundled detection + intelligence for monorepo tools. Detection: JS/TS (Nx, Turborepo, Lerna, Changesets, Rush, Moon, Wireit, ultra-runner, pnpm Workspaces), config files (nx.json, turbo.json, lerna.json, rush.json, pnpm-workspace.yaml), build systems (Bazel, Pants, Buck2), Go (go.work — Go Workspaces), Rust ([workspace] in Cargo.toml — Cargo Workspaces). Intelligence: shared_monorepo_tool (info), monorepo_divergence JS-native (Nx, Turborepo, Lerna, Rush, Moon) vs polyglot (Bazel, Pants, Buck2) (warning). TechStack field `monorepo_tools`, CONNECTION_CATEGORIES (monorepo), display icons (📦), export/display type_labels, recommendations mapping. Capped at 10. 14 detection tests + 7 intelligence tests = 21 tests.
 **Shipped**: 2026-03-22. Total test count: 2842.
+
+### N-194: Error Tracking & APM Detection + Intelligence
+**Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Bundled detection + intelligence for error tracking and APM tools. Detection: Python (Sentry, Datadog APM, New Relic, Elastic APM, OpenTelemetry, Rollbar, Bugsnag, Honeybadger, Airbrake, Pyroscope), JS/TS (Sentry, Datadog, New Relic, Elastic APM, OpenTelemetry, Rollbar, Bugsnag, Honeybadger, Airbrake, LogRocket, Highlight, AppSignal), Go (Sentry, Datadog, New Relic, Elastic APM, OpenTelemetry, Rollbar, Bugsnag, Honeybadger), Rust (Sentry, OpenTelemetry), Java (Sentry, Datadog, New Relic, Elastic APM, OpenTelemetry, Rollbar, Bugsnag, Honeybadger). Intelligence: shared_error_tracker (info), error_tracking_divergence hosted (Sentry, Rollbar, Bugsnag) vs agent-based (Datadog APM, New Relic, Elastic APM) (warning). TechStack field `error_tracking`, CONNECTION_CATEGORIES (errors), display icons (🚨), export/display type_labels, recommendations mapping. Capped at 10. 17 detection tests + 7 intelligence tests = 24 tests.
+**Shipped**: 2026-03-22. Total test count: 2866.
+
+### N-195: Static Site Generator Detection + Intelligence
+**Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Bundled detection + intelligence for static site generators and JAMstack frameworks. Detection: Python (MkDocs, Sphinx, Pelican, Nikola, Lektor), JS/TS (Next.js, Gatsby, Astro, Nuxt, SvelteKit, Eleventy, VitePress, VuePress, Docusaurus, Remix, Hexo, Gridsome), Go (Hugo), Ruby (Jekyll, Middleman, Bridgetown), config files (hugo.toml, _config.yml, mkdocs.yml, conf.py, astro.config.mjs, next.config.js, nuxt.config.ts, docusaurus.config.js, .eleventy.js). Intelligence: shared_ssg (info), ssg_divergence app-framework (Next.js, Gatsby, Astro) vs docs-focused (MkDocs, Sphinx, Docusaurus) (warning). TechStack field `static_site_generators`, CONNECTION_CATEGORIES (ssg), display icons (🏗️), export/display type_labels, recommendations mapping. Capped at 10. 16 detection tests + 7 intelligence tests = 23 tests.
+**Shipped**: 2026-03-22. Total test count: 2889.
 
 ### N-173: Compression Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

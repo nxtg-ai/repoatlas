@@ -76,6 +76,8 @@ from atlas.detector import (
     detect_release_tools,
     detect_e2e_testing,
     detect_monorepo_tools,
+    detect_error_tracking,
+    detect_static_site_generators,
     walk_files,
 )
 
@@ -8094,4 +8096,172 @@ class TestDetectMonorepoTools:
         (tmp_path / "nx.json").write_text("{}")
         (tmp_path / "turbo.json").write_text("{}")
         result = detect_monorepo_tools(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectErrorTracking:
+    def test_empty(self, tmp_path):
+        assert detect_error_tracking(tmp_path) == []
+
+    def test_python_sentry(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sentry-sdk==1.40\n")
+        result = detect_error_tracking(tmp_path)
+        assert "Sentry" in result
+
+    def test_python_datadog(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("ddtrace==2.5\n")
+        result = detect_error_tracking(tmp_path)
+        assert "Datadog APM" in result
+
+    def test_python_newrelic(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("newrelic==9.5\n")
+        result = detect_error_tracking(tmp_path)
+        assert "New Relic" in result
+
+    def test_python_opentelemetry(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("opentelemetry-sdk==1.22\n")
+        result = detect_error_tracking(tmp_path)
+        assert "OpenTelemetry" in result
+
+    def test_python_rollbar(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("rollbar==0.16\n")
+        result = detect_error_tracking(tmp_path)
+        assert "Rollbar" in result
+
+    def test_js_sentry(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@sentry/node":"^7"}}')
+        result = detect_error_tracking(tmp_path)
+        assert "Sentry" in result
+
+    def test_js_datadog(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"dd-trace":"^5"}}')
+        result = detect_error_tracking(tmp_path)
+        assert "Datadog APM" in result
+
+    def test_js_bugsnag(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@bugsnag/js":"^7"}}')
+        result = detect_error_tracking(tmp_path)
+        assert "Bugsnag" in result
+
+    def test_js_logrocket(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"logrocket":"^4"}}')
+        result = detect_error_tracking(tmp_path)
+        assert "LogRocket" in result
+
+    def test_go_sentry(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/getsentry/sentry-go v0.27 h1:abc\n")
+        result = detect_error_tracking(tmp_path)
+        assert "Sentry" in result
+
+    def test_go_datadog(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/datadog/dd-trace-go v1.60 h1:abc\n")
+        result = detect_error_tracking(tmp_path)
+        assert "Datadog APM" in result
+
+    def test_rust_sentry(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nsentry = "0.32"\n')
+        result = detect_error_tracking(tmp_path)
+        assert "Sentry" in result
+
+    def test_java_sentry(self, tmp_path):
+        (tmp_path / "build.gradle").write_text('implementation "io.sentry:sentry:7.0"\n')
+        result = detect_error_tracking(tmp_path)
+        assert "Sentry" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sentry-sdk==1.40\nddtrace==2.5\n")
+        result = detect_error_tracking(tmp_path)
+        assert "Sentry" in result
+        assert "Datadog APM" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sentry-sdk==1.40\nddtrace==2.5\n")
+        result = detect_error_tracking(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectStaticSiteGenerators:
+    def test_empty(self, tmp_path):
+        assert detect_static_site_generators(tmp_path) == []
+
+    def test_python_mkdocs(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("mkdocs==1.5\n")
+        result = detect_static_site_generators(tmp_path)
+        assert "MkDocs" in result
+
+    def test_python_sphinx(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("sphinx==7.2\n")
+        result = detect_static_site_generators(tmp_path)
+        assert "Sphinx" in result
+
+    def test_python_pelican(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pelican==4.9\n")
+        result = detect_static_site_generators(tmp_path)
+        assert "Pelican" in result
+
+    def test_js_nextjs(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"next":"^14"}}')
+        result = detect_static_site_generators(tmp_path)
+        assert "Next.js" in result
+
+    def test_js_gatsby(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"gatsby":"^5"}}')
+        result = detect_static_site_generators(tmp_path)
+        assert "Gatsby" in result
+
+    def test_js_astro(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"astro":"^4"}}')
+        result = detect_static_site_generators(tmp_path)
+        assert "Astro" in result
+
+    def test_js_nuxt(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"nuxt":"^3"}}')
+        result = detect_static_site_generators(tmp_path)
+        assert "Nuxt" in result
+
+    def test_js_eleventy(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"@11ty/eleventy":"^2"}}')
+        result = detect_static_site_generators(tmp_path)
+        assert "Eleventy" in result
+
+    def test_js_docusaurus(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@docusaurus/core":"^3"}}')
+        result = detect_static_site_generators(tmp_path)
+        assert "Docusaurus" in result
+
+    def test_hugo_config(self, tmp_path):
+        (tmp_path / "hugo.toml").write_text("baseURL = 'https://example.org/'\n")
+        result = detect_static_site_generators(tmp_path)
+        assert "Hugo" in result
+
+    def test_jekyll_config(self, tmp_path):
+        (tmp_path / "_config.yml").write_text("title: My Blog\n")
+        result = detect_static_site_generators(tmp_path)
+        assert "Jekyll" in result
+
+    def test_mkdocs_config(self, tmp_path):
+        (tmp_path / "mkdocs.yml").write_text("site_name: Docs\n")
+        result = detect_static_site_generators(tmp_path)
+        assert "MkDocs" in result
+
+    def test_astro_config(self, tmp_path):
+        (tmp_path / "astro.config.mjs").write_text("export default {}\n")
+        result = detect_static_site_generators(tmp_path)
+        assert "Astro" in result
+
+    def test_nextjs_config(self, tmp_path):
+        (tmp_path / "next.config.js").write_text("module.exports = {}\n")
+        result = detect_static_site_generators(tmp_path)
+        assert "Next.js" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("mkdocs==1.5\n")
+        (tmp_path / "package.json").write_text('{"dependencies":{"next":"^14"}}')
+        result = detect_static_site_generators(tmp_path)
+        assert "MkDocs" in result
+        assert "Next.js" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("mkdocs==1.5\nsphinx==7.2\n")
+        result = detect_static_site_generators(tmp_path)
         assert result == sorted(result)

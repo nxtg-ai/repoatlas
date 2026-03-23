@@ -82,6 +82,8 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_release_tool_patterns(projects))
     connections.extend(_find_e2e_testing_patterns(projects))
     connections.extend(_find_monorepo_patterns(projects))
+    connections.extend(_find_error_tracking_patterns(projects))
+    connections.extend(_find_ssg_patterns(projects))
     return connections
 
 
@@ -1035,6 +1037,111 @@ def _find_monorepo_patterns(projects: list[Project]) -> list[Connection]:
             type="monorepo_divergence",
             detail=f"Mixed monorepo approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_error_tracking_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project error tracking and APM patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.error_tracking:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_error_tracker",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Error tracking divergence — hosted (Sentry, Rollbar, Bugsnag) vs agent-based (Datadog APM, New Relic, Elastic APM)
+    hosted = {"Sentry", "Rollbar", "Bugsnag", "Honeybadger", "Airbrake",
+              "LogRocket", "Highlight", "AppSignal"}
+    agent_based = {"Datadog APM", "New Relic", "Elastic APM", "OpenTelemetry", "Pyroscope"}
+
+    cat_found_et: dict[str, dict[str, set[str]]] = {
+        "hosted": {}, "agent-based": {},
+    }
+    cat_sets_et = [("hosted", hosted), ("agent-based", agent_based)]
+    for p in projects:
+        for lib in p.tech_stack.error_tracking:
+            for cat_name, cat_set in cat_sets_et:
+                if lib in cat_set:
+                    cat_found_et[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats_et = {k: v for k, v in cat_found_et.items() if v}
+    if len(active_cats_et) >= 2:
+        parts = []
+        all_projs_et: set[str] = set()
+        for cat_name, tools_map in active_cats_et.items():
+            tool_names = ", ".join(sorted(tools_map.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools_map.values():
+                all_projs_et.update(ps)
+        connections.append(Connection(
+            type="error_tracking_divergence",
+            detail=f"Mixed error tracking approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs_et),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_ssg_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project static site generator patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.static_site_generators:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_ssg",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # SSG divergence — JS-based (Next.js, Gatsby, Astro, Nuxt) vs docs-focused (MkDocs, Sphinx, Docusaurus)
+    js_based = {"Next.js", "Gatsby", "Astro", "Nuxt", "SvelteKit", "Remix",
+                "Eleventy", "Hexo", "Gridsome", "Hugo", "Jekyll", "VitePress", "VuePress"}
+    docs_focused = {"MkDocs", "Sphinx", "Docusaurus", "Pelican", "Nikola", "Lektor",
+                    "Middleman", "Bridgetown"}
+
+    cat_found_ssg: dict[str, dict[str, set[str]]] = {
+        "app-framework": {}, "docs-focused": {},
+    }
+    cat_sets_ssg = [("app-framework", js_based), ("docs-focused", docs_focused)]
+    for p in projects:
+        for lib in p.tech_stack.static_site_generators:
+            for cat_name, cat_set in cat_sets_ssg:
+                if lib in cat_set:
+                    cat_found_ssg[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats_ssg = {k: v for k, v in cat_found_ssg.items() if v}
+    if len(active_cats_ssg) >= 2:
+        parts = []
+        all_projs_ssg: set[str] = set()
+        for cat_name, tools_map in active_cats_ssg.items():
+            tool_names = ", ".join(sorted(tools_map.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools_map.values():
+                all_projs_ssg.update(ps)
+        connections.append(Connection(
+            type="ssg_divergence",
+            detail=f"Mixed SSG approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs_ssg),
             severity="warning",
         ))
 

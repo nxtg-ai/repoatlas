@@ -215,6 +215,10 @@ CONNECTION_ICONS = {
     "e2e_divergence": "[yellow]🌐[/yellow]",
     "shared_monorepo_tool": "[green]📦[/green]",
     "monorepo_divergence": "[yellow]📦[/yellow]",
+    "shared_error_tracker": "[green]🚨[/green]",
+    "error_tracking_divergence": "[yellow]🚨[/yellow]",
+    "shared_ssg": "[green]🏗️[/green]",
+    "ssg_divergence": "[yellow]🏗️[/yellow]",
 }
 
 
@@ -1108,6 +1112,28 @@ def _show_portfolio_summary(portfolio: Portfolio):
         mono_parts = [f"{m} ({count})" for m, count in top_mono]
         lines.append(f"  [bold]Monorepo:[/bold]  {has_mono}/{n} projects · {', '.join(mono_parts)}")
 
+    # Error tracking
+    has_et = sum(1 for p in projects if p.tech_stack.error_tracking)
+    if has_et:
+        et_counter: Counter[str] = Counter()
+        for p in projects:
+            for e in p.tech_stack.error_tracking:
+                et_counter[e] += 1
+        top_et = et_counter.most_common(6)
+        et_parts = [f"{e} ({count})" for e, count in top_et]
+        lines.append(f"  [bold]Errors:[/bold]    {has_et}/{n} projects · {', '.join(et_parts)}")
+
+    # Static site generators
+    has_ssg = sum(1 for p in projects if p.tech_stack.static_site_generators)
+    if has_ssg:
+        ssg_counter: Counter[str] = Counter()
+        for p in projects:
+            for s in p.tech_stack.static_site_generators:
+                ssg_counter[s] += 1
+        top_ssg = ssg_counter.most_common(6)
+        ssg_parts = [f"{s} ({count})" for s, count in top_ssg]
+        lines.append(f"  [bold]SSG:[/bold]       {has_ssg}/{n} projects · {', '.join(ssg_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1326,6 +1352,10 @@ def show_connections(connections: list[Connection]):
         "e2e_divergence": "E2E Testing Approach Divergence",
         "shared_monorepo_tool": "Shared Monorepo Tool",
         "monorepo_divergence": "Monorepo Approach Divergence",
+        "shared_error_tracker": "Shared Error Tracker",
+        "error_tracking_divergence": "Error Tracking Approach Divergence",
+        "shared_ssg": "Shared Static Site Generator",
+        "ssg_divergence": "SSG Approach Divergence",
     }
 
     lines = []
@@ -1435,6 +1465,8 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_release_tool": "releases", "release_tool_divergence": "releases",
         "shared_e2e_tool": "e2e", "e2e_divergence": "e2e",
         "shared_monorepo_tool": "monorepo", "monorepo_divergence": "monorepo",
+        "shared_error_tracker": "errors", "error_tracking_divergence": "errors",
+        "shared_ssg": "ssg", "ssg_divergence": "ssg",
     }
 
     for conn in connections:
@@ -1761,6 +1793,14 @@ def show_project_card(project: Project):
     if project.tech_stack.monorepo_tools:
         mono = ", ".join(project.tech_stack.monorepo_tools[:8])
         lines.append(f"  [bold]Monorepo:[/bold]  {mono}")
+
+    if project.tech_stack.error_tracking:
+        et = ", ".join(project.tech_stack.error_tracking[:8])
+        lines.append(f"  [bold]Errors:[/bold]    {et}")
+
+    if project.tech_stack.static_site_generators:
+        ssg = ", ".join(project.tech_stack.static_site_generators[:8])
+        lines.append(f"  [bold]SSG:[/bold]       {ssg}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

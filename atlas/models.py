@@ -78,6 +78,8 @@ class TechStack:
     release_tools: list[str] = field(default_factory=list)
     e2e_testing: list[str] = field(default_factory=list)
     monorepo_tools: list[str] = field(default_factory=list)
+    error_tracking: list[str] = field(default_factory=list)
+    static_site_generators: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -237,6 +239,8 @@ class Project:
                 "release_tools": self.tech_stack.release_tools,
                 "e2e_testing": self.tech_stack.e2e_testing,
                 "monorepo_tools": self.tech_stack.monorepo_tools,
+                "error_tracking": self.tech_stack.error_tracking,
+                "static_site_generators": self.tech_stack.static_site_generators,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -341,6 +345,8 @@ class Project:
                 release_tools=ts.get("release_tools", []),
                 e2e_testing=ts.get("e2e_testing", []),
                 monorepo_tools=ts.get("monorepo_tools", []),
+                error_tracking=ts.get("error_tracking", []),
+                static_site_generators=ts.get("static_site_generators", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

@@ -7926,3 +7926,254 @@ def detect_monorepo_tools(project_path: Path) -> list[str]:
             pass
 
     return sorted(tools)
+
+
+def detect_error_tracking(project_path: Path) -> list[str]:
+    """Detect error tracking and APM tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str):
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Python
+    req = project_path / "requirements.txt"
+    if req.exists():
+        try:
+            content_py_et = req.read_text().lower()
+            if "sentry-sdk" in content_py_et or "raven" in content_py_et:
+                _add("Sentry")
+            if "ddtrace" in content_py_et:
+                _add("Datadog APM")
+            if "newrelic" in content_py_et:
+                _add("New Relic")
+            if "elastic-apm" in content_py_et:
+                _add("Elastic APM")
+            if "opentelemetry" in content_py_et:
+                _add("OpenTelemetry")
+            if "rollbar" in content_py_et:
+                _add("Rollbar")
+            if "bugsnag" in content_py_et:
+                _add("Bugsnag")
+            if "honeybadger" in content_py_et:
+                _add("Honeybadger")
+            if "airbrake" in content_py_et:
+                _add("Airbrake")
+            if "pyroscope" in content_py_et:
+                _add("Pyroscope")
+        except OSError:
+            pass
+
+    # JS/TS
+    pkg = project_path / "package.json"
+    if pkg.exists():
+        try:
+            content_js_et = pkg.read_text().lower()
+            if "@sentry/" in content_js_et or '"sentry"' in content_js_et:
+                _add("Sentry")
+            if "dd-trace" in content_js_et or "@datadog/" in content_js_et:
+                _add("Datadog APM")
+            if "newrelic" in content_js_et:
+                _add("New Relic")
+            if "@elastic/apm" in content_js_et:
+                _add("Elastic APM")
+            if "@opentelemetry/" in content_js_et:
+                _add("OpenTelemetry")
+            if "rollbar" in content_js_et:
+                _add("Rollbar")
+            if "@bugsnag/" in content_js_et:
+                _add("Bugsnag")
+            if "@honeybadger-io/" in content_js_et or "honeybadger" in content_js_et:
+                _add("Honeybadger")
+            if "airbrake" in content_js_et:
+                _add("Airbrake")
+            if "@logrocket/" in content_js_et or "logrocket" in content_js_et:
+                _add("LogRocket")
+            if "highlight.run" in content_js_et or "@highlight-run/" in content_js_et:
+                _add("Highlight")
+            if "@appsignal/" in content_js_et:
+                _add("AppSignal")
+        except OSError:
+            pass
+
+    # Go
+    for go_dep in ("go.sum", "go.mod"):
+        go_file = project_path / go_dep
+        if go_file.exists():
+            try:
+                content_go_et = go_file.read_text().lower()
+                if "getsentry/sentry-go" in content_go_et:
+                    _add("Sentry")
+                if "datadog/dd-trace-go" in content_go_et or "datadoghq.com" in content_go_et:
+                    _add("Datadog APM")
+                if "newrelic/go-agent" in content_go_et:
+                    _add("New Relic")
+                if "elastic/apm-agent-go" in content_go_et:
+                    _add("Elastic APM")
+                if "opentelemetry" in content_go_et:
+                    _add("OpenTelemetry")
+                if "rollbar/rollbar-go" in content_go_et:
+                    _add("Rollbar")
+                if "bugsnag/bugsnag-go" in content_go_et:
+                    _add("Bugsnag")
+                if "honeybadger-io/honeybadger-go" in content_go_et:
+                    _add("Honeybadger")
+            except OSError:
+                pass
+
+    # Rust
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content_rs_et = cargo.read_text().lower()
+            if "sentry" in content_rs_et:
+                _add("Sentry")
+            if "opentelemetry" in content_rs_et:
+                _add("OpenTelemetry")
+            if "tracing" in content_rs_et and "tracing-opentelemetry" in content_rs_et:
+                _add("OpenTelemetry")
+        except OSError:
+            pass
+
+    # Java
+    for java_build in ("pom.xml", "build.gradle"):
+        jf = project_path / java_build
+        if jf.exists():
+            try:
+                content_java_et = jf.read_text().lower()
+                if "sentry" in content_java_et:
+                    _add("Sentry")
+                if "dd-trace" in content_java_et or "datadog" in content_java_et:
+                    _add("Datadog APM")
+                if "newrelic" in content_java_et:
+                    _add("New Relic")
+                if "elastic-apm" in content_java_et or "co.elastic.apm" in content_java_et:
+                    _add("Elastic APM")
+                if "opentelemetry" in content_java_et:
+                    _add("OpenTelemetry")
+                if "rollbar" in content_java_et:
+                    _add("Rollbar")
+                if "bugsnag" in content_java_et:
+                    _add("Bugsnag")
+                if "honeybadger" in content_java_et:
+                    _add("Honeybadger")
+            except OSError:
+                pass
+
+    return sorted(tools)
+
+
+def detect_static_site_generators(project_path: Path) -> list[str]:
+    """Detect static site generators and JAMstack frameworks."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str):
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Python
+    req = project_path / "requirements.txt"
+    if req.exists():
+        try:
+            content_py_ssg = req.read_text().lower()
+            if "mkdocs" in content_py_ssg:
+                _add("MkDocs")
+            if "sphinx" in content_py_ssg:
+                _add("Sphinx")
+            if "pelican" in content_py_ssg:
+                _add("Pelican")
+            if "nikola" in content_py_ssg:
+                _add("Nikola")
+            if "lektor" in content_py_ssg:
+                _add("Lektor")
+        except OSError:
+            pass
+
+    # JS/TS
+    pkg = project_path / "package.json"
+    if pkg.exists():
+        try:
+            content_js_ssg = pkg.read_text().lower()
+            if '"next"' in content_js_ssg or '"next":' in content_js_ssg:
+                _add("Next.js")
+            if '"gatsby"' in content_js_ssg:
+                _add("Gatsby")
+            if '"astro"' in content_js_ssg:
+                _add("Astro")
+            if '"nuxt"' in content_js_ssg:
+                _add("Nuxt")
+            if '"@sveltejs/kit"' in content_js_ssg or '"sveltekit"' in content_js_ssg:
+                _add("SvelteKit")
+            if '"eleventy"' in content_js_ssg or '"@11ty/eleventy"' in content_js_ssg:
+                _add("Eleventy")
+            if '"vitepress"' in content_js_ssg:
+                _add("VitePress")
+            if '"vuepress"' in content_js_ssg:
+                _add("VuePress")
+            if '"docusaurus"' in content_js_ssg or '"@docusaurus/' in content_js_ssg:
+                _add("Docusaurus")
+            if '"remix"' in content_js_ssg or '"@remix-run/' in content_js_ssg:
+                _add("Remix")
+            if '"hexo"' in content_js_ssg:
+                _add("Hexo")
+            if '"gridsome"' in content_js_ssg:
+                _add("Gridsome")
+        except OSError:
+            pass
+
+    # Go (Hugo)
+    if (project_path / "hugo.toml").exists() or (project_path / "hugo.yaml").exists() or (project_path / "config.toml").exists():
+        hugo_config = project_path / "hugo.toml"
+        if not hugo_config.exists():
+            hugo_config = project_path / "hugo.yaml"
+        if hugo_config.exists():
+            _add("Hugo")
+        elif (project_path / "config.toml").exists():
+            try:
+                config_content_ssg = (project_path / "config.toml").read_text().lower()
+                if "baseurl" in config_content_ssg and "theme" in config_content_ssg:
+                    _add("Hugo")
+            except OSError:
+                pass
+
+    # Ruby (Jekyll)
+    if (project_path / "Gemfile").exists():
+        try:
+            gemfile_ssg = (project_path / "Gemfile").read_text().lower()
+            if "jekyll" in gemfile_ssg:
+                _add("Jekyll")
+            if "middleman" in gemfile_ssg:
+                _add("Middleman")
+            if "bridgetown" in gemfile_ssg:
+                _add("Bridgetown")
+        except OSError:
+            pass
+
+    # Config file detection
+    if (project_path / "_config.yml").exists():
+        _add("Jekyll")
+    if (project_path / "mkdocs.yml").exists() or (project_path / "mkdocs.yaml").exists():
+        _add("MkDocs")
+    if (project_path / "conf.py").exists():
+        try:
+            conf_ssg = (project_path / "conf.py").read_text().lower()
+            if "sphinx" in conf_ssg or "extensions" in conf_ssg:
+                _add("Sphinx")
+        except OSError:
+            pass
+    if (project_path / "astro.config.mjs").exists() or (project_path / "astro.config.ts").exists():
+        _add("Astro")
+    if (project_path / "next.config.js").exists() or (project_path / "next.config.mjs").exists() or (project_path / "next.config.ts").exists():
+        _add("Next.js")
+    if (project_path / "nuxt.config.ts").exists() or (project_path / "nuxt.config.js").exists():
+        _add("Nuxt")
+    if (project_path / "docusaurus.config.js").exists() or (project_path / "docusaurus.config.ts").exists():
+        _add("Docusaurus")
+    if (project_path / ".eleventy.js").exists() or (project_path / "eleventy.config.js").exists():
+        _add("Eleventy")
+
+    return sorted(tools)
