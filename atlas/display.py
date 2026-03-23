@@ -187,6 +187,10 @@ CONNECTION_ICONS = {
     "scraping_lib_divergence": "[yellow]🕷[/yellow]",
     "shared_desktop_framework": "[green]🖥[/green]",
     "desktop_framework_divergence": "[yellow]🖥[/yellow]",
+    "shared_file_storage": "[green]📦[/green]",
+    "file_storage_divergence": "[yellow]📦[/yellow]",
+    "shared_form_lib": "[green]📝[/green]",
+    "form_lib_divergence": "[yellow]📝[/yellow]",
 }
 
 
@@ -926,6 +930,28 @@ def _show_portfolio_summary(portfolio: Portfolio):
         desktop_parts = [f"{df} ({count})" for df, count in top_desktop]
         lines.append(f"  [bold]Desktop:[/bold]   {has_desktop}/{n} projects · {', '.join(desktop_parts)}")
 
+    # File storage
+    has_storage = sum(1 for p in projects if p.tech_stack.file_storage)
+    if has_storage:
+        storage_counter: Counter[str] = Counter()
+        for p in projects:
+            for fs in p.tech_stack.file_storage:
+                storage_counter[fs] += 1
+        top_storage = storage_counter.most_common(6)
+        storage_parts = [f"{fs} ({count})" for fs, count in top_storage]
+        lines.append(f"  [bold]Storage:[/bold]   {has_storage}/{n} projects · {', '.join(storage_parts)}")
+
+    # Form libs
+    has_forms = sum(1 for p in projects if p.tech_stack.form_libs)
+    if has_forms:
+        form_counter: Counter[str] = Counter()
+        for p in projects:
+            for fl in p.tech_stack.form_libs:
+                form_counter[fl] += 1
+        top_forms = form_counter.most_common(6)
+        form_parts = [f"{fl} ({count})" for fl, count in top_forms]
+        lines.append(f"  [bold]Forms:[/bold]     {has_forms}/{n} projects · {', '.join(form_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1116,6 +1142,10 @@ def show_connections(connections: list[Connection]):
         "scraping_lib_divergence": "Scraping Approach Divergence",
         "shared_desktop_framework": "Shared Desktop Framework",
         "desktop_framework_divergence": "Desktop Approach Divergence",
+        "shared_file_storage": "Shared File Storage",
+        "file_storage_divergence": "File Storage Approach Divergence",
+        "shared_form_lib": "Shared Form Lib",
+        "form_lib_divergence": "Form Lib Approach Divergence",
     }
 
     lines = []
@@ -1211,6 +1241,8 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_a11y_tool": "a11y", "a11y_divergence": "a11y",
         "shared_scraping_lib": "scraping", "scraping_lib_divergence": "scraping",
         "shared_desktop_framework": "desktop", "desktop_framework_divergence": "desktop",
+        "shared_file_storage": "storage", "file_storage_divergence": "storage",
+        "shared_form_lib": "forms", "form_lib_divergence": "forms",
     }
 
     for conn in connections:
@@ -1481,6 +1513,14 @@ def show_project_card(project: Project):
     if project.tech_stack.desktop_frameworks:
         dsk = ", ".join(project.tech_stack.desktop_frameworks[:8])
         lines.append(f"  [bold]Desktop:[/bold]   {dsk}")
+
+    if project.tech_stack.file_storage:
+        fst = ", ".join(project.tech_stack.file_storage[:8])
+        lines.append(f"  [bold]Storage:[/bold]   {fst}")
+
+    if project.tech_stack.form_libs:
+        frm = ", ".join(project.tech_stack.form_libs[:8])
+        lines.append(f"  [bold]Forms:[/bold]     {frm}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

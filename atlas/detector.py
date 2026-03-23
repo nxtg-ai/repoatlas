@@ -6375,3 +6375,177 @@ def detect_desktop_frameworks(project_path: Path) -> list[str]:
         _add("Tauri")
 
     return sorted(tools)
+
+
+def detect_file_storage(project_path: Path) -> list[str]:
+    """Detect file storage, object store, and CDN services."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map = {
+        "boto3": "AWS S3",
+        "aioboto3": "AWS S3",
+        "s3fs": "AWS S3",
+        "google-cloud-storage": "Google Cloud Storage",
+        "gcsfs": "Google Cloud Storage",
+        "azure-storage-blob": "Azure Blob Storage",
+        "minio": "MinIO",
+        "cloudinary": "Cloudinary",
+        "django-storages": "django-storages",
+        "flask-uploads": "Flask-Uploads",
+        "python-magic": "python-magic",
+        "smart-open": "smart-open",
+    }
+    for dep, name in py_map.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_storage = pkg_json.read_text().lower()
+        except OSError:
+            js_content_storage = ""
+
+        js_map_storage = {
+            "@aws-sdk/client-s3": "AWS S3",
+            "aws-sdk": "AWS S3",
+            "@google-cloud/storage": "Google Cloud Storage",
+            "@azure/storage-blob": "Azure Blob Storage",
+            "minio": "MinIO",
+            "cloudinary": "Cloudinary",
+            "uploadthing": "UploadThing",
+            "@uploadthing": "UploadThing",
+            "@vercel/blob": "Vercel Blob",
+            "@supabase/storage-js": "Supabase Storage",
+            "multer": "Multer",
+            "formidable": "Formidable",
+            "busboy": "Busboy",
+            "@cloudflare/r2": "Cloudflare R2",
+            "firebase/storage": "Firebase Storage",
+        }
+        for dep, name in js_map_storage.items():
+            if dep in js_content_storage:
+                _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    if go_sum.exists():
+        try:
+            go_content_storage = go_sum.read_text()
+        except OSError:
+            go_content_storage = ""
+
+        if "github.com/aws/aws-sdk-go" in go_content_storage:
+            _add("AWS S3")
+        if "cloud.google.com/go/storage" in go_content_storage:
+            _add("Google Cloud Storage")
+        if "github.com/Azure/azure-storage-blob-go" in go_content_storage:
+            _add("Azure Blob Storage")
+        if "github.com/minio/minio-go" in go_content_storage:
+            _add("MinIO")
+
+    # Rust
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            rust_content_storage = cargo.read_text()
+        except OSError:
+            rust_content_storage = ""
+
+        if "aws-sdk-s3" in rust_content_storage or "rusoto_s3" in rust_content_storage:
+            _add("AWS S3")
+        if "cloud-storage" in rust_content_storage:
+            _add("Google Cloud Storage")
+        if "object_store" in rust_content_storage:
+            _add("object_store")
+
+    # Java
+    for java_file in ("pom.xml", "build.gradle", "build.gradle.kts"):
+        jf = project_path / java_file
+        if jf.exists():
+            try:
+                java_content_storage = jf.read_text().lower()
+            except OSError:
+                java_content_storage = ""
+
+            if "aws" in java_content_storage and "s3" in java_content_storage:
+                _add("AWS S3")
+            if "google-cloud-storage" in java_content_storage:
+                _add("Google Cloud Storage")
+            if "azure-storage-blob" in java_content_storage:
+                _add("Azure Blob Storage")
+            if "minio" in java_content_storage:
+                _add("MinIO")
+
+    return sorted(tools)
+
+
+def detect_form_libs(project_path: Path) -> list[str]:
+    """Detect form handling and form validation libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map = {
+        "wtforms": "WTForms",
+        "flask-wtf": "Flask-WTF",
+        "django-crispy-forms": "django-crispy-forms",
+        "django-formtools": "django-formtools",
+    }
+    for dep, name in py_map.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_forms = pkg_json.read_text().lower()
+        except OSError:
+            js_content_forms = ""
+
+        js_map_forms = {
+            "react-hook-form": "React Hook Form",
+            "formik": "Formik",
+            "final-form": "Final Form",
+            "react-final-form": "Final Form",
+            "@tanstack/react-form": "TanStack Form",
+            "@tanstack/form-core": "TanStack Form",
+            "conform-to": "Conform",
+            "@conform-to": "Conform",
+            "react-jsonschema-form": "react-jsonschema-form",
+            "@rjsf/core": "react-jsonschema-form",
+            "uniforms": "Uniforms",
+            "vee-validate": "VeeValidate",
+            "@vee-validate": "VeeValidate",
+            "formkit": "FormKit",
+            "@formkit": "FormKit",
+            "vuelidate": "Vuelidate",
+            "react-aria": "React Aria Forms",
+            "angular/forms": "Angular Forms",
+            "@angular/forms": "Angular Forms",
+            "svelte-forms-lib": "svelte-forms-lib",
+            "felte": "Felte",
+            "superforms": "SvelteKit Superforms",
+            "sveltekit-superforms": "SvelteKit Superforms",
+        }
+        for dep, name in js_map_forms.items():
+            if dep in js_content_forms:
+                _add(name)
+
+    return sorted(tools)

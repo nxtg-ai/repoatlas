@@ -622,6 +622,24 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         desktop_names = ", ".join(f"{t} ({c})" for t, c in desktop_counter_md.most_common(8))
         lines.append(f"**Desktop Frameworks**: {has_desktop_md}/{n} projects · {desktop_names}")
 
+    has_storage_md = sum(1 for p in projects if p.tech_stack.file_storage)
+    if has_storage_md:
+        storage_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for fs in p.tech_stack.file_storage:
+                storage_counter_md[fs] += 1
+        storage_names = ", ".join(f"{t} ({c})" for t, c in storage_counter_md.most_common(8))
+        lines.append(f"**File Storage**: {has_storage_md}/{n} projects · {storage_names}")
+
+    has_forms_md = sum(1 for p in projects if p.tech_stack.form_libs)
+    if has_forms_md:
+        form_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for fl in p.tech_stack.form_libs:
+                form_counter_md[fl] += 1
+        form_names = ", ".join(f"{t} ({c})" for t, c in form_counter_md.most_common(8))
+        lines.append(f"**Form Libs**: {has_forms_md}/{n} projects · {form_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -803,6 +821,12 @@ def _project_details(projects: list[Project]) -> list[str]:
 
         if p.tech_stack.desktop_frameworks:
             lines.append(f"- **Desktop**: {', '.join(p.tech_stack.desktop_frameworks[:8])}")
+
+        if p.tech_stack.file_storage:
+            lines.append(f"- **Storage**: {', '.join(p.tech_stack.file_storage[:8])}")
+
+        if p.tech_stack.form_libs:
+            lines.append(f"- **Forms**: {', '.join(p.tech_stack.form_libs[:8])}")
 
         if p.license:
             lines.append(f"- **License**: {p.license}")
@@ -987,6 +1011,10 @@ def _connections_section(conns: list) -> list[str]:
         "scraping_lib_divergence": "Scraping Approach Divergence",
         "shared_desktop_framework": "Shared Desktop Framework",
         "desktop_framework_divergence": "Desktop Approach Divergence",
+        "shared_file_storage": "Shared File Storage",
+        "file_storage_divergence": "File Storage Approach Divergence",
+        "shared_form_lib": "Shared Form Lib",
+        "form_lib_divergence": "Form Lib Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
@@ -1448,6 +1476,20 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             desktop_counter_j[df] += 1
     has_desktop_j = sum(1 for p in projects if p.tech_stack.desktop_frameworks)
 
+    # File storage
+    storage_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for fs in p.tech_stack.file_storage:
+            storage_counter_j[fs] += 1
+    has_storage_j = sum(1 for p in projects if p.tech_stack.file_storage)
+
+    # Form libs
+    form_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for fl in p.tech_stack.form_libs:
+            form_counter_j[fl] += 1
+    has_forms_j = sum(1 for p in projects if p.tech_stack.form_libs)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1516,6 +1558,8 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "a11y_tools": {"coverage": f"{has_a11y_j}/{n}", "tools": dict(a11y_counter_j.most_common(10))},
         "scraping_libs": {"coverage": f"{has_scraping_j}/{n}", "libs": dict(scraping_counter_j.most_common(10))},
         "desktop_frameworks": {"coverage": f"{has_desktop_j}/{n}", "frameworks": dict(desktop_counter_j.most_common(10))},
+        "file_storage": {"coverage": f"{has_storage_j}/{n}", "services": dict(storage_counter_j.most_common(10))},
+        "form_libs": {"coverage": f"{has_forms_j}/{n}", "libs": dict(form_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1536,7 +1580,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1613,6 +1657,8 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.a11y_tools),
             "; ".join(ts.scraping_libs),
             "; ".join(ts.desktop_frameworks),
+            "; ".join(ts.file_storage),
+            "; ".join(ts.form_libs),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

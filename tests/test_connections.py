@@ -36,6 +36,8 @@ from atlas.connections import (
     _find_a11y_patterns,
     _find_scraping_patterns,
     _find_desktop_framework_patterns,
+    _find_file_storage_patterns,
+    _find_form_lib_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -48,7 +50,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
           state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, email_libs=None, compression_libs=None, scraping_libs=None, project_license="",
-          desktop_frameworks=None, a11y_tools=None,
+          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None,
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -111,6 +113,8 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             scraping_libs=scraping_libs or [],
             desktop_frameworks=desktop_frameworks or [],
             a11y_tools=a11y_tools or [],
+            file_storage=file_storage or [],
+            form_libs=form_libs or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -6020,3 +6024,121 @@ class TestFindDesktopFrameworkPatterns:
         conns = find_connections(projects)
         desktop_types = {c.type for c in conns if "desktop" in c.type}
         assert "shared_desktop_framework" in desktop_types
+
+
+class TestFindFileStoragePatterns:
+    def test_empty(self):
+        projects = [_proj("a"), _proj("b")]
+        assert _find_file_storage_patterns(projects) == []
+
+    def test_shared_file_storage(self):
+        projects = [
+            _proj("a", file_storage=["AWS S3", "Cloudinary"]),
+            _proj("b", file_storage=["AWS S3", "MinIO"]),
+        ]
+        conns = _find_file_storage_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_file_storage"]
+        assert len(shared) >= 1
+        assert any("AWS S3" in c.detail for c in shared)
+
+    def test_no_shared_when_disjoint(self):
+        projects = [
+            _proj("a", file_storage=["AWS S3"]),
+            _proj("b", file_storage=["Cloudinary"]),
+        ]
+        conns = _find_file_storage_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_file_storage"]
+        assert len(shared) == 0
+
+    def test_cloud_devplatform_divergence(self):
+        projects = [
+            _proj("a", file_storage=["AWS S3", "MinIO"]),
+            _proj("b", file_storage=["UploadThing", "Vercel Blob"]),
+        ]
+        conns = _find_file_storage_patterns(projects)
+        div = [c for c in conns if c.type == "file_storage_divergence"]
+        assert len(div) == 1
+        assert "cloud-native" in div[0].detail.lower()
+        assert "dev-platform" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", file_storage=["AWS S3"]),
+            _proj("b", file_storage=["MinIO"]),
+        ]
+        conns = _find_file_storage_patterns(projects)
+        div = [c for c in conns if c.type == "file_storage_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", file_storage=["AWS S3", "UploadThing", "MinIO"]) for i in range(20)]
+        conns = _find_file_storage_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", file_storage=["AWS S3", "Cloudinary"]),
+            _proj("b", file_storage=["AWS S3", "UploadThing"]),
+        ]
+        conns = find_connections(projects)
+        storage_types = {c.type for c in conns if "file_storage" in c.type or "storage" in c.type}
+        assert "shared_file_storage" in storage_types
+
+
+class TestFindFormLibPatterns:
+    def test_empty(self):
+        projects = [_proj("a"), _proj("b")]
+        assert _find_form_lib_patterns(projects) == []
+
+    def test_shared_form_lib(self):
+        projects = [
+            _proj("a", form_libs=["React Hook Form", "Formik"]),
+            _proj("b", form_libs=["React Hook Form", "Final Form"]),
+        ]
+        conns = _find_form_lib_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_form_lib"]
+        assert len(shared) >= 1
+        assert any("React Hook Form" in c.detail for c in shared)
+
+    def test_no_shared_when_disjoint(self):
+        projects = [
+            _proj("a", form_libs=["React Hook Form"]),
+            _proj("b", form_libs=["Formik"]),
+        ]
+        conns = _find_form_lib_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_form_lib"]
+        assert len(shared) == 0
+
+    def test_schema_imperative_divergence(self):
+        projects = [
+            _proj("a", form_libs=["React Hook Form", "TanStack Form"]),
+            _proj("b", form_libs=["Formik", "Final Form"]),
+        ]
+        conns = _find_form_lib_patterns(projects)
+        div = [c for c in conns if c.type == "form_lib_divergence"]
+        assert len(div) == 1
+        assert "schema-driven" in div[0].detail.lower()
+        assert "imperative" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", form_libs=["React Hook Form"]),
+            _proj("b", form_libs=["TanStack Form"]),
+        ]
+        conns = _find_form_lib_patterns(projects)
+        div = [c for c in conns if c.type == "form_lib_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", form_libs=["React Hook Form", "Formik", "VeeValidate"]) for i in range(20)]
+        conns = _find_form_lib_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", form_libs=["React Hook Form", "Formik"]),
+            _proj("b", form_libs=["React Hook Form", "Final Form"]),
+        ]
+        conns = find_connections(projects)
+        form_types = {c.type for c in conns if "form" in c.type}
+        assert "shared_form_lib" in form_types

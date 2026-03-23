@@ -282,6 +282,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "a11y_divergence": "quality",
         "scraping_lib_divergence": "deps",
         "desktop_framework_divergence": "deps",
+        "file_storage_divergence": "infra",
+        "form_lib_divergence": "deps",
     }
 
     for conn in connections:

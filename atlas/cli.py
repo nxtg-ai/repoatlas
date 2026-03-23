@@ -449,6 +449,8 @@ CONNECTION_CATEGORIES = {
     "a11y": {"shared_a11y_tool", "a11y_divergence"},
     "scraping": {"shared_scraping_lib", "scraping_lib_divergence"},
     "desktop": {"shared_desktop_framework", "desktop_framework_divergence"},
+    "storage": {"shared_file_storage", "file_storage_divergence"},
+    "forms": {"shared_form_lib", "form_lib_divergence"},
 }
 
 

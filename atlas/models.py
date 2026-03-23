@@ -64,6 +64,8 @@ class TechStack:
     a11y_tools: list[str] = field(default_factory=list)
     scraping_libs: list[str] = field(default_factory=list)
     desktop_frameworks: list[str] = field(default_factory=list)
+    file_storage: list[str] = field(default_factory=list)
+    form_libs: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -209,6 +211,8 @@ class Project:
                 "a11y_tools": self.tech_stack.a11y_tools,
                 "scraping_libs": self.tech_stack.scraping_libs,
                 "desktop_frameworks": self.tech_stack.desktop_frameworks,
+                "file_storage": self.tech_stack.file_storage,
+                "form_libs": self.tech_stack.form_libs,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -299,6 +303,8 @@ class Project:
                 a11y_tools=ts.get("a11y_tools", []),
                 scraping_libs=ts.get("scraping_libs", []),
                 desktop_frameworks=ts.get("desktop_frameworks", []),
+                file_storage=ts.get("file_storage", []),
+                form_libs=ts.get("form_libs", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

@@ -62,6 +62,8 @@ from atlas.detector import (
     detect_a11y_tools,
     detect_scraping_libs,
     detect_desktop_frameworks,
+    detect_file_storage,
+    detect_form_libs,
     walk_files,
 )
 
@@ -6869,4 +6871,179 @@ class TestDetectDesktopFrameworks:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("kivy>=2.3\nflet>=0.21\npyqt6>=6.6\n")
         result = detect_desktop_frameworks(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_file_storage
+class TestDetectFileStorage:
+    def test_empty_project(self, tmp_path):
+        assert detect_file_storage(tmp_path) == []
+
+    def test_python_boto3(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("boto3>=1.34\n")
+        result = detect_file_storage(tmp_path)
+        assert "AWS S3" in result
+
+    def test_python_gcs(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("google-cloud-storage>=2.14\n")
+        result = detect_file_storage(tmp_path)
+        assert "Google Cloud Storage" in result
+
+    def test_python_azure(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("azure-storage-blob>=12.19\n")
+        result = detect_file_storage(tmp_path)
+        assert "Azure Blob Storage" in result
+
+    def test_python_minio(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("minio>=7.2\n")
+        result = detect_file_storage(tmp_path)
+        assert "MinIO" in result
+
+    def test_python_cloudinary(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("cloudinary>=1.38\n")
+        result = detect_file_storage(tmp_path)
+        assert "Cloudinary" in result
+
+    def test_python_django_storages(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("django-storages>=1.14\n")
+        result = detect_file_storage(tmp_path)
+        assert "django-storages" in result
+
+    def test_js_aws_s3(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@aws-sdk/client-s3":"^3.500"}}')
+        result = detect_file_storage(tmp_path)
+        assert "AWS S3" in result
+
+    def test_js_uploadthing(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"uploadthing":"^6.0"}}')
+        result = detect_file_storage(tmp_path)
+        assert "UploadThing" in result
+
+    def test_js_vercel_blob(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@vercel/blob":"^0.20"}}')
+        result = detect_file_storage(tmp_path)
+        assert "Vercel Blob" in result
+
+    def test_js_supabase_storage(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@supabase/storage-js":"^2.5"}}')
+        result = detect_file_storage(tmp_path)
+        assert "Supabase Storage" in result
+
+    def test_js_multer(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"multer":"^1.4"}}')
+        result = detect_file_storage(tmp_path)
+        assert "Multer" in result
+
+    def test_go_aws(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/aws/aws-sdk-go v1.50.0 h1:abc\n")
+        result = detect_file_storage(tmp_path)
+        assert "AWS S3" in result
+
+    def test_go_gcs(self, tmp_path):
+        (tmp_path / "go.sum").write_text("cloud.google.com/go/storage v1.36.0 h1:abc\n")
+        result = detect_file_storage(tmp_path)
+        assert "Google Cloud Storage" in result
+
+    def test_go_minio(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/minio/minio-go v7.0.0 h1:abc\n")
+        result = detect_file_storage(tmp_path)
+        assert "MinIO" in result
+
+    def test_rust_aws(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\naws-sdk-s3 = "1.10"\n')
+        result = detect_file_storage(tmp_path)
+        assert "AWS S3" in result
+
+    def test_java_s3(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency>aws s3</dependency>")
+        result = detect_file_storage(tmp_path)
+        assert "AWS S3" in result
+
+    def test_multiple_python(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("boto3>=1.34\ncloudinary>=1.38\nminio>=7.2\n")
+        result = detect_file_storage(tmp_path)
+        assert "AWS S3" in result
+        assert "Cloudinary" in result
+        assert "MinIO" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("minio>=7.2\nboto3>=1.34\ncloudinary>=1.38\n")
+        result = detect_file_storage(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_form_libs
+class TestDetectFormLibs:
+    def test_empty_project(self, tmp_path):
+        assert detect_form_libs(tmp_path) == []
+
+    def test_python_wtforms(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("wtforms>=3.1\n")
+        result = detect_form_libs(tmp_path)
+        assert "WTForms" in result
+
+    def test_python_flask_wtf(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("flask-wtf>=1.2\n")
+        result = detect_form_libs(tmp_path)
+        assert "Flask-WTF" in result
+
+    def test_python_django_crispy(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("django-crispy-forms>=2.0\n")
+        result = detect_form_libs(tmp_path)
+        assert "django-crispy-forms" in result
+
+    def test_js_react_hook_form(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-hook-form":"^7.50"}}')
+        result = detect_form_libs(tmp_path)
+        assert "React Hook Form" in result
+
+    def test_js_formik(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"formik":"^2.4"}}')
+        result = detect_form_libs(tmp_path)
+        assert "Formik" in result
+
+    def test_js_tanstack_form(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@tanstack/react-form":"^0.20"}}')
+        result = detect_form_libs(tmp_path)
+        assert "TanStack Form" in result
+
+    def test_js_vee_validate(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"vee-validate":"^4.12"}}')
+        result = detect_form_libs(tmp_path)
+        assert "VeeValidate" in result
+
+    def test_js_formkit(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@formkit/core":"^1.5"}}')
+        result = detect_form_libs(tmp_path)
+        assert "FormKit" in result
+
+    def test_js_conform(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@conform-to/react":"^1.0"}}')
+        result = detect_form_libs(tmp_path)
+        assert "Conform" in result
+
+    def test_js_final_form(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"final-form":"^4.20"}}')
+        result = detect_form_libs(tmp_path)
+        assert "Final Form" in result
+
+    def test_js_angular_forms(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@angular/forms":"^17.0"}}')
+        result = detect_form_libs(tmp_path)
+        assert "Angular Forms" in result
+
+    def test_js_felte(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"felte":"^1.2"}}')
+        result = detect_form_libs(tmp_path)
+        assert "Felte" in result
+
+    def test_multiple_js(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-hook-form":"^7.50","formik":"^2.4"}}')
+        result = detect_form_libs(tmp_path)
+        assert "React Hook Form" in result
+        assert "Formik" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"formik":"^2.4","react-hook-form":"^7.50"}}')
+        result = detect_form_libs(tmp_path)
         assert result == sorted(result)

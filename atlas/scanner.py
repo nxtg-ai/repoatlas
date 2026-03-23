@@ -66,6 +66,8 @@ from atlas.detector import (
     detect_a11y_tools,
     detect_scraping_libs,
     detect_desktop_frameworks,
+    detect_file_storage,
+    detect_form_libs,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -134,6 +136,8 @@ def scan_project(project_path: Path) -> Project:
     a11y_tools = detect_a11y_tools(path)
     scraping_libs = detect_scraping_libs(path)
     desktop_frameworks = detect_desktop_frameworks(path)
+    file_storage = detect_file_storage(path)
+    form_libs = detect_form_libs(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -197,6 +201,8 @@ def scan_project(project_path: Path) -> Project:
         a11y_tools=a11y_tools,
         scraping_libs=scraping_libs,
         desktop_frameworks=desktop_frameworks,
+        file_storage=file_storage,
+        form_libs=form_libs,
     )
 
     project = Project(

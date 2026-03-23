@@ -68,6 +68,8 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_a11y_patterns(projects))
     connections.extend(_find_scraping_patterns(projects))
     connections.extend(_find_desktop_framework_patterns(projects))
+    connections.extend(_find_file_storage_patterns(projects))
+    connections.extend(_find_form_lib_patterns(projects))
     return connections
 
 
@@ -232,6 +234,115 @@ def _find_desktop_framework_patterns(projects: list[Project]) -> list[Connection
         connections.append(Connection(
             type="desktop_framework_divergence",
             detail=f"Mixed desktop approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_file_storage_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project file storage and object store patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.file_storage:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_file_storage",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # File storage divergence — cloud-native vs developer-platform
+    cloud_native = {"AWS S3", "Google Cloud Storage", "Azure Blob Storage",
+                    "MinIO", "object_store", "Cloudflare R2"}
+    dev_platform = {"UploadThing", "Vercel Blob", "Supabase Storage",
+                    "Firebase Storage", "Cloudinary", "smart-open",
+                    "django-storages", "Flask-Uploads"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "cloud-native": {}, "dev-platform": {},
+    }
+    cat_sets = [("cloud-native", cloud_native), ("dev-platform", dev_platform)]
+    for p in projects:
+        for lib in p.tech_stack.file_storage:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="file_storage_divergence",
+            detail=f"Mixed storage approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_form_lib_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project form library patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.form_libs:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_form_lib",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Form lib divergence — schema-driven vs imperative
+    schema_driven = {"React Hook Form", "VeeValidate", "Conform",
+                     "TanStack Form", "react-jsonschema-form", "FormKit",
+                     "Angular Forms", "SvelteKit Superforms"}
+    imperative = {"Formik", "Final Form", "Uniforms", "Vuelidate",
+                  "svelte-forms-lib", "Felte", "WTForms", "Flask-WTF",
+                  "django-crispy-forms", "django-formtools"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "schema-driven": {}, "imperative": {},
+    }
+    cat_sets = [("schema-driven", schema_driven), ("imperative", imperative)]
+    for p in projects:
+        for lib in p.tech_stack.form_libs:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="form_lib_divergence",
+            detail=f"Mixed form approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))
