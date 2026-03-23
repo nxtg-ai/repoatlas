@@ -80,6 +80,8 @@ class TechStack:
     monorepo_tools: list[str] = field(default_factory=list)
     error_tracking: list[str] = field(default_factory=list)
     static_site_generators: list[str] = field(default_factory=list)
+    analytics_tools: list[str] = field(default_factory=list)
+    mobile_frameworks: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -241,6 +243,8 @@ class Project:
                 "monorepo_tools": self.tech_stack.monorepo_tools,
                 "error_tracking": self.tech_stack.error_tracking,
                 "static_site_generators": self.tech_stack.static_site_generators,
+                "analytics_tools": self.tech_stack.analytics_tools,
+                "mobile_frameworks": self.tech_stack.mobile_frameworks,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -347,6 +351,8 @@ class Project:
                 monorepo_tools=ts.get("monorepo_tools", []),
                 error_tracking=ts.get("error_tracking", []),
                 static_site_generators=ts.get("static_site_generators", []),
+                analytics_tools=ts.get("analytics_tools", []),
+                mobile_frameworks=ts.get("mobile_frameworks", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

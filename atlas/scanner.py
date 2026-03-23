@@ -82,6 +82,8 @@ from atlas.detector import (
     detect_monorepo_tools,
     detect_error_tracking,
     detect_static_site_generators,
+    detect_analytics_tools,
+    detect_mobile_frameworks,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -166,6 +168,8 @@ def scan_project(project_path: Path) -> Project:
     monorepo_tools = detect_monorepo_tools(path)
     error_tracking = detect_error_tracking(path)
     static_site_generators = detect_static_site_generators(path)
+    analytics_tools = detect_analytics_tools(path)
+    mobile_frameworks = detect_mobile_frameworks(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -245,6 +249,8 @@ def scan_project(project_path: Path) -> Project:
         monorepo_tools=monorepo_tools,
         error_tracking=error_tracking,
         static_site_generators=static_site_generators,
+        analytics_tools=analytics_tools,
+        mobile_frameworks=mobile_frameworks,
     )
 
     project = Project(

@@ -78,6 +78,8 @@ from atlas.detector import (
     detect_monorepo_tools,
     detect_error_tracking,
     detect_static_site_generators,
+    detect_analytics_tools,
+    detect_mobile_frameworks,
     walk_files,
 )
 
@@ -8264,4 +8266,151 @@ class TestDetectStaticSiteGenerators:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("mkdocs==1.5\nsphinx==7.2\n")
         result = detect_static_site_generators(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectAnalyticsTools:
+    def test_empty(self, tmp_path):
+        assert detect_analytics_tools(tmp_path) == []
+
+    def test_python_posthog(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("posthog==3.3\n")
+        result = detect_analytics_tools(tmp_path)
+        assert "PostHog" in result
+
+    def test_python_mixpanel(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("mixpanel==4.10\n")
+        result = detect_analytics_tools(tmp_path)
+        assert "Mixpanel" in result
+
+    def test_python_amplitude(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("amplitude-analytics==1.1\n")
+        result = detect_analytics_tools(tmp_path)
+        assert "Amplitude" in result
+
+    def test_js_posthog(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"posthog-js":"^1"}}')
+        result = detect_analytics_tools(tmp_path)
+        assert "PostHog" in result
+
+    def test_js_mixpanel(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"mixpanel-browser":"^2"}}')
+        result = detect_analytics_tools(tmp_path)
+        assert "Mixpanel" in result
+
+    def test_js_amplitude(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@amplitude/analytics-browser":"^2"}}')
+        result = detect_analytics_tools(tmp_path)
+        assert "Amplitude" in result
+
+    def test_js_segment(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@segment/analytics-next":"^1"}}')
+        result = detect_analytics_tools(tmp_path)
+        assert "Segment" in result
+
+    def test_js_google_analytics(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-ga":"^3"}}')
+        result = detect_analytics_tools(tmp_path)
+        assert "Google Analytics" in result
+
+    def test_js_plausible(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"plausible-tracker":"^0"}}')
+        result = detect_analytics_tools(tmp_path)
+        assert "Plausible" in result
+
+    def test_js_hotjar(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@hotjar/browser":"^1"}}')
+        result = detect_analytics_tools(tmp_path)
+        assert "Hotjar" in result
+
+    def test_js_vercel_analytics(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@vercel/analytics":"^1"}}')
+        result = detect_analytics_tools(tmp_path)
+        assert "Vercel Analytics" in result
+
+    def test_go_posthog(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/posthog/posthog-go v0.0.1 h1:abc\n")
+        result = detect_analytics_tools(tmp_path)
+        assert "PostHog" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("posthog==3.3\nmixpanel==4.10\n")
+        result = detect_analytics_tools(tmp_path)
+        assert "PostHog" in result
+        assert "Mixpanel" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("posthog==3.3\nmixpanel==4.10\n")
+        result = detect_analytics_tools(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectMobileFrameworks:
+    def test_empty(self, tmp_path):
+        assert detect_mobile_frameworks(tmp_path) == []
+
+    def test_js_react_native(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-native":"^0.73"}}')
+        result = detect_mobile_frameworks(tmp_path)
+        assert "React Native" in result
+
+    def test_js_expo(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"expo":"^50"}}')
+        result = detect_mobile_frameworks(tmp_path)
+        assert "Expo" in result
+
+    def test_js_ionic(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@ionic/react":"^7"}}')
+        result = detect_mobile_frameworks(tmp_path)
+        assert "Ionic" in result
+
+    def test_js_capacitor(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@capacitor/core":"^5"}}')
+        result = detect_mobile_frameworks(tmp_path)
+        assert "Capacitor" in result
+
+    def test_js_tauri(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@tauri-apps/api":"^1"}}')
+        result = detect_mobile_frameworks(tmp_path)
+        assert "Tauri" in result
+
+    def test_flutter(self, tmp_path):
+        (tmp_path / "pubspec.yaml").write_text("dependencies:\n  flutter:\n    sdk: flutter\n")
+        result = detect_mobile_frameworks(tmp_path)
+        assert "Flutter" in result
+
+    def test_capacitor_config(self, tmp_path):
+        (tmp_path / "capacitor.config.json").write_text("{}")
+        result = detect_mobile_frameworks(tmp_path)
+        assert "Capacitor" in result
+
+    def test_ionic_config(self, tmp_path):
+        (tmp_path / "ionic.config.json").write_text("{}")
+        result = detect_mobile_frameworks(tmp_path)
+        assert "Ionic" in result
+
+    def test_tauri_config(self, tmp_path):
+        (tmp_path / "tauri.conf.json").write_text("{}")
+        result = detect_mobile_frameworks(tmp_path)
+        assert "Tauri" in result
+
+    def test_expo_app_json(self, tmp_path):
+        (tmp_path / "app.json").write_text('{"expo": {"name": "myapp"}}')
+        result = detect_mobile_frameworks(tmp_path)
+        assert "Expo" in result
+
+    def test_swift_package(self, tmp_path):
+        (tmp_path / "Package.swift").write_text("// swift-tools-version:5.9\n")
+        result = detect_mobile_frameworks(tmp_path)
+        assert "Swift Package" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-native":"^0.73","@capacitor/core":"^5"}}')
+        result = detect_mobile_frameworks(tmp_path)
+        assert "React Native" in result
+        assert "Capacitor" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-native":"^0.73","@ionic/react":"^7"}}')
+        result = detect_mobile_frameworks(tmp_path)
         assert result == sorted(result)

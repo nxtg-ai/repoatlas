@@ -219,6 +219,10 @@ CONNECTION_ICONS = {
     "error_tracking_divergence": "[yellow]🚨[/yellow]",
     "shared_ssg": "[green]🏗️[/green]",
     "ssg_divergence": "[yellow]🏗️[/yellow]",
+    "shared_analytics_tool": "[green]📊[/green]",
+    "analytics_divergence": "[yellow]📊[/yellow]",
+    "shared_mobile_framework": "[green]📱[/green]",
+    "mobile_divergence": "[yellow]📱[/yellow]",
 }
 
 
@@ -1134,6 +1138,28 @@ def _show_portfolio_summary(portfolio: Portfolio):
         ssg_parts = [f"{s} ({count})" for s, count in top_ssg]
         lines.append(f"  [bold]SSG:[/bold]       {has_ssg}/{n} projects · {', '.join(ssg_parts)}")
 
+    # Analytics tools
+    has_ana = sum(1 for p in projects if p.tech_stack.analytics_tools)
+    if has_ana:
+        ana_counter: Counter[str] = Counter()
+        for p in projects:
+            for a in p.tech_stack.analytics_tools:
+                ana_counter[a] += 1
+        top_ana = ana_counter.most_common(6)
+        ana_parts = [f"{a} ({count})" for a, count in top_ana]
+        lines.append(f"  [bold]Analytics:[/bold] {has_ana}/{n} projects · {', '.join(ana_parts)}")
+
+    # Mobile frameworks
+    has_mob = sum(1 for p in projects if p.tech_stack.mobile_frameworks)
+    if has_mob:
+        mob_counter: Counter[str] = Counter()
+        for p in projects:
+            for m in p.tech_stack.mobile_frameworks:
+                mob_counter[m] += 1
+        top_mob = mob_counter.most_common(6)
+        mob_parts = [f"{m} ({count})" for m, count in top_mob]
+        lines.append(f"  [bold]Mobile:[/bold]    {has_mob}/{n} projects · {', '.join(mob_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1356,6 +1382,10 @@ def show_connections(connections: list[Connection]):
         "error_tracking_divergence": "Error Tracking Approach Divergence",
         "shared_ssg": "Shared Static Site Generator",
         "ssg_divergence": "SSG Approach Divergence",
+        "shared_analytics_tool": "Shared Analytics Tool",
+        "analytics_divergence": "Analytics Approach Divergence",
+        "shared_mobile_framework": "Shared Mobile Framework",
+        "mobile_divergence": "Mobile Approach Divergence",
     }
 
     lines = []
@@ -1467,6 +1497,8 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_monorepo_tool": "monorepo", "monorepo_divergence": "monorepo",
         "shared_error_tracker": "errors", "error_tracking_divergence": "errors",
         "shared_ssg": "ssg", "ssg_divergence": "ssg",
+        "shared_analytics_tool": "analytics", "analytics_divergence": "analytics",
+        "shared_mobile_framework": "mobile", "mobile_divergence": "mobile",
     }
 
     for conn in connections:
@@ -1801,6 +1833,14 @@ def show_project_card(project: Project):
     if project.tech_stack.static_site_generators:
         ssg = ", ".join(project.tech_stack.static_site_generators[:8])
         lines.append(f"  [bold]SSG:[/bold]       {ssg}")
+
+    if project.tech_stack.analytics_tools:
+        ana = ", ".join(project.tech_stack.analytics_tools[:8])
+        lines.append(f"  [bold]Analytics:[/bold] {ana}")
+
+    if project.tech_stack.mobile_frameworks:
+        mob = ", ".join(project.tech_stack.mobile_frameworks[:8])
+        lines.append(f"  [bold]Mobile:[/bold]    {mob}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

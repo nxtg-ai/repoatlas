@@ -84,6 +84,8 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_monorepo_patterns(projects))
     connections.extend(_find_error_tracking_patterns(projects))
     connections.extend(_find_ssg_patterns(projects))
+    connections.extend(_find_analytics_patterns(projects))
+    connections.extend(_find_mobile_patterns(projects))
     return connections
 
 
@@ -1142,6 +1144,111 @@ def _find_ssg_patterns(projects: list[Project]) -> list[Connection]:
             type="ssg_divergence",
             detail=f"Mixed SSG approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs_ssg),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_analytics_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project analytics tool patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.analytics_tools:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_analytics_tool",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Analytics divergence — privacy-first (PostHog, Plausible, Umami, Pirsch) vs commercial (Mixpanel, Amplitude, Google Analytics)
+    privacy_first = {"PostHog", "Plausible", "Umami", "Pirsch", "Countly"}
+    commercial = {"Mixpanel", "Amplitude", "Google Analytics", "Heap",
+                  "Segment", "RudderStack", "FullStory", "Hotjar", "Vercel Analytics"}
+
+    cat_found_an: dict[str, dict[str, set[str]]] = {
+        "privacy-first": {}, "commercial": {},
+    }
+    cat_sets_an = [("privacy-first", privacy_first), ("commercial", commercial)]
+    for p in projects:
+        for lib in p.tech_stack.analytics_tools:
+            for cat_name, cat_set in cat_sets_an:
+                if lib in cat_set:
+                    cat_found_an[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats_an = {k: v for k, v in cat_found_an.items() if v}
+    if len(active_cats_an) >= 2:
+        parts = []
+        all_projs_an: set[str] = set()
+        for cat_name, tools_map in active_cats_an.items():
+            tool_names = ", ".join(sorted(tools_map.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools_map.values():
+                all_projs_an.update(ps)
+        connections.append(Connection(
+            type="analytics_divergence",
+            detail=f"Mixed analytics approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs_an),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_mobile_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project mobile framework patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.mobile_frameworks:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_mobile_framework",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Mobile divergence — cross-platform JS (React Native, Ionic, NativeScript) vs cross-platform native (Flutter, Kotlin Multiplatform, .NET MAUI)
+    cross_js = {"React Native", "Expo", "Ionic", "NativeScript",
+                "Capacitor", "Quasar", "Tauri"}
+    cross_native = {"Flutter", "Kotlin Multiplatform", ".NET MAUI",
+                    "Xamarin", "Swift Package", "Android (Native)", "Xcode (iOS/macOS)"}
+
+    cat_found_mob: dict[str, dict[str, set[str]]] = {
+        "cross-platform JS": {}, "native/cross-native": {},
+    }
+    cat_sets_mob = [("cross-platform JS", cross_js), ("native/cross-native", cross_native)]
+    for p in projects:
+        for lib in p.tech_stack.mobile_frameworks:
+            for cat_name, cat_set in cat_sets_mob:
+                if lib in cat_set:
+                    cat_found_mob[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats_mob = {k: v for k, v in cat_found_mob.items() if v}
+    if len(active_cats_mob) >= 2:
+        parts = []
+        all_projs_mob: set[str] = set()
+        for cat_name, tools_map in active_cats_mob.items():
+            tool_names = ", ".join(sorted(tools_map.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools_map.values():
+                all_projs_mob.update(ps)
+        connections.append(Connection(
+            type="mobile_divergence",
+            detail=f"Mixed mobile approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs_mob),
             severity="warning",
         ))
 

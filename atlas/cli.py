@@ -465,6 +465,8 @@ CONNECTION_CATEGORIES = {
     "monorepo": {"shared_monorepo_tool", "monorepo_divergence"},
     "errors": {"shared_error_tracker", "error_tracking_divergence"},
     "ssg": {"shared_ssg", "ssg_divergence"},
+    "analytics": {"shared_analytics_tool", "analytics_divergence"},
+    "mobile": {"shared_mobile_framework", "mobile_divergence"},
 }
 
 

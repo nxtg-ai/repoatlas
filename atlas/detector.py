@@ -8177,3 +8177,205 @@ def detect_static_site_generators(project_path: Path) -> list[str]:
         _add("Eleventy")
 
     return sorted(tools)
+
+
+def detect_analytics_tools(project_path: Path) -> list[str]:
+    """Detect analytics and product analytics tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str):
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Python
+    req = project_path / "requirements.txt"
+    if req.exists():
+        try:
+            content_py_at = req.read_text().lower()
+            if "posthog" in content_py_at:
+                _add("PostHog")
+            if "mixpanel" in content_py_at:
+                _add("Mixpanel")
+            if "amplitude" in content_py_at:
+                _add("Amplitude")
+            if "segment" in content_py_at and "analytics" in content_py_at:
+                _add("Segment")
+            if "plausible" in content_py_at:
+                _add("Plausible")
+            if "rudderstack" in content_py_at:
+                _add("RudderStack")
+            if "countly" in content_py_at:
+                _add("Countly")
+        except OSError:
+            pass
+
+    # JS/TS
+    pkg = project_path / "package.json"
+    if pkg.exists():
+        try:
+            content_js_at = pkg.read_text().lower()
+            if "posthog" in content_js_at:
+                _add("PostHog")
+            if "mixpanel" in content_js_at:
+                _add("Mixpanel")
+            if "@amplitude/" in content_js_at or '"amplitude-js"' in content_js_at:
+                _add("Amplitude")
+            if "@segment/" in content_js_at or "analytics-node" in content_js_at:
+                _add("Segment")
+            if "plausible" in content_js_at:
+                _add("Plausible")
+            if "react-ga" in content_js_at or "@google-analytics" in content_js_at or "ga-4-react" in content_js_at:
+                _add("Google Analytics")
+            if "heap" in content_js_at and "analytics" in content_js_at:
+                _add("Heap")
+            if "@rudderstack/" in content_js_at or "rudder-sdk" in content_js_at:
+                _add("RudderStack")
+            if "fullstory" in content_js_at or "@fullstory/" in content_js_at:
+                _add("FullStory")
+            if "hotjar" in content_js_at:
+                _add("Hotjar")
+            if "@pirsch/" in content_js_at or "pirsch-sdk" in content_js_at:
+                _add("Pirsch")
+            if "umami" in content_js_at:
+                _add("Umami")
+            if "@vercel/analytics" in content_js_at:
+                _add("Vercel Analytics")
+        except OSError:
+            pass
+
+    # Go
+    for go_dep in ("go.sum", "go.mod"):
+        go_file = project_path / go_dep
+        if go_file.exists():
+            try:
+                content_go_at = go_file.read_text().lower()
+                if "posthog" in content_go_at:
+                    _add("PostHog")
+                if "mixpanel" in content_go_at:
+                    _add("Mixpanel")
+                if "amplitude" in content_go_at:
+                    _add("Amplitude")
+                if "segmentio" in content_go_at or "segment" in content_go_at:
+                    _add("Segment")
+            except OSError:
+                pass
+
+    # Java
+    for java_build in ("pom.xml", "build.gradle"):
+        jf = project_path / java_build
+        if jf.exists():
+            try:
+                content_java_at = jf.read_text().lower()
+                if "posthog" in content_java_at:
+                    _add("PostHog")
+                if "mixpanel" in content_java_at:
+                    _add("Mixpanel")
+                if "amplitude" in content_java_at:
+                    _add("Amplitude")
+                if "segment" in content_java_at and "analytics" in content_java_at:
+                    _add("Segment")
+            except OSError:
+                pass
+
+    return sorted(tools)
+
+
+def detect_mobile_frameworks(project_path: Path) -> list[str]:
+    """Detect mobile development frameworks and tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str):
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # JS/TS
+    pkg = project_path / "package.json"
+    if pkg.exists():
+        try:
+            content_js_mob = pkg.read_text().lower()
+            if "react-native" in content_js_mob:
+                _add("React Native")
+            if "expo" in content_js_mob and ("expo-" in content_js_mob or '"expo"' in content_js_mob):
+                _add("Expo")
+            if "@ionic/" in content_js_mob or '"ionic"' in content_js_mob:
+                _add("Ionic")
+            if "@capacitor/" in content_js_mob:
+                _add("Capacitor")
+            if "nativescript" in content_js_mob:
+                _add("NativeScript")
+            if "@tauri-apps/" in content_js_mob:
+                _add("Tauri")
+            if "quasar" in content_js_mob:
+                _add("Quasar")
+        except OSError:
+            pass
+
+    # Flutter/Dart
+    if (project_path / "pubspec.yaml").exists():
+        try:
+            pubspec_mob = (project_path / "pubspec.yaml").read_text().lower()
+            if "flutter" in pubspec_mob:
+                _add("Flutter")
+        except OSError:
+            pass
+
+    # Kotlin Multiplatform
+    for java_build in ("build.gradle", "build.gradle.kts"):
+        jf = project_path / java_build
+        if jf.exists():
+            try:
+                content_java_mob = jf.read_text().lower()
+                if "kotlin-multiplatform" in content_java_mob or "kotlin(\"multiplatform\")" in content_java_mob:
+                    _add("Kotlin Multiplatform")
+                if "android" in content_java_mob and "application" in content_java_mob:
+                    _add("Android (Native)")
+            except OSError:
+                pass
+
+    # Swift/iOS
+    if (project_path / "Package.swift").exists():
+        _add("Swift Package")
+    for xcodeproj in project_path.glob("*.xcodeproj"):
+        _add("Xcode (iOS/macOS)")
+        break
+    for xcworkspace in project_path.glob("*.xcworkspace"):
+        _add("Xcode (iOS/macOS)")
+        break
+
+    # MAUI / Xamarin
+    for csproj in project_path.glob("*.csproj"):
+        try:
+            csproj_content = csproj.read_text().lower()
+            if "maui" in csproj_content:
+                _add(".NET MAUI")
+            if "xamarin" in csproj_content:
+                _add("Xamarin")
+        except OSError:
+            pass
+        break
+
+    # Config files
+    if (project_path / "app.json").exists():
+        try:
+            app_json_mob = (project_path / "app.json").read_text().lower()
+            if "expo" in app_json_mob:
+                _add("Expo")
+            if "react-native" in app_json_mob:
+                _add("React Native")
+        except OSError:
+            pass
+
+    if (project_path / "capacitor.config.ts").exists() or (project_path / "capacitor.config.json").exists():
+        _add("Capacitor")
+
+    if (project_path / "ionic.config.json").exists():
+        _add("Ionic")
+
+    if (project_path / "tauri.conf.json").exists() or (project_path / "src-tauri").is_dir():
+        _add("Tauri")
+
+    return sorted(tools)
