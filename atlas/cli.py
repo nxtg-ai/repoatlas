@@ -461,6 +461,8 @@ CONNECTION_CATEGORIES = {
     "codegen": {"shared_codegen_tool", "codegen_divergence"},
     "mocking": {"shared_mocking_lib", "mocking_divergence"},
     "releases": {"shared_release_tool", "release_tool_divergence"},
+    "e2e": {"shared_e2e_tool", "e2e_divergence"},
+    "monorepo": {"shared_monorepo_tool", "monorepo_divergence"},
 }
 
 

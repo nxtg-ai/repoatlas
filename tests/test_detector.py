@@ -74,6 +74,8 @@ from atlas.detector import (
     detect_codegen_tools,
     detect_mocking_libs,
     detect_release_tools,
+    detect_e2e_testing,
+    detect_monorepo_tools,
     walk_files,
 )
 
@@ -7938,4 +7940,158 @@ class TestDetectReleaseTools:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "requirements.txt").write_text("commitizen==3.13\nbump2version==1.0\n")
         result = detect_release_tools(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectE2eTesting:
+    def test_empty(self, tmp_path):
+        assert detect_e2e_testing(tmp_path) == []
+
+    def test_python_selenium(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("selenium==4.16\n")
+        result = detect_e2e_testing(tmp_path)
+        assert "Selenium" in result
+
+    def test_python_playwright(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("playwright==1.40\n")
+        result = detect_e2e_testing(tmp_path)
+        assert "Playwright" in result
+
+    def test_python_behave(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("behave==1.2\n")
+        result = detect_e2e_testing(tmp_path)
+        assert "Behave" in result
+
+    def test_python_locust(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("locust==2.20\n")
+        result = detect_e2e_testing(tmp_path)
+        assert "Locust" in result
+
+    def test_js_cypress(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"cypress":"^13"}}')
+        result = detect_e2e_testing(tmp_path)
+        assert "Cypress" in result
+
+    def test_js_playwright(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"@playwright/test":"^1"}}')
+        result = detect_e2e_testing(tmp_path)
+        assert "Playwright" in result
+
+    def test_js_webdriverio(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"webdriverio":"^8"}}')
+        result = detect_e2e_testing(tmp_path)
+        assert "WebdriverIO" in result
+
+    def test_js_detox(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"detox":"^20"}}')
+        result = detect_e2e_testing(tmp_path)
+        assert "Detox" in result
+
+    def test_go_chromedp(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/chromedp/chromedp v0.9.5 h1:abc\n")
+        result = detect_e2e_testing(tmp_path)
+        assert "chromedp" in result
+
+    def test_rust_thirtyfour(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nthirtyfour = "0.31"\n')
+        result = detect_e2e_testing(tmp_path)
+        assert "thirtyfour" in result
+
+    def test_java_selenide(self, tmp_path):
+        (tmp_path / "build.gradle").write_text('implementation "com.codeborne:selenide:6.19"\n')
+        result = detect_e2e_testing(tmp_path)
+        assert "Selenide" in result
+
+    def test_cypress_config(self, tmp_path):
+        (tmp_path / "cypress.config.ts").write_text("export default {}\n")
+        result = detect_e2e_testing(tmp_path)
+        assert "Cypress" in result
+
+    def test_playwright_config(self, tmp_path):
+        (tmp_path / "playwright.config.ts").write_text("export default {}\n")
+        result = detect_e2e_testing(tmp_path)
+        assert "Playwright" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"cypress":"^13","@playwright/test":"^1"}}')
+        result = detect_e2e_testing(tmp_path)
+        assert "Cypress" in result
+        assert "Playwright" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("selenium==4.16\nplaywright==1.40\n")
+        result = detect_e2e_testing(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectMonorepoTools:
+    def test_empty(self, tmp_path):
+        assert detect_monorepo_tools(tmp_path) == []
+
+    def test_nx_json(self, tmp_path):
+        (tmp_path / "nx.json").write_text("{}")
+        result = detect_monorepo_tools(tmp_path)
+        assert "Nx" in result
+
+    def test_turbo_json(self, tmp_path):
+        (tmp_path / "turbo.json").write_text("{}")
+        result = detect_monorepo_tools(tmp_path)
+        assert "Turborepo" in result
+
+    def test_lerna_json(self, tmp_path):
+        (tmp_path / "lerna.json").write_text("{}")
+        result = detect_monorepo_tools(tmp_path)
+        assert "Lerna" in result
+
+    def test_rush_json(self, tmp_path):
+        (tmp_path / "rush.json").write_text("{}")
+        result = detect_monorepo_tools(tmp_path)
+        assert "Rush" in result
+
+    def test_pnpm_workspace(self, tmp_path):
+        (tmp_path / "pnpm-workspace.yaml").write_text("packages:\n  - packages/*\n")
+        result = detect_monorepo_tools(tmp_path)
+        assert "pnpm Workspaces" in result
+
+    def test_js_nx_package(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"nx":"^17"}}')
+        result = detect_monorepo_tools(tmp_path)
+        assert "Nx" in result
+
+    def test_js_turborepo_package(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"devDependencies":{"turbo":"^1"}}')
+        result = detect_monorepo_tools(tmp_path)
+        assert "Turborepo" in result
+
+    def test_bazel_build(self, tmp_path):
+        (tmp_path / "BUILD.bazel").write_text("# Bazel build\n")
+        result = detect_monorepo_tools(tmp_path)
+        assert "Bazel" in result
+
+    def test_pants_toml(self, tmp_path):
+        (tmp_path / "pants.toml").write_text("[GLOBAL]\n")
+        result = detect_monorepo_tools(tmp_path)
+        assert "Pants" in result
+
+    def test_go_workspace(self, tmp_path):
+        (tmp_path / "go.work").write_text("go 1.21\n")
+        result = detect_monorepo_tools(tmp_path)
+        assert "Go Workspaces" in result
+
+    def test_rust_workspace(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[workspace]\nmembers = ["pkg1"]\n')
+        result = detect_monorepo_tools(tmp_path)
+        assert "Cargo Workspaces" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "nx.json").write_text("{}")
+        (tmp_path / "turbo.json").write_text("{}")
+        result = detect_monorepo_tools(tmp_path)
+        assert "Nx" in result
+        assert "Turborepo" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "nx.json").write_text("{}")
+        (tmp_path / "turbo.json").write_text("{}")
+        result = detect_monorepo_tools(tmp_path)
         assert result == sorted(result)

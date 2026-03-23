@@ -730,6 +730,24 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         release_names = ", ".join(f"{t} ({c})" for t, c in release_counter_md.most_common(8))
         lines.append(f"**Release Tools**: {has_release_md}/{n} projects · {release_names}")
 
+    has_e2e_md = sum(1 for p in projects if p.tech_stack.e2e_testing)
+    if has_e2e_md:
+        e2e_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for e in p.tech_stack.e2e_testing:
+                e2e_counter_md[e] += 1
+        e2e_names = ", ".join(f"{t} ({c})" for t, c in e2e_counter_md.most_common(8))
+        lines.append(f"**E2E Testing**: {has_e2e_md}/{n} projects · {e2e_names}")
+
+    has_mono_md = sum(1 for p in projects if p.tech_stack.monorepo_tools)
+    if has_mono_md:
+        mono_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for m in p.tech_stack.monorepo_tools:
+                mono_counter_md[m] += 1
+        mono_names = ", ".join(f"{t} ({c})" for t, c in mono_counter_md.most_common(8))
+        lines.append(f"**Monorepo Tools**: {has_mono_md}/{n} projects · {mono_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -948,6 +966,12 @@ def _project_details(projects: list[Project]) -> list[str]:
         if p.tech_stack.release_tools:
             lines.append(f"- **Releases**: {', '.join(p.tech_stack.release_tools[:8])}")
 
+        if p.tech_stack.e2e_testing:
+            lines.append(f"- **E2E Testing**: {', '.join(p.tech_stack.e2e_testing[:8])}")
+
+        if p.tech_stack.monorepo_tools:
+            lines.append(f"- **Monorepo**: {', '.join(p.tech_stack.monorepo_tools[:8])}")
+
         if p.license:
             lines.append(f"- **License**: {p.license}")
 
@@ -1155,6 +1179,10 @@ def _connections_section(conns: list) -> list[str]:
         "mocking_divergence": "Mocking Approach Divergence",
         "shared_release_tool": "Shared Release Tool",
         "release_tool_divergence": "Release Approach Divergence",
+        "shared_e2e_tool": "Shared E2E Testing Tool",
+        "e2e_divergence": "E2E Testing Approach Divergence",
+        "shared_monorepo_tool": "Shared Monorepo Tool",
+        "monorepo_divergence": "Monorepo Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
@@ -1700,6 +1728,20 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             release_counter_j[rt] += 1
     has_release_j = sum(1 for p in projects if p.tech_stack.release_tools)
 
+    # E2E testing
+    e2e_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for e in p.tech_stack.e2e_testing:
+            e2e_counter_j[e] += 1
+    has_e2e_j = sum(1 for p in projects if p.tech_stack.e2e_testing)
+
+    # Monorepo tools
+    mono_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for m in p.tech_stack.monorepo_tools:
+            mono_counter_j[m] += 1
+    has_mono_j = sum(1 for p in projects if p.tech_stack.monorepo_tools)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1780,6 +1822,8 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "codegen_tools": {"coverage": f"{has_codegen_j}/{n}", "tools": dict(codegen_counter_j.most_common(10))},
         "mocking_libs": {"coverage": f"{has_mock_j}/{n}", "libs": dict(mock_counter_j.most_common(10))},
         "release_tools": {"coverage": f"{has_release_j}/{n}", "tools": dict(release_counter_j.most_common(10))},
+        "e2e_testing": {"coverage": f"{has_e2e_j}/{n}", "tools": dict(e2e_counter_j.most_common(10))},
+        "monorepo_tools": {"coverage": f"{has_mono_j}/{n}", "tools": dict(mono_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1800,7 +1844,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "Animation Libs", "Routing Libs", "Game Frameworks", "CMS Tools", "Rate Limiters", "DB Migration Tools", "gRPC/RPC Libs", "Code Gen Tools", "Mocking Libs", "Release Tools", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "Animation Libs", "Routing Libs", "Game Frameworks", "CMS Tools", "Rate Limiters", "DB Migration Tools", "gRPC/RPC Libs", "Code Gen Tools", "Mocking Libs", "Release Tools", "E2E Testing", "Monorepo Tools", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1889,6 +1933,8 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.codegen_tools),
             "; ".join(ts.mocking_libs),
             "; ".join(ts.release_tools),
+            "; ".join(ts.e2e_testing),
+            "; ".join(ts.monorepo_tools),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

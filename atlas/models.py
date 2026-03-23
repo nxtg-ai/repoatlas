@@ -76,6 +76,8 @@ class TechStack:
     codegen_tools: list[str] = field(default_factory=list)
     mocking_libs: list[str] = field(default_factory=list)
     release_tools: list[str] = field(default_factory=list)
+    e2e_testing: list[str] = field(default_factory=list)
+    monorepo_tools: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -233,6 +235,8 @@ class Project:
                 "codegen_tools": self.tech_stack.codegen_tools,
                 "mocking_libs": self.tech_stack.mocking_libs,
                 "release_tools": self.tech_stack.release_tools,
+                "e2e_testing": self.tech_stack.e2e_testing,
+                "monorepo_tools": self.tech_stack.monorepo_tools,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -335,6 +339,8 @@ class Project:
                 codegen_tools=ts.get("codegen_tools", []),
                 mocking_libs=ts.get("mocking_libs", []),
                 release_tools=ts.get("release_tools", []),
+                e2e_testing=ts.get("e2e_testing", []),
+                monorepo_tools=ts.get("monorepo_tools", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

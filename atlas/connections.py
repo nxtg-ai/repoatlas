@@ -80,6 +80,8 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_codegen_patterns(projects))
     connections.extend(_find_mocking_patterns(projects))
     connections.extend(_find_release_tool_patterns(projects))
+    connections.extend(_find_e2e_testing_patterns(projects))
+    connections.extend(_find_monorepo_patterns(projects))
     return connections
 
 
@@ -924,6 +926,114 @@ def _find_release_tool_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="release_tool_divergence",
             detail=f"Mixed release approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_e2e_testing_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project E2E and browser testing patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.e2e_testing:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_e2e_tool",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # E2E divergence — modern/integrated (Cypress, Playwright) vs traditional/selenium (Selenium, WebdriverIO, Selenide)
+    modern = {"Cypress", "Playwright", "Cypress Testing Library", "TestCafe",
+              "Detox", "CodeceptJS", "chromedp", "Rod", "Puppeteer",
+              "Pyppeteer", "thirtyfour", "fantoccini", "headless_chrome",
+              "Karate", "REST Assured"}
+    traditional = {"Selenium", "WebdriverIO", "Nightwatch", "Protractor",
+                   "Selenide", "Splinter", "Robot Framework", "Appium",
+                   "Helium"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "modern": {}, "traditional": {},
+    }
+    cat_sets = [("modern", modern), ("traditional", traditional)]
+    for p in projects:
+        for lib in p.tech_stack.e2e_testing:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="e2e_divergence",
+            detail=f"Mixed E2E testing approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_monorepo_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project monorepo tool patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.monorepo_tools:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_monorepo_tool",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Monorepo divergence — JS-native (Nx, Turborepo, Lerna) vs polyglot (Bazel, Pants, Buck2)
+    js_native = {"Nx", "Turborepo", "Lerna", "Rush", "pnpm Workspaces",
+                 "Workspaces", "Moon", "Wireit", "ultra-runner", "Changesets"}
+    polyglot = {"Bazel", "Pants", "Buck2", "Go Workspaces", "Cargo Workspaces"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "JS-native": {}, "polyglot": {},
+    }
+    cat_sets = [("JS-native", js_native), ("polyglot", polyglot)]
+    for p in projects:
+        for lib in p.tech_stack.monorepo_tools:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="monorepo_divergence",
+            detail=f"Mixed monorepo approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

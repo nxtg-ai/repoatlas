@@ -294,6 +294,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "codegen_divergence": "deps",
         "mocking_divergence": "tests",
         "release_tool_divergence": "infra",
+        "e2e_divergence": "tests",
+        "monorepo_divergence": "infra",
     }
 
     for conn in connections:

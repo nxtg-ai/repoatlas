@@ -48,6 +48,8 @@ from atlas.connections import (
     _find_codegen_patterns,
     _find_mocking_patterns,
     _find_release_tool_patterns,
+    _find_e2e_testing_patterns,
+    _find_monorepo_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -60,7 +62,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
           state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, email_libs=None, compression_libs=None, scraping_libs=None, project_license="",
-          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None, game_frameworks=None, cms_tools=None, rate_limiters=None, db_migration_tools=None, grpc_libs=None, codegen_tools=None, mocking_libs=None, release_tools=None,
+          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None, game_frameworks=None, cms_tools=None, rate_limiters=None, db_migration_tools=None, grpc_libs=None, codegen_tools=None, mocking_libs=None, release_tools=None, e2e_testing=None, monorepo_tools=None,
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -135,6 +137,8 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             codegen_tools=codegen_tools or [],
             mocking_libs=mocking_libs or [],
             release_tools=release_tools or [],
+            e2e_testing=e2e_testing or [],
+            monorepo_tools=monorepo_tools or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -6724,3 +6728,112 @@ class TestFindReleaseToolPatterns:
         conns = find_connections(projects)
         release_types = {c.type for c in conns if "release" in c.type}
         assert "shared_release_tool" in release_types
+
+
+class TestFindE2eTestingPatterns:
+    def test_empty(self):
+        conns = _find_e2e_testing_patterns([])
+        assert conns == []
+
+    def test_single_project(self):
+        projects = [_proj("a", e2e_testing=["Cypress"])]
+        conns = _find_e2e_testing_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_e2e(self):
+        projects = [
+            _proj("a", e2e_testing=["Cypress"]),
+            _proj("b", e2e_testing=["Cypress"]),
+        ]
+        conns = _find_e2e_testing_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_e2e_tool"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_modern_vs_traditional(self):
+        projects = [
+            _proj("a", e2e_testing=["Cypress"]),
+            _proj("b", e2e_testing=["Selenium"]),
+        ]
+        conns = _find_e2e_testing_patterns(projects)
+        div = [c for c in conns if c.type == "e2e_divergence"]
+        assert len(div) == 1
+        assert "modern" in div[0].detail.lower()
+        assert "traditional" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", e2e_testing=["Cypress"]),
+            _proj("b", e2e_testing=["Playwright"]),
+        ]
+        conns = _find_e2e_testing_patterns(projects)
+        div = [c for c in conns if c.type == "e2e_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", e2e_testing=["Cypress", "Selenium"]) for i in range(20)]
+        conns = _find_e2e_testing_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", e2e_testing=["Cypress", "Selenium"]),
+            _proj("b", e2e_testing=["Cypress", "Playwright"]),
+        ]
+        conns = find_connections(projects)
+        e2e_types = {c.type for c in conns if "e2e" in c.type}
+        assert "shared_e2e_tool" in e2e_types
+
+
+class TestFindMonorepoPatterns:
+    def test_empty(self):
+        conns = _find_monorepo_patterns([])
+        assert conns == []
+
+    def test_single_project(self):
+        projects = [_proj("a", monorepo_tools=["Nx"])]
+        conns = _find_monorepo_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_monorepo(self):
+        projects = [
+            _proj("a", monorepo_tools=["Nx"]),
+            _proj("b", monorepo_tools=["Nx"]),
+        ]
+        conns = _find_monorepo_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_monorepo_tool"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_js_vs_polyglot(self):
+        projects = [
+            _proj("a", monorepo_tools=["Nx"]),
+            _proj("b", monorepo_tools=["Bazel"]),
+        ]
+        conns = _find_monorepo_patterns(projects)
+        div = [c for c in conns if c.type == "monorepo_divergence"]
+        assert len(div) == 1
+        assert "JS-native" in div[0].detail or "js-native" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", monorepo_tools=["Nx"]),
+            _proj("b", monorepo_tools=["Turborepo"]),
+        ]
+        conns = _find_monorepo_patterns(projects)
+        div = [c for c in conns if c.type == "monorepo_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", monorepo_tools=["Nx", "Bazel"]) for i in range(20)]
+        conns = _find_monorepo_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", monorepo_tools=["Nx", "Bazel"]),
+            _proj("b", monorepo_tools=["Nx", "Turborepo"]),
+        ]
+        conns = find_connections(projects)
+        mono_types = {c.type for c in conns if "monorepo" in c.type}
+        assert "shared_monorepo_tool" in mono_types

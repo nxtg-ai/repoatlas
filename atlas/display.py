@@ -211,6 +211,10 @@ CONNECTION_ICONS = {
     "mocking_divergence": "[yellow]🎭[/yellow]",
     "shared_release_tool": "[green]🏷️[/green]",
     "release_tool_divergence": "[yellow]🏷️[/yellow]",
+    "shared_e2e_tool": "[green]🌐[/green]",
+    "e2e_divergence": "[yellow]🌐[/yellow]",
+    "shared_monorepo_tool": "[green]📦[/green]",
+    "monorepo_divergence": "[yellow]📦[/yellow]",
 }
 
 
@@ -1082,6 +1086,28 @@ def _show_portfolio_summary(portfolio: Portfolio):
         release_parts = [f"{rt} ({count})" for rt, count in top_release]
         lines.append(f"  [bold]Releases:[/bold]  {has_release}/{n} projects · {', '.join(release_parts)}")
 
+    # E2E testing
+    has_e2e = sum(1 for p in projects if p.tech_stack.e2e_testing)
+    if has_e2e:
+        e2e_counter: Counter[str] = Counter()
+        for p in projects:
+            for e in p.tech_stack.e2e_testing:
+                e2e_counter[e] += 1
+        top_e2e = e2e_counter.most_common(6)
+        e2e_parts = [f"{e} ({count})" for e, count in top_e2e]
+        lines.append(f"  [bold]E2E Test:[/bold]  {has_e2e}/{n} projects · {', '.join(e2e_parts)}")
+
+    # Monorepo tools
+    has_mono = sum(1 for p in projects if p.tech_stack.monorepo_tools)
+    if has_mono:
+        mono_counter: Counter[str] = Counter()
+        for p in projects:
+            for m in p.tech_stack.monorepo_tools:
+                mono_counter[m] += 1
+        top_mono = mono_counter.most_common(6)
+        mono_parts = [f"{m} ({count})" for m, count in top_mono]
+        lines.append(f"  [bold]Monorepo:[/bold]  {has_mono}/{n} projects · {', '.join(mono_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1296,6 +1322,10 @@ def show_connections(connections: list[Connection]):
         "mocking_divergence": "Mocking Approach Divergence",
         "shared_release_tool": "Shared Release Tool",
         "release_tool_divergence": "Release Approach Divergence",
+        "shared_e2e_tool": "Shared E2E Testing Tool",
+        "e2e_divergence": "E2E Testing Approach Divergence",
+        "shared_monorepo_tool": "Shared Monorepo Tool",
+        "monorepo_divergence": "Monorepo Approach Divergence",
     }
 
     lines = []
@@ -1403,6 +1433,8 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_codegen_tool": "codegen", "codegen_divergence": "codegen",
         "shared_mocking_lib": "mocking", "mocking_divergence": "mocking",
         "shared_release_tool": "releases", "release_tool_divergence": "releases",
+        "shared_e2e_tool": "e2e", "e2e_divergence": "e2e",
+        "shared_monorepo_tool": "monorepo", "monorepo_divergence": "monorepo",
     }
 
     for conn in connections:
@@ -1721,6 +1753,14 @@ def show_project_card(project: Project):
     if project.tech_stack.release_tools:
         rt = ", ".join(project.tech_stack.release_tools[:8])
         lines.append(f"  [bold]Releases:[/bold]  {rt}")
+
+    if project.tech_stack.e2e_testing:
+        e2e = ", ".join(project.tech_stack.e2e_testing[:8])
+        lines.append(f"  [bold]E2E Test:[/bold]  {e2e}")
+
+    if project.tech_stack.monorepo_tools:
+        mono = ", ".join(project.tech_stack.monorepo_tools[:8])
+        lines.append(f"  [bold]Monorepo:[/bold]  {mono}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

@@ -78,6 +78,8 @@ from atlas.detector import (
     detect_codegen_tools,
     detect_mocking_libs,
     detect_release_tools,
+    detect_e2e_testing,
+    detect_monorepo_tools,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -158,6 +160,8 @@ def scan_project(project_path: Path) -> Project:
     codegen_tools = detect_codegen_tools(path)
     mocking_libs = detect_mocking_libs(path)
     release_tools = detect_release_tools(path)
+    e2e_testing = detect_e2e_testing(path)
+    monorepo_tools = detect_monorepo_tools(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -233,6 +237,8 @@ def scan_project(project_path: Path) -> Project:
         codegen_tools=codegen_tools,
         mocking_libs=mocking_libs,
         release_tools=release_tools,
+        e2e_testing=e2e_testing,
+        monorepo_tools=monorepo_tools,
     )
 
     project = Project(

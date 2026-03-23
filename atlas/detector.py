@@ -7713,3 +7713,216 @@ def detect_release_tools(project_path: Path) -> list[str]:
         _add("Changelog")
 
     return sorted(tools)
+
+
+def detect_e2e_testing(project_path: Path) -> list[str]:
+    """Detect end-to-end and browser testing tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map_e2e = {
+        "selenium": "Selenium",
+        "playwright": "Playwright",
+        "splinter": "Splinter",
+        "pyppeteer": "Pyppeteer",
+        "helium": "Helium",
+        "robotframework": "Robot Framework",
+        "robotframework-seleniumlibrary": "Robot Framework",
+        "behave": "Behave",
+        "pytest-bdd": "pytest-bdd",
+        "lettuce": "Lettuce",
+        "locust": "Locust",
+        "appium-python-client": "Appium",
+    }
+    for dep, name in py_map_e2e.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_e2e = pkg_json.read_text().lower()
+        except OSError:
+            js_content_e2e = ""
+
+        js_map_e2e = {
+            "cypress": "Cypress",
+            "@playwright/test": "Playwright",
+            "playwright": "Playwright",
+            "webdriverio": "WebdriverIO",
+            "@wdio": "WebdriverIO",
+            "puppeteer": "Puppeteer",
+            "testcafe": "TestCafe",
+            "nightwatch": "Nightwatch",
+            "detox": "Detox",
+            "codeceptjs": "CodeceptJS",
+            "selenium-webdriver": "Selenium",
+            "@testing-library/cypress": "Cypress Testing Library",
+            "appium": "Appium",
+            "protractor": "Protractor",
+        }
+        for dep, name in js_map_e2e.items():
+            if dep in js_content_e2e:
+                _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_mod = project_path / "go.mod"
+    go_content_e2e = ""
+    for gf in (go_sum, go_mod):
+        if gf.exists():
+            try:
+                go_content_e2e += gf.read_text().lower()
+            except OSError:
+                pass
+
+    if go_content_e2e:
+        go_map_e2e = {
+            "github.com/chromedp/chromedp": "chromedp",
+            "github.com/go-rod/rod": "Rod",
+            "github.com/tebeka/selenium": "Selenium",
+        }
+        for dep, name in go_map_e2e.items():
+            if dep in go_content_e2e:
+                _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            rs_content_e2e = cargo_toml.read_text().lower()
+        except OSError:
+            rs_content_e2e = ""
+
+        rs_map_e2e = {
+            "thirtyfour": "thirtyfour",
+            "fantoccini": "fantoccini",
+            "headless_chrome": "headless_chrome",
+        }
+        for dep, name in rs_map_e2e.items():
+            if dep in rs_content_e2e:
+                _add(name)
+
+    # Java
+    pom_xml = project_path / "pom.xml"
+    build_gradle = project_path / "build.gradle"
+    build_gradle_kts = project_path / "build.gradle.kts"
+    java_content_e2e = ""
+    for jf in (pom_xml, build_gradle, build_gradle_kts):
+        if jf.exists():
+            try:
+                java_content_e2e += jf.read_text().lower()
+            except OSError:
+                pass
+
+    if java_content_e2e:
+        java_map_e2e = {
+            "selenium-java": "Selenium",
+            "selenide": "Selenide",
+            "cucumber": "Cucumber",
+            "karate": "Karate",
+            "rest-assured": "REST Assured",
+            "appium": "Appium",
+        }
+        for dep, name in java_map_e2e.items():
+            if dep in java_content_e2e:
+                _add(name)
+
+    # Config files
+    if (project_path / "cypress.config.ts").exists() or (project_path / "cypress.config.js").exists() or (project_path / "cypress.json").exists():
+        _add("Cypress")
+    if (project_path / "playwright.config.ts").exists() or (project_path / "playwright.config.js").exists():
+        _add("Playwright")
+    if (project_path / ".testcaferc.json").exists():
+        _add("TestCafe")
+    if (project_path / "nightwatch.conf.js").exists():
+        _add("Nightwatch")
+    if (project_path / "wdio.conf.js").exists() or (project_path / "wdio.conf.ts").exists():
+        _add("WebdriverIO")
+
+    return sorted(tools)
+
+
+def detect_monorepo_tools(project_path: Path) -> list[str]:
+    """Detect monorepo management and build orchestration tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_mono = pkg_json.read_text().lower()
+        except OSError:
+            js_content_mono = ""
+
+        js_map_mono = {
+            "nx": "Nx",
+            "@nx/": "Nx",
+            "@nrwl/": "Nx",
+            "turbo": "Turborepo",
+            "lerna": "Lerna",
+            "@changesets/cli": "Changesets",
+            "@rush": "Rush",
+            "ultra-runner": "ultra-runner",
+            "moon": "Moon",
+            "wireit": "Wireit",
+        }
+        for dep, name in js_map_mono.items():
+            if dep in js_content_mono:
+                _add(name)
+
+        # pnpm workspaces
+        if "workspaces" in js_content_mono:
+            _add("Workspaces")
+
+    # Config files
+    if (project_path / "nx.json").exists():
+        _add("Nx")
+    if (project_path / "turbo.json").exists():
+        _add("Turborepo")
+    if (project_path / "lerna.json").exists():
+        _add("Lerna")
+    if (project_path / "rush.json").exists():
+        _add("Rush")
+    if (project_path / "pnpm-workspace.yaml").exists():
+        _add("pnpm Workspaces")
+    if (project_path / ".moon").is_dir() or (project_path / ".moon" / "workspace.yml").exists() if (project_path / ".moon").is_dir() else False:
+        _add("Moon")
+
+    # Build systems that support monorepos
+    if (project_path / "BUILD").exists() or (project_path / "BUILD.bazel").exists() or (project_path / "WORKSPACE").exists() or (project_path / "WORKSPACE.bazel").exists():
+        _add("Bazel")
+    if (project_path / "pants.toml").exists() or (project_path / "pants.ini").exists():
+        _add("Pants")
+    if (project_path / "buck2").exists() or (project_path / ".buckconfig").exists():
+        _add("Buck2")
+
+    # Go workspace
+    if (project_path / "go.work").exists():
+        _add("Go Workspaces")
+
+    # Cargo workspace
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            cargo_content = cargo_toml.read_text().lower()
+            if "[workspace]" in cargo_content:
+                _add("Cargo Workspaces")
+        except OSError:
+            pass
+
+    return sorted(tools)
