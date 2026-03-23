@@ -640,6 +640,24 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         form_names = ", ".join(f"{t} ({c})" for t, c in form_counter_md.most_common(8))
         lines.append(f"**Form Libs**: {has_forms_md}/{n} projects · {form_names}")
 
+    has_anim_md = sum(1 for p in projects if p.tech_stack.animation_libs)
+    if has_anim_md:
+        anim_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for al in p.tech_stack.animation_libs:
+                anim_counter_md[al] += 1
+        anim_names = ", ".join(f"{t} ({c})" for t, c in anim_counter_md.most_common(8))
+        lines.append(f"**Animation Libs**: {has_anim_md}/{n} projects · {anim_names}")
+
+    has_routing_md = sum(1 for p in projects if p.tech_stack.routing_libs)
+    if has_routing_md:
+        routing_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for rl in p.tech_stack.routing_libs:
+                routing_counter_md[rl] += 1
+        routing_names = ", ".join(f"{t} ({c})" for t, c in routing_counter_md.most_common(8))
+        lines.append(f"**Routing Libs**: {has_routing_md}/{n} projects · {routing_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -828,6 +846,12 @@ def _project_details(projects: list[Project]) -> list[str]:
         if p.tech_stack.form_libs:
             lines.append(f"- **Forms**: {', '.join(p.tech_stack.form_libs[:8])}")
 
+        if p.tech_stack.animation_libs:
+            lines.append(f"- **Animation**: {', '.join(p.tech_stack.animation_libs[:8])}")
+
+        if p.tech_stack.routing_libs:
+            lines.append(f"- **Routing**: {', '.join(p.tech_stack.routing_libs[:8])}")
+
         if p.license:
             lines.append(f"- **License**: {p.license}")
 
@@ -1015,6 +1039,10 @@ def _connections_section(conns: list) -> list[str]:
         "file_storage_divergence": "File Storage Approach Divergence",
         "shared_form_lib": "Shared Form Lib",
         "form_lib_divergence": "Form Lib Approach Divergence",
+        "shared_animation_lib": "Shared Animation Lib",
+        "animation_lib_divergence": "Animation Approach Divergence",
+        "shared_routing_lib": "Shared Routing Lib",
+        "routing_lib_divergence": "Routing Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
@@ -1490,6 +1518,20 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             form_counter_j[fl] += 1
     has_forms_j = sum(1 for p in projects if p.tech_stack.form_libs)
 
+    # Animation libs
+    anim_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for al in p.tech_stack.animation_libs:
+            anim_counter_j[al] += 1
+    has_anim_j = sum(1 for p in projects if p.tech_stack.animation_libs)
+
+    # Routing libs
+    routing_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for rl in p.tech_stack.routing_libs:
+            routing_counter_j[rl] += 1
+    has_routing_j = sum(1 for p in projects if p.tech_stack.routing_libs)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1560,6 +1602,8 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "desktop_frameworks": {"coverage": f"{has_desktop_j}/{n}", "frameworks": dict(desktop_counter_j.most_common(10))},
         "file_storage": {"coverage": f"{has_storage_j}/{n}", "services": dict(storage_counter_j.most_common(10))},
         "form_libs": {"coverage": f"{has_forms_j}/{n}", "libs": dict(form_counter_j.most_common(10))},
+        "animation_libs": {"coverage": f"{has_anim_j}/{n}", "libs": dict(anim_counter_j.most_common(10))},
+        "routing_libs": {"coverage": f"{has_routing_j}/{n}", "libs": dict(routing_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1580,7 +1624,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "Animation Libs", "Routing Libs", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -1659,6 +1703,8 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.desktop_frameworks),
             "; ".join(ts.file_storage),
             "; ".join(ts.form_libs),
+            "; ".join(ts.animation_libs),
+            "; ".join(ts.routing_libs),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",

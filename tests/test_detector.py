@@ -64,6 +64,8 @@ from atlas.detector import (
     detect_desktop_frameworks,
     detect_file_storage,
     detect_form_libs,
+    detect_animation_libs,
+    detect_routing_libs,
     walk_files,
 )
 
@@ -7046,4 +7048,198 @@ class TestDetectFormLibs:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "package.json").write_text('{"dependencies":{"formik":"^2.4","react-hook-form":"^7.50"}}')
         result = detect_form_libs(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_animation_libs
+class TestDetectAnimationLibs:
+    def test_empty_project(self, tmp_path):
+        assert detect_animation_libs(tmp_path) == []
+
+    def test_python_manim(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("manim==0.18.0\n")
+        result = detect_animation_libs(tmp_path)
+        assert "Manim" in result
+
+    def test_python_pyglet(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pyglet==2.0\n")
+        result = detect_animation_libs(tmp_path)
+        assert "pyglet" in result
+
+    def test_python_arcade(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("arcade==2.7\n")
+        result = detect_animation_libs(tmp_path)
+        assert "Arcade" in result
+
+    def test_js_framer_motion(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"framer-motion":"^10.0"}}')
+        result = detect_animation_libs(tmp_path)
+        assert "Framer Motion" in result
+
+    def test_js_gsap(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"gsap":"^3.12"}}')
+        result = detect_animation_libs(tmp_path)
+        assert "GSAP" in result
+
+    def test_js_anime(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"animejs":"^3.2"}}')
+        result = detect_animation_libs(tmp_path)
+        assert "anime.js" in result
+
+    def test_js_lottie(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"lottie-web":"^5.12"}}')
+        result = detect_animation_libs(tmp_path)
+        assert "Lottie" in result
+
+    def test_js_react_spring(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-spring":"^9.7"}}')
+        result = detect_animation_libs(tmp_path)
+        assert "react-spring" in result
+
+    def test_js_motion_one(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@motionone/dom":"^10.0"}}')
+        result = detect_animation_libs(tmp_path)
+        assert "Motion One" in result
+
+    def test_js_auto_animate(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@formkit/auto-animate":"^0.8"}}')
+        result = detect_animation_libs(tmp_path)
+        assert "AutoAnimate" in result
+
+    def test_js_rive(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@rive-app/react-canvas":"^4.0"}}')
+        result = detect_animation_libs(tmp_path)
+        assert "Rive" in result
+
+    def test_js_theatre(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@theatre/core":"^0.7"}}')
+        result = detect_animation_libs(tmp_path)
+        assert "Theatre.js" in result
+
+    def test_js_popmotion(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"popmotion":"^11.0"}}')
+        result = detect_animation_libs(tmp_path)
+        assert "Popmotion" in result
+
+    def test_js_velocity(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"velocity-animate":"^1.5"}}')
+        result = detect_animation_libs(tmp_path)
+        assert "Velocity.js" in result
+
+    def test_rust_keyframe(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nkeyframe = "1.0"\n')
+        result = detect_animation_libs(tmp_path)
+        assert "keyframe" in result
+
+    def test_dedup(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"lottie-web":"^5.12","lottie-react":"^2.0"}}')
+        result = detect_animation_libs(tmp_path)
+        assert result.count("Lottie") == 1
+
+    def test_multiple_js(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"framer-motion":"^10.0","gsap":"^3.12"}}')
+        result = detect_animation_libs(tmp_path)
+        assert "Framer Motion" in result
+        assert "GSAP" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"gsap":"^3.12","framer-motion":"^10.0"}}')
+        result = detect_animation_libs(tmp_path)
+        assert result == sorted(result)
+
+
+# detect_routing_libs
+class TestDetectRoutingLibs:
+    def test_empty_project(self, tmp_path):
+        assert detect_routing_libs(tmp_path) == []
+
+    def test_python_flask(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("flask==3.0\n")
+        result = detect_routing_libs(tmp_path)
+        assert "Flask Routes" in result
+
+    def test_python_fastapi(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("fastapi==0.109\n")
+        result = detect_routing_libs(tmp_path)
+        assert "FastAPI Router" in result
+
+    def test_python_django(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("django==5.0\n")
+        result = detect_routing_libs(tmp_path)
+        assert "Django URLs" in result
+
+    def test_js_react_router(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-router-dom":"^6.22"}}')
+        result = detect_routing_libs(tmp_path)
+        assert "React Router" in result
+
+    def test_js_tanstack_router(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@tanstack/react-router":"^1.0"}}')
+        result = detect_routing_libs(tmp_path)
+        assert "TanStack Router" in result
+
+    def test_js_vue_router(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"vue-router":"^4.0"}}')
+        result = detect_routing_libs(tmp_path)
+        assert "Vue Router" in result
+
+    def test_js_wouter(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"wouter":"^3.0"}}')
+        result = detect_routing_libs(tmp_path)
+        assert "Wouter" in result
+
+    def test_js_angular_router(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@angular/router":"^17.0"}}')
+        result = detect_routing_libs(tmp_path)
+        assert "Angular Router" in result
+
+    def test_js_react_navigation(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@react-navigation/native":"^6.0"}}')
+        result = detect_routing_libs(tmp_path)
+        assert "React Navigation" in result
+
+    def test_go_gorilla_mux(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/gorilla/mux v1.8.1\n")
+        result = detect_routing_libs(tmp_path)
+        assert "Gorilla Mux" in result
+
+    def test_go_chi(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/go-chi/chi v5.0.0\n")
+        result = detect_routing_libs(tmp_path)
+        assert "Chi" in result
+
+    def test_go_gin(self, tmp_path):
+        (tmp_path / "go.mod").write_text("module example\nrequire github.com/gin-gonic/gin v1.9.0\n")
+        result = detect_routing_libs(tmp_path)
+        assert "Gin Router" in result
+
+    def test_rust_axum(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\naxum = "0.7"\n')
+        result = detect_routing_libs(tmp_path)
+        assert "Axum Router" in result
+
+    def test_rust_actix(self, tmp_path):
+        (tmp_path / "Cargo.toml").write_text('[dependencies]\nactix-web = "4.0"\n')
+        result = detect_routing_libs(tmp_path)
+        assert "Actix Web Router" in result
+
+    def test_java_spring_webmvc(self, tmp_path):
+        (tmp_path / "pom.xml").write_text("<dependency><artifactId>spring-webmvc</artifactId></dependency>")
+        result = detect_routing_libs(tmp_path)
+        assert "Spring MVC Router" in result
+
+    def test_multiple_js(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-router-dom":"^6.22","wouter":"^3.0"}}')
+        result = detect_routing_libs(tmp_path)
+        assert "React Router" in result
+        assert "Wouter" in result
+
+    def test_dedup(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"react-router":"^6.0","react-router-dom":"^6.22"}}')
+        result = detect_routing_libs(tmp_path)
+        assert result.count("React Router") == 1
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"vue-router":"^4.0","react-router-dom":"^6.22"}}')
+        result = detect_routing_libs(tmp_path)
         assert result == sorted(result)

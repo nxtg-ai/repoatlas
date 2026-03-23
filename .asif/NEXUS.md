@@ -192,8 +192,10 @@
 | N-179 | [Desktop Framework Intelligence](#n-179-desktop-framework-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 | N-180 | [File Storage & Object Store Detection + Intelligence](#n-180-file-storage--object-store-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 | N-181 | [Form Library Detection + Intelligence](#n-181-form-library-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
+| N-182 | [Animation Library Detection + Intelligence](#n-182-animation-library-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
+| N-183 | [Routing Library Detection + Intelligence](#n-183-routing-library-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 
-**Summary**: 178/181 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 180/183 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -259,7 +261,9 @@
 - Desktop & cross-platform framework detection: PyQt5/6, PySide2/6, wxPython, Kivy, DearPyGui, CustomTkinter, Flet, PySimpleGUI, Toga, Textual, pyglet, Tkinter (Python), Electron, Tauri, NW.js, Neutralino, Capacitor, React Native, Ionic (JS/TS), Fyne, Wails, Gio (Go), Iced, Dioxus, Slint, egui, druid, Tauri, gtk-rs (Rust), JavaFX, Swing, SWT, Compose Desktop (Java), tauri.conf.json, src-tauri directory
 - File storage & object store detection: boto3, aioboto3, s3fs, google-cloud-storage, gcsfs, azure-storage-blob, minio, cloudinary, django-storages, flask-uploads, python-magic, smart-open (Python), @aws-sdk/client-s3, aws-sdk, @google-cloud/storage, @azure/storage-blob, minio, cloudinary, uploadthing, @vercel/blob, @supabase/storage-js, multer, formidable, busboy, @cloudflare/r2, firebase/storage (JS/TS), aws-sdk-go, cloud.google.com/go/storage, azure-storage-blob-go, minio/minio-go (Go), aws-sdk-s3, rusoto_s3, cloud-storage, object_store (Rust), aws+s3, google-cloud-storage, azure-storage-blob, minio (Java)
 - Form library detection: wtforms, flask-wtf, django-crispy-forms, django-formtools (Python), react-hook-form, formik, final-form, @tanstack/react-form, conform-to, react-jsonschema-form, uniforms, vee-validate, formkit, vuelidate, react-aria, angular/forms, svelte-forms-lib, felte, sveltekit-superforms (JS/TS)
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157, N-160, N-163, N-167, N-169, N-172, N-175, N-180, N-181
+- Animation library detection: Manim, pyglet, Arcade (Python), Framer Motion, GSAP, anime.js, Lottie, react-spring, Motion One, AutoAnimate, Rive, Popmotion, Theatre.js, Velocity.js, VueUse Motion, AnimXYZ, React Transition Group, Svelte Motion, Vue Kinesis (JS/TS), keyframe, interpolation (Rust)
+- Routing library detection: Flask Routes, FastAPI Router, Django URLs, Starlette/aiohttp/Sanic/Falcon/Bottle Routes (Python), React Router, TanStack Router, Vue Router, Angular Router, Wouter, SvelteKit Router, Expo Router, React Navigation, Navigo, Reach Router (JS/TS), Gorilla Mux, Chi, Gin Router, Echo Router, Fiber Router, httprouter (Go), Axum/Actix Web/Warp/Rocket Router (Rust), Spring MVC/WebFlux Router, Javalin Router, Spark Java Router (Java)
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157, N-160, N-163, N-167, N-169, N-172, N-175, N-180, N-181, N-182, N-183
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -322,7 +326,9 @@
 - Cross-project desktop framework intelligence (shared desktop frameworks, native toolkit vs web-wrapped paradigm divergence)
 - Cross-project file storage intelligence (shared file storage tools, cloud-native vs dev-platform paradigm divergence)
 - Cross-project form library intelligence (shared form libs, schema-driven vs imperative paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173, N-176, N-178, N-179, N-180, N-181
+- Cross-project animation library intelligence (shared animation libs, declarative vs imperative paradigm divergence)
+- Cross-project routing library intelligence (shared routing libs, framework-integrated vs standalone paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173, N-176, N-178, N-179, N-180, N-181, N-182, N-183
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -825,6 +831,16 @@
 **Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Bundled detection + intelligence for form libraries. Detection: Python (wtforms, flask-wtf, django-crispy-forms, django-formtools), JS/TS (react-hook-form, formik, final-form, @tanstack/react-form, conform-to, react-jsonschema-form, uniforms, vee-validate, formkit, vuelidate, react-aria, angular/forms, svelte-forms-lib, felte, sveltekit-superforms). Intelligence: shared_form_lib (info), form_lib_divergence schema-driven (React Hook Form, VeeValidate, Conform, TanStack Form) vs imperative (Formik, Final Form, Uniforms, WTForms) (warning). TechStack field `form_libs`, CONNECTION_CATEGORIES (forms), display icons (📝), export/display type_labels, recommendations mapping. Capped at 10. 14 detection tests + 7 intelligence tests = 21 tests.
 **Shipped**: 2026-03-22. Total test count: 2556.
+
+### N-182: Animation Library Detection + Intelligence
+**Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Bundled detection + intelligence for animation and motion libraries. Detection: Python (Manim, pyglet, Arcade), JS/TS (Framer Motion, GSAP, anime.js, Lottie, react-spring, Motion One, AutoAnimate, Rive, Popmotion, Theatre.js, Velocity.js, VueUse Motion, AnimXYZ, React Transition Group, Svelte Motion, Vue Kinesis), Rust (keyframe, interpolation). Intelligence: shared_animation_lib (info), animation_lib_divergence declarative (Framer Motion, react-spring, AutoAnimate, Motion One) vs imperative (GSAP, anime.js, Velocity.js, Lottie) (warning). TechStack field `animation_libs`, CONNECTION_CATEGORIES (animation), display icons (🎬), export/display type_labels, recommendations mapping. Capped at 10. 20 detection tests + 7 intelligence tests = 27 tests.
+**Shipped**: 2026-03-22. Total test count: 2583.
+
+### N-183: Routing Library Detection + Intelligence
+**Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Bundled detection + intelligence for URL routing and navigation libraries. Detection: Python (Flask Routes, FastAPI Router, Django URLs, Starlette/aiohttp/Sanic/Falcon/Bottle Routes), JS/TS (React Router, TanStack Router, Vue Router, Angular Router, Wouter, SvelteKit Router, Expo Router, React Navigation, Navigo, Reach Router), Go (Gorilla Mux, Chi, Gin/Echo/Fiber Router, httprouter), Rust (Axum/Actix Web/Warp/Rocket Router), Java (Spring MVC/WebFlux Router, Javalin, Spark Java). Intelligence: shared_routing_lib (info), routing_lib_divergence framework-integrated (React Router, Vue Router, Django URLs) vs standalone (TanStack Router, Wouter, Chi) (warning). TechStack field `routing_libs`, CONNECTION_CATEGORIES (routing), display icons (🔀), export/display type_labels, recommendations mapping. Capped at 10. 18 detection tests + 7 intelligence tests = 25 tests.
+**Shipped**: 2026-03-22. Total test count: 2608.
 
 ### N-173: Compression Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

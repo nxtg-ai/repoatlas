@@ -38,6 +38,8 @@ from atlas.connections import (
     _find_desktop_framework_patterns,
     _find_file_storage_patterns,
     _find_form_lib_patterns,
+    _find_animation_lib_patterns,
+    _find_routing_lib_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -50,7 +52,7 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
           build_tools=None, api_specs=None, monitoring_tools=None,
           auth_tools=None, messaging_tools=None, deploy_targets=None,
           state_management=None, css_frameworks=None, bundlers=None, orm_tools=None, i18n_tools=None, validation_tools=None, logging_tools=None, container_orchestration=None, cloud_providers=None, task_queues=None, search_engines=None, feature_flags=None, http_clients=None, doc_generators=None, cli_frameworks=None, config_tools=None, caching_tools=None, template_engines=None, serialization_formats=None, di_frameworks=None, websocket_libs=None, graphql_libs=None, event_streaming=None, payment_tools=None, date_libs=None, image_libs=None, crypto_libs=None, pdf_libs=None, data_viz_libs=None, geo_libs=None, media_libs=None, math_libs=None, async_libs=None, email_libs=None, compression_libs=None, scraping_libs=None, project_license="",
-          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None,
+          desktop_frameworks=None, a11y_tools=None, file_storage=None, form_libs=None, animation_libs=None, routing_libs=None,
           test_files=0, source_files=10, git_commits=20, uncommitted=0,
           structure_score=0.5) -> Project:
     return Project(
@@ -115,6 +117,8 @@ def _proj(name: str, frameworks=None, key_deps=None, databases=None,
             a11y_tools=a11y_tools or [],
             file_storage=file_storage or [],
             form_libs=form_libs or [],
+            animation_libs=animation_libs or [],
+            routing_libs=routing_libs or [],
         ),
         git_info=GitInfo(total_commits=git_commits, uncommitted_changes=uncommitted),
         health=HealthScore(structure=structure_score),
@@ -6142,3 +6146,117 @@ class TestFindFormLibPatterns:
         conns = find_connections(projects)
         form_types = {c.type for c in conns if "form" in c.type}
         assert "shared_form_lib" in form_types
+
+
+# ---------------------------------------------------------------------------
+# Animation lib patterns
+# ---------------------------------------------------------------------------
+class TestFindAnimationLibPatterns:
+    def test_no_projects(self):
+        assert _find_animation_lib_patterns([]) == []
+
+    def test_single_project(self):
+        projects = [_proj("a", animation_libs=["Framer Motion"])]
+        conns = _find_animation_lib_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_animation_lib(self):
+        projects = [
+            _proj("a", animation_libs=["Framer Motion"]),
+            _proj("b", animation_libs=["Framer Motion"]),
+        ]
+        conns = _find_animation_lib_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_animation_lib"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_declarative_vs_imperative(self):
+        projects = [
+            _proj("a", animation_libs=["Framer Motion"]),
+            _proj("b", animation_libs=["GSAP"]),
+        ]
+        conns = _find_animation_lib_patterns(projects)
+        div = [c for c in conns if c.type == "animation_lib_divergence"]
+        assert len(div) == 1
+        assert "declarative" in div[0].detail.lower()
+        assert "imperative" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", animation_libs=["Framer Motion"]),
+            _proj("b", animation_libs=["react-spring"]),
+        ]
+        conns = _find_animation_lib_patterns(projects)
+        div = [c for c in conns if c.type == "animation_lib_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", animation_libs=["Framer Motion", "GSAP", "Lottie"]) for i in range(20)]
+        conns = _find_animation_lib_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", animation_libs=["Framer Motion", "GSAP"]),
+            _proj("b", animation_libs=["Framer Motion", "anime.js"]),
+        ]
+        conns = find_connections(projects)
+        anim_types = {c.type for c in conns if "animation" in c.type}
+        assert "shared_animation_lib" in anim_types
+
+
+# ---------------------------------------------------------------------------
+# Routing lib patterns
+# ---------------------------------------------------------------------------
+class TestFindRoutingLibPatterns:
+    def test_no_projects(self):
+        assert _find_routing_lib_patterns([]) == []
+
+    def test_single_project(self):
+        projects = [_proj("a", routing_libs=["React Router"])]
+        conns = _find_routing_lib_patterns(projects)
+        assert len(conns) == 0
+
+    def test_shared_routing_lib(self):
+        projects = [
+            _proj("a", routing_libs=["React Router"]),
+            _proj("b", routing_libs=["React Router"]),
+        ]
+        conns = _find_routing_lib_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_routing_lib"]
+        assert len(shared) == 1
+        assert shared[0].severity == "info"
+
+    def test_divergence_framework_vs_standalone(self):
+        projects = [
+            _proj("a", routing_libs=["React Router"]),
+            _proj("b", routing_libs=["TanStack Router"]),
+        ]
+        conns = _find_routing_lib_patterns(projects)
+        div = [c for c in conns if c.type == "routing_lib_divergence"]
+        assert len(div) == 1
+        assert "framework-integrated" in div[0].detail.lower()
+        assert "standalone" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", routing_libs=["React Router"]),
+            _proj("b", routing_libs=["Vue Router"]),
+        ]
+        conns = _find_routing_lib_patterns(projects)
+        div = [c for c in conns if c.type == "routing_lib_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", routing_libs=["React Router", "TanStack Router", "Vue Router"]) for i in range(20)]
+        conns = _find_routing_lib_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", routing_libs=["React Router", "Wouter"]),
+            _proj("b", routing_libs=["React Router", "TanStack Router"]),
+        ]
+        conns = find_connections(projects)
+        route_types = {c.type for c in conns if "routing" in c.type}
+        assert "shared_routing_lib" in route_types

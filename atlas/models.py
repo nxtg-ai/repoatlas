@@ -66,6 +66,8 @@ class TechStack:
     desktop_frameworks: list[str] = field(default_factory=list)
     file_storage: list[str] = field(default_factory=list)
     form_libs: list[str] = field(default_factory=list)
+    animation_libs: list[str] = field(default_factory=list)
+    routing_libs: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -213,6 +215,8 @@ class Project:
                 "desktop_frameworks": self.tech_stack.desktop_frameworks,
                 "file_storage": self.tech_stack.file_storage,
                 "form_libs": self.tech_stack.form_libs,
+                "animation_libs": self.tech_stack.animation_libs,
+                "routing_libs": self.tech_stack.routing_libs,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -305,6 +309,8 @@ class Project:
                 desktop_frameworks=ts.get("desktop_frameworks", []),
                 file_storage=ts.get("file_storage", []),
                 form_libs=ts.get("form_libs", []),
+                animation_libs=ts.get("animation_libs", []),
+                routing_libs=ts.get("routing_libs", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

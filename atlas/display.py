@@ -191,6 +191,10 @@ CONNECTION_ICONS = {
     "file_storage_divergence": "[yellow]📦[/yellow]",
     "shared_form_lib": "[green]📝[/green]",
     "form_lib_divergence": "[yellow]📝[/yellow]",
+    "shared_animation_lib": "[green]🎬[/green]",
+    "animation_lib_divergence": "[yellow]🎬[/yellow]",
+    "shared_routing_lib": "[green]🔀[/green]",
+    "routing_lib_divergence": "[yellow]🔀[/yellow]",
 }
 
 
@@ -952,6 +956,28 @@ def _show_portfolio_summary(portfolio: Portfolio):
         form_parts = [f"{fl} ({count})" for fl, count in top_forms]
         lines.append(f"  [bold]Forms:[/bold]     {has_forms}/{n} projects · {', '.join(form_parts)}")
 
+    # Animation libs
+    has_anim = sum(1 for p in projects if p.tech_stack.animation_libs)
+    if has_anim:
+        anim_counter: Counter[str] = Counter()
+        for p in projects:
+            for al in p.tech_stack.animation_libs:
+                anim_counter[al] += 1
+        top_anim = anim_counter.most_common(6)
+        anim_parts = [f"{al} ({count})" for al, count in top_anim]
+        lines.append(f"  [bold]Animation:[/bold]  {has_anim}/{n} projects · {', '.join(anim_parts)}")
+
+    # Routing libs
+    has_routing = sum(1 for p in projects if p.tech_stack.routing_libs)
+    if has_routing:
+        routing_counter: Counter[str] = Counter()
+        for p in projects:
+            for rl in p.tech_stack.routing_libs:
+                routing_counter[rl] += 1
+        top_routing = routing_counter.most_common(6)
+        routing_parts = [f"{rl} ({count})" for rl, count in top_routing]
+        lines.append(f"  [bold]Routing:[/bold]   {has_routing}/{n} projects · {', '.join(routing_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1146,6 +1172,10 @@ def show_connections(connections: list[Connection]):
         "file_storage_divergence": "File Storage Approach Divergence",
         "shared_form_lib": "Shared Form Lib",
         "form_lib_divergence": "Form Lib Approach Divergence",
+        "shared_animation_lib": "Shared Animation Lib",
+        "animation_lib_divergence": "Animation Approach Divergence",
+        "shared_routing_lib": "Shared Routing Lib",
+        "routing_lib_divergence": "Routing Approach Divergence",
     }
 
     lines = []
@@ -1243,6 +1273,8 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_desktop_framework": "desktop", "desktop_framework_divergence": "desktop",
         "shared_file_storage": "storage", "file_storage_divergence": "storage",
         "shared_form_lib": "forms", "form_lib_divergence": "forms",
+        "shared_animation_lib": "animation", "animation_lib_divergence": "animation",
+        "shared_routing_lib": "routing", "routing_lib_divergence": "routing",
     }
 
     for conn in connections:
@@ -1521,6 +1553,14 @@ def show_project_card(project: Project):
     if project.tech_stack.form_libs:
         frm = ", ".join(project.tech_stack.form_libs[:8])
         lines.append(f"  [bold]Forms:[/bold]     {frm}")
+
+    if project.tech_stack.animation_libs:
+        anm = ", ".join(project.tech_stack.animation_libs[:8])
+        lines.append(f"  [bold]Animation:[/bold] {anm}")
+
+    if project.tech_stack.routing_libs:
+        rtg = ", ".join(project.tech_stack.routing_libs[:8])
+        lines.append(f"  [bold]Routing:[/bold]   {rtg}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

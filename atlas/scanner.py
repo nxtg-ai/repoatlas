@@ -68,6 +68,8 @@ from atlas.detector import (
     detect_desktop_frameworks,
     detect_file_storage,
     detect_form_libs,
+    detect_animation_libs,
+    detect_routing_libs,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -138,6 +140,8 @@ def scan_project(project_path: Path) -> Project:
     desktop_frameworks = detect_desktop_frameworks(path)
     file_storage = detect_file_storage(path)
     form_libs = detect_form_libs(path)
+    animation_libs = detect_animation_libs(path)
+    routing_libs = detect_routing_libs(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -203,6 +207,8 @@ def scan_project(project_path: Path) -> Project:
         desktop_frameworks=desktop_frameworks,
         file_storage=file_storage,
         form_libs=form_libs,
+        animation_libs=animation_libs,
+        routing_libs=routing_libs,
     )
 
     project = Project(

@@ -6549,3 +6549,206 @@ def detect_form_libs(project_path: Path) -> list[str]:
                 _add(name)
 
     return sorted(tools)
+
+
+def detect_animation_libs(project_path: Path) -> list[str]:
+    """Detect animation and motion libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map_anim = {
+        "manim": "Manim",
+        "manimce": "Manim",
+        "manimlib": "Manim",
+        "pyglet": "pyglet",
+        "arcade": "Arcade",
+    }
+    for dep, name in py_map_anim.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_anim = pkg_json.read_text().lower()
+        except OSError:
+            js_content_anim = ""
+
+        js_map_anim = {
+            "framer-motion": "Framer Motion",
+            "gsap": "GSAP",
+            "@gsap": "GSAP",
+            "animejs": "anime.js",
+            "lottie-web": "Lottie",
+            "lottie-react": "Lottie",
+            "@lottiefiles": "Lottie",
+            "react-lottie": "Lottie",
+            "react-spring": "react-spring",
+            "@react-spring": "react-spring",
+            "popmotion": "Popmotion",
+            "@motionone": "Motion One",
+            "motion-one": "Motion One",
+            "@formkit/auto-animate": "AutoAnimate",
+            "rive-react": "Rive",
+            "@rive-app": "Rive",
+            "react-transition-group": "React Transition Group",
+            "velocity-animate": "Velocity.js",
+            "@vueuse/motion": "VueUse Motion",
+            "vue-kinesis": "Vue Kinesis",
+            "svelte-motion": "Svelte Motion",
+            "theatre": "Theatre.js",
+            "@theatre": "Theatre.js",
+            "animxyz": "AnimXYZ",
+            "@animxyz": "AnimXYZ",
+        }
+        for dep, name in js_map_anim.items():
+            if dep in js_content_anim:
+                _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            rs_content_anim = cargo_toml.read_text().lower()
+        except OSError:
+            rs_content_anim = ""
+        rs_map_anim = {
+            "keyframe": "keyframe",
+            "interpolation": "interpolation",
+        }
+        for dep, name in rs_map_anim.items():
+            if dep in rs_content_anim:
+                _add(name)
+
+    return sorted(tools)
+
+
+def detect_routing_libs(project_path: Path) -> list[str]:
+    """Detect URL routing and navigation libraries."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    python_deps = _collect_python_deps(project_path)
+
+    py_map_route = {
+        "flask": "Flask Routes",
+        "fastapi": "FastAPI Router",
+        "django": "Django URLs",
+        "starlette": "Starlette Routes",
+        "aiohttp": "aiohttp Routes",
+        "sanic": "Sanic Routes",
+        "falcon": "Falcon Routes",
+        "bottle": "Bottle Routes",
+    }
+    for dep, name in py_map_route.items():
+        if dep in python_deps:
+            _add(name)
+
+    # JS/TS
+    pkg_json = project_path / "package.json"
+    if pkg_json.exists():
+        try:
+            js_content_route = pkg_json.read_text().lower()
+        except OSError:
+            js_content_route = ""
+
+        js_map_route = {
+            "react-router": "React Router",
+            "react-router-dom": "React Router",
+            "@tanstack/react-router": "TanStack Router",
+            "@tanstack/router": "TanStack Router",
+            "wouter": "Wouter",
+            "vue-router": "Vue Router",
+            "@angular/router": "Angular Router",
+            "svelte-routing": "Svelte Routing",
+            "@sveltejs/kit": "SvelteKit Router",
+            "expo-router": "Expo Router",
+            "@react-navigation": "React Navigation",
+            "react-native-navigation": "React Native Navigation",
+            "navigo": "Navigo",
+            "universal-router": "Universal Router",
+            "@reach/router": "Reach Router",
+        }
+        for dep, name in js_map_route.items():
+            if dep in js_content_route:
+                _add(name)
+
+    # Go
+    go_sum = project_path / "go.sum"
+    go_mod = project_path / "go.mod"
+    go_content_route = ""
+    for gf in (go_sum, go_mod):
+        if gf.exists():
+            try:
+                go_content_route += gf.read_text().lower()
+            except OSError:
+                pass
+
+    if go_content_route:
+        go_map_route = {
+            "gorilla/mux": "Gorilla Mux",
+            "go-chi/chi": "Chi",
+            "gin-gonic/gin": "Gin Router",
+            "labstack/echo": "Echo Router",
+            "gofiber/fiber": "Fiber Router",
+            "julienschmidt/httprouter": "httprouter",
+        }
+        for dep, name in go_map_route.items():
+            if dep in go_content_route:
+                _add(name)
+
+    # Rust
+    cargo_toml = project_path / "Cargo.toml"
+    if cargo_toml.exists():
+        try:
+            rs_content_route = cargo_toml.read_text().lower()
+        except OSError:
+            rs_content_route = ""
+
+        rs_map_route = {
+            "actix-web": "Actix Web Router",
+            "axum": "Axum Router",
+            "warp": "Warp Router",
+            "rocket": "Rocket Router",
+        }
+        for dep, name in rs_map_route.items():
+            if dep in rs_content_route:
+                _add(name)
+
+    # Java
+    pom_xml = project_path / "pom.xml"
+    build_gradle = project_path / "build.gradle"
+    build_gradle_kts = project_path / "build.gradle.kts"
+    java_content_route = ""
+    for jf in (pom_xml, build_gradle, build_gradle_kts):
+        if jf.exists():
+            try:
+                java_content_route += jf.read_text().lower()
+            except OSError:
+                pass
+
+    if java_content_route:
+        java_map_route = {
+            "spring-webmvc": "Spring MVC Router",
+            "spring-webflux": "Spring WebFlux Router",
+            "javalin": "Javalin Router",
+            "spark-core": "Spark Java Router",
+        }
+        for dep, name in java_map_route.items():
+            if dep in java_content_route:
+                _add(name)
+
+    return sorted(tools)

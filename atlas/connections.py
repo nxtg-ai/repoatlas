@@ -70,6 +70,8 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_desktop_framework_patterns(projects))
     connections.extend(_find_file_storage_patterns(projects))
     connections.extend(_find_form_lib_patterns(projects))
+    connections.extend(_find_animation_lib_patterns(projects))
+    connections.extend(_find_routing_lib_patterns(projects))
     return connections
 
 
@@ -343,6 +345,125 @@ def _find_form_lib_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="form_lib_divergence",
             detail=f"Mixed form approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_animation_lib_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project animation library patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.animation_libs:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_animation_lib",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Animation lib divergence — declarative vs imperative
+    declarative = {"Framer Motion", "react-spring", "AutoAnimate",
+                   "VueUse Motion", "Svelte Motion", "React Transition Group",
+                   "Motion One", "AnimXYZ"}
+    imperative_anim = {"GSAP", "anime.js", "Velocity.js", "Popmotion",
+                       "Theatre.js", "Lottie", "Rive", "Manim"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "declarative": {}, "imperative": {},
+    }
+    cat_sets = [("declarative", declarative), ("imperative", imperative_anim)]
+    for p in projects:
+        for lib in p.tech_stack.animation_libs:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="animation_lib_divergence",
+            detail=f"Mixed animation approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_routing_lib_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project routing library patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.routing_libs:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_routing_lib",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Routing lib divergence — framework-integrated vs standalone
+    framework_integrated = {"React Router", "Vue Router", "Angular Router",
+                            "SvelteKit Router", "Svelte Routing",
+                            "Next.js Router", "Flask Routes", "Django URLs",
+                            "FastAPI Router", "Starlette Routes",
+                            "Gin Router", "Echo Router", "Fiber Router",
+                            "Axum Router", "Actix Web Router", "Rocket Router",
+                            "Warp Router", "Spring MVC Router",
+                            "Spring WebFlux Router"}
+    standalone = {"TanStack Router", "Wouter", "Navigo",
+                  "Universal Router", "Reach Router",
+                  "Gorilla Mux", "Chi", "httprouter",
+                  "Expo Router", "React Navigation",
+                  "React Native Navigation",
+                  "aiohttp Routes", "Sanic Routes",
+                  "Falcon Routes", "Bottle Routes",
+                  "Javalin Router", "Spark Java Router"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "framework-integrated": {}, "standalone": {},
+    }
+    cat_sets = [("framework-integrated", framework_integrated), ("standalone", standalone)]
+    for p in projects:
+        for lib in p.tech_stack.routing_libs:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="routing_lib_divergence",
+            detail=f"Mixed routing approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))
