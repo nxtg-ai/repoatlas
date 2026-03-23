@@ -66,6 +66,8 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_email_patterns(projects))
     connections.extend(_find_compression_patterns(projects))
     connections.extend(_find_a11y_patterns(projects))
+    connections.extend(_find_scraping_patterns(projects))
+    connections.extend(_find_desktop_framework_patterns(projects))
     return connections
 
 
@@ -118,6 +120,118 @@ def _find_a11y_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="a11y_divergence",
             detail=f"Mixed a11y approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_scraping_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project web scraping library patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.scraping_libs:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_scraping_lib",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Scraping divergence — browser-based vs parser-based
+    browser = {"Puppeteer", "Playwright", "Crawlee", "chromedp", "rod",
+               "headless_chrome", "HtmlUnit", "MechanicalSoup", "requests-html",
+               "spider"}
+    parser = {"BeautifulSoup", "lxml", "Cheerio", "jsdom", "goquery",
+              "scraper", "jsoup", "Parsel", "pyquery", "node-html-parser",
+              "linkedom", "happy-dom", "selectolax", "cssselect", "html5lib",
+              "select.rs", "x-ray"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "browser": {}, "parser": {},
+    }
+    cat_sets = [("browser", browser), ("parser", parser)]
+    for p in projects:
+        for lib in p.tech_stack.scraping_libs:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="scraping_lib_divergence",
+            detail=f"Mixed scraping approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_desktop_framework_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project desktop framework patterns."""
+    connections: list[Connection] = []
+
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.desktop_frameworks:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_desktop_framework",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Desktop divergence — native toolkit vs web-wrapped
+    native = {"PyQt5", "PyQt6", "PySide2", "PySide6", "wxPython", "Kivy",
+              "DearPyGui", "CustomTkinter", "PySimpleGUI", "Tkinter", "pyglet",
+              "Swing", "JavaFX", "SWT", "Compose Desktop",
+              "Fyne", "Gio", "Iced", "Dioxus", "Slint", "egui", "druid", "gtk-rs"}
+    web_wrapped = {"Electron", "Tauri", "NW.js", "Neutralino", "Wails",
+                   "Capacitor", "Ionic", "React Native", "Flet", "Toga",
+                   "Lorca", "go-astilectron"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "native": {}, "web-wrapped": {},
+    }
+    cat_sets = [("native", native), ("web-wrapped", web_wrapped)]
+    for p in projects:
+        for lib in p.tech_stack.desktop_frameworks:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="desktop_framework_divergence",
+            detail=f"Mixed desktop approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

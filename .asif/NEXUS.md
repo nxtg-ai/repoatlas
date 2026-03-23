@@ -188,8 +188,10 @@
 | N-175 | [Desktop & Cross-Platform Framework Detection](#n-175-desktop--cross-platform-framework-detection) | DETECTION | SHIPPED | P1 | 2026-03-22 |
 | N-176 | [A11y Intelligence](#n-176-a11y-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 | N-177 | [Status Result Limit](#n-177-status-result-limit) | EXPERIENCE | SHIPPED | P1 | 2026-03-22 |
+| N-178 | [Scraping Intelligence](#n-178-scraping-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
+| N-179 | [Desktop Framework Intelligence](#n-179-desktop-framework-intelligence) | INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 
-**Summary**: 174/177 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 176/179 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -312,7 +314,9 @@
 - Cross-project email intelligence (shared email libs, SaaS/API-based vs SMTP/self-hosted paradigm divergence)
 - Cross-project compression intelligence (shared compression libs, archival/format vs streaming/fast paradigm divergence)
 - Cross-project a11y intelligence (shared a11y tools, testing/auditing vs component/runtime paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173, N-176
+- Cross-project scraping intelligence (shared scraping libs, browser-based vs parser-based paradigm divergence)
+- Cross-project desktop framework intelligence (shared desktop frameworks, native toolkit vs web-wrapped paradigm divergence)
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173, N-176, N-178, N-179
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -795,6 +799,16 @@
 **Pillar**: EXPERIENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Added `--limit` / `-n` option to `atlas status` command. Limits the number of projects displayed. Applied after sorting. Works with all output formats (rich, json, csv) and combines with --grade, --lang, --has, --min-health, --max-health, --sort, and --grades. 3 tests.
 **Shipped**: 2026-03-22. Total test count: 2494. 56th experience feature.
+
+### N-178: Scraping Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project scraping library intelligence. Companion to N-172 (detection). Detects shared scraping libs (shared_scraping_lib — info) and browser-based vs parser-based paradigm divergence (scraping_lib_divergence — warning). Browser: Puppeteer, Playwright, Crawlee, chromedp, rod, headless_chrome. Parser: BeautifulSoup, lxml, Cheerio, jsdom, goquery, scraper, jsoup, Parsel. Added CONNECTION_CATEGORIES (scraping), display icons (🕷), export/display type_labels, recommendations mapping. Capped at 10. 7 tests.
+**Shipped**: 2026-03-22. Total test count: 2501.
+
+### N-179: Desktop Framework Intelligence
+**Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Cross-project desktop framework intelligence. Companion to N-175 (detection). Detects shared desktop frameworks (shared_desktop_framework — info) and native toolkit vs web-wrapped paradigm divergence (desktop_framework_divergence — warning). Native: PyQt5/6, PySide2/6, wxPython, Kivy, Swing, JavaFX, Fyne, Iced, egui, gtk-rs. Web-wrapped: Electron, Tauri, NW.js, Neutralino, Wails, Capacitor, Ionic, Flet. Added CONNECTION_CATEGORIES (desktop), display icons (🖥), export/display type_labels, recommendations mapping. Capped at 10. 7 tests.
+**Shipped**: 2026-03-22. Total test count: 2508.
 
 ### N-173: Compression Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

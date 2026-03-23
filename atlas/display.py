@@ -183,6 +183,10 @@ CONNECTION_ICONS = {
     "compression_lib_divergence": "[yellow]🗜[/yellow]",
     "shared_a11y_tool": "[green]♿[/green]",
     "a11y_divergence": "[yellow]♿[/yellow]",
+    "shared_scraping_lib": "[green]🕷[/green]",
+    "scraping_lib_divergence": "[yellow]🕷[/yellow]",
+    "shared_desktop_framework": "[green]🖥[/green]",
+    "desktop_framework_divergence": "[yellow]🖥[/yellow]",
 }
 
 
@@ -1108,6 +1112,10 @@ def show_connections(connections: list[Connection]):
         "compression_lib_divergence": "Compression Approach Divergence",
         "shared_a11y_tool": "Shared A11y Tool",
         "a11y_divergence": "A11y Approach Divergence",
+        "shared_scraping_lib": "Shared Scraping Lib",
+        "scraping_lib_divergence": "Scraping Approach Divergence",
+        "shared_desktop_framework": "Shared Desktop Framework",
+        "desktop_framework_divergence": "Desktop Approach Divergence",
     }
 
     lines = []
@@ -1201,6 +1209,8 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_email_lib": "email", "email_lib_divergence": "email",
         "shared_compression_lib": "compression", "compression_lib_divergence": "compression",
         "shared_a11y_tool": "a11y", "a11y_divergence": "a11y",
+        "shared_scraping_lib": "scraping", "scraping_lib_divergence": "scraping",
+        "shared_desktop_framework": "desktop", "desktop_framework_divergence": "desktop",
     }
 
     for conn in connections:

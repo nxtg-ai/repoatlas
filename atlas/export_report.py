@@ -983,6 +983,10 @@ def _connections_section(conns: list) -> list[str]:
         "compression_lib_divergence": "Compression Approach Divergence",
         "shared_a11y_tool": "Shared A11y Tool",
         "a11y_divergence": "A11y Approach Divergence",
+        "shared_scraping_lib": "Shared Scraping Lib",
+        "scraping_lib_divergence": "Scraping Approach Divergence",
+        "shared_desktop_framework": "Shared Desktop Framework",
+        "desktop_framework_divergence": "Desktop Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}

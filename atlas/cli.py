@@ -447,6 +447,8 @@ CONNECTION_CATEGORIES = {
     "email": {"shared_email_lib", "email_lib_divergence"},
     "compression": {"shared_compression_lib", "compression_lib_divergence"},
     "a11y": {"shared_a11y_tool", "a11y_divergence"},
+    "scraping": {"shared_scraping_lib", "scraping_lib_divergence"},
+    "desktop": {"shared_desktop_framework", "desktop_framework_divergence"},
 }
 
 

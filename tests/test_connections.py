@@ -34,6 +34,8 @@ from atlas.connections import (
     _find_caching_patterns,
     _find_template_engine_patterns,
     _find_a11y_patterns,
+    _find_scraping_patterns,
+    _find_desktop_framework_patterns,
     find_connections,
 )
 from atlas.models import GitInfo, HealthScore, Project, TechStack
@@ -5900,3 +5902,121 @@ class TestFindA11yPatterns:
         conns = find_connections(projects)
         a11y_types = {c.type for c in conns if "a11y" in c.type}
         assert "shared_a11y_tool" in a11y_types
+
+
+class TestFindScrapingPatterns:
+    def test_empty(self):
+        projects = [_proj("a"), _proj("b")]
+        assert _find_scraping_patterns(projects) == []
+
+    def test_shared_scraping_lib(self):
+        projects = [
+            _proj("a", scraping_libs=["Puppeteer", "Cheerio"]),
+            _proj("b", scraping_libs=["Puppeteer", "BeautifulSoup"]),
+        ]
+        conns = _find_scraping_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_scraping_lib"]
+        assert len(shared) >= 1
+        assert any("Puppeteer" in c.detail for c in shared)
+
+    def test_no_shared_when_disjoint(self):
+        projects = [
+            _proj("a", scraping_libs=["Puppeteer"]),
+            _proj("b", scraping_libs=["Cheerio"]),
+        ]
+        conns = _find_scraping_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_scraping_lib"]
+        assert len(shared) == 0
+
+    def test_browser_parser_divergence(self):
+        projects = [
+            _proj("a", scraping_libs=["Puppeteer", "Crawlee"]),
+            _proj("b", scraping_libs=["BeautifulSoup", "lxml"]),
+        ]
+        conns = _find_scraping_patterns(projects)
+        div = [c for c in conns if c.type == "scraping_lib_divergence"]
+        assert len(div) == 1
+        assert "browser" in div[0].detail.lower()
+        assert "parser" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", scraping_libs=["Puppeteer"]),
+            _proj("b", scraping_libs=["Crawlee"]),
+        ]
+        conns = _find_scraping_patterns(projects)
+        div = [c for c in conns if c.type == "scraping_lib_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", scraping_libs=["Puppeteer", "BeautifulSoup", "Cheerio"]) for i in range(20)]
+        conns = _find_scraping_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", scraping_libs=["Puppeteer", "Cheerio"]),
+            _proj("b", scraping_libs=["Puppeteer", "BeautifulSoup"]),
+        ]
+        conns = find_connections(projects)
+        scraping_types = {c.type for c in conns if "scraping" in c.type}
+        assert "shared_scraping_lib" in scraping_types
+
+
+class TestFindDesktopFrameworkPatterns:
+    def test_empty(self):
+        projects = [_proj("a"), _proj("b")]
+        assert _find_desktop_framework_patterns(projects) == []
+
+    def test_shared_desktop_framework(self):
+        projects = [
+            _proj("a", desktop_frameworks=["Electron", "React Native"]),
+            _proj("b", desktop_frameworks=["Electron", "Tauri"]),
+        ]
+        conns = _find_desktop_framework_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_desktop_framework"]
+        assert len(shared) >= 1
+        assert any("Electron" in c.detail for c in shared)
+
+    def test_no_shared_when_disjoint(self):
+        projects = [
+            _proj("a", desktop_frameworks=["Electron"]),
+            _proj("b", desktop_frameworks=["PyQt6"]),
+        ]
+        conns = _find_desktop_framework_patterns(projects)
+        shared = [c for c in conns if c.type == "shared_desktop_framework"]
+        assert len(shared) == 0
+
+    def test_native_webwrapped_divergence(self):
+        projects = [
+            _proj("a", desktop_frameworks=["PyQt6", "Kivy"]),
+            _proj("b", desktop_frameworks=["Electron", "Tauri"]),
+        ]
+        conns = _find_desktop_framework_patterns(projects)
+        div = [c for c in conns if c.type == "desktop_framework_divergence"]
+        assert len(div) == 1
+        assert "native" in div[0].detail.lower()
+        assert "web-wrapped" in div[0].detail.lower()
+
+    def test_no_divergence_single_category(self):
+        projects = [
+            _proj("a", desktop_frameworks=["PyQt6"]),
+            _proj("b", desktop_frameworks=["Kivy"]),
+        ]
+        conns = _find_desktop_framework_patterns(projects)
+        div = [c for c in conns if c.type == "desktop_framework_divergence"]
+        assert len(div) == 0
+
+    def test_capped_at_10(self):
+        projects = [_proj(f"p{i}", desktop_frameworks=["Electron", "PyQt6", "Tauri"]) for i in range(20)]
+        conns = _find_desktop_framework_patterns(projects)
+        assert len(conns) <= 10
+
+    def test_integration_with_find_connections(self):
+        projects = [
+            _proj("a", desktop_frameworks=["Electron", "PyQt6"]),
+            _proj("b", desktop_frameworks=["Electron", "Tauri"]),
+        ]
+        conns = find_connections(projects)
+        desktop_types = {c.type for c in conns if "desktop" in c.type}
+        assert "shared_desktop_framework" in desktop_types
