@@ -1,7 +1,7 @@
 # NEXUS — Atlas (P-15) Vision-to-Execution Dashboard
 
 > **Owner**: Asif Waliuddin
-> **Last Updated**: 2026-03-22
+> **Last Updated**: 2026-03-23
 > **North Star**: Portfolio Intelligence for AI Engineering Teams
 > **ID**: P-15 | **Machine**: NXTG-AI | **Health**: GREEN
 
@@ -208,8 +208,10 @@
 | N-195 | [Static Site Generator Detection + Intelligence](#n-195-static-site-generator-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 | N-196 | [Analytics & Product Analytics Detection + Intelligence](#n-196-analytics--product-analytics-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
 | N-197 | [Mobile Framework Detection + Intelligence](#n-197-mobile-framework-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-22 |
+| N-198 | [Workflow Engine Detection + Intelligence](#n-198-workflow-engine-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-23 |
+| N-199 | [Secrets Management Detection + Intelligence](#n-199-secrets-management-detection--intelligence) | DETECTION+INTELLIGENCE | SHIPPED | P1 | 2026-03-23 |
 
-**Summary**: 194/197 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
+**Summary**: 196/199 SHIPPED | 3 DECIDED | 0 IDEA | 0 BUILDING
 
 ---
 
@@ -291,7 +293,7 @@
 - Static site generator detection: MkDocs, Sphinx, Pelican, Nikola, Lektor (Python), Next.js, Gatsby, Astro, Nuxt, SvelteKit, Eleventy, VitePress, VuePress, Docusaurus, Remix, Hexo (JS/TS), Hugo (Go), Jekyll, Middleman (Ruby), config files
 - Analytics & product analytics detection: PostHog, Mixpanel, Amplitude, Segment, Plausible, RudderStack, Countly (Python), Google Analytics, Heap, FullStory, Hotjar, Pirsch, Umami, Vercel Analytics (JS/TS), across Go/Java
 - Mobile framework detection: React Native, Expo, Ionic, Capacitor, NativeScript, Tauri, Quasar (JS/TS), Flutter (Dart), Kotlin Multiplatform, Android (Native), Swift Package, Xcode, .NET MAUI, Xamarin, config files
-- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157, N-160, N-163, N-167, N-169, N-172, N-175, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187, N-188, N-189, N-190, N-191, N-192, N-193, N-194, N-195, N-196, N-197
+- **Shipped**: N-01, N-17, N-19, N-21, N-24, N-28, N-31, N-34, N-37, N-41, N-43, N-47, N-50, N-52, N-55, N-58, N-61, N-64, N-67, N-70, N-73, N-76, N-79, N-82, N-85, N-88, N-90, N-93, N-96, N-99, N-102, N-105, N-108, N-111, N-114, N-117, N-120, N-123, N-126, N-129, N-132, N-135, N-138, N-141, N-145, N-146, N-148, N-151, N-154, N-157, N-160, N-163, N-167, N-169, N-172, N-175, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187, N-188, N-189, N-190, N-191, N-192, N-193, N-194, N-195, N-196, N-197, N-198, N-199
 
 ### INTELLIGENCE — "See what others miss"
 - Health scoring across 4 dimensions (tests/git/docs/structure)
@@ -370,7 +372,7 @@
 - Cross-project SSG intelligence (shared static site generators, app-framework vs docs-focused paradigm divergence)
 - Cross-project analytics intelligence (shared analytics tools, privacy-first vs commercial paradigm divergence)
 - Cross-project mobile framework intelligence (shared mobile frameworks, cross-platform JS vs native/cross-native paradigm divergence)
-- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173, N-176, N-178, N-179, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187, N-188, N-189, N-190, N-191, N-192, N-193, N-194, N-195, N-196, N-197
+- **Shipped**: N-02, N-03, N-15, N-18, N-23, N-25, N-27, N-29, N-32, N-35, N-38, N-42, N-45, N-48, N-51, N-53, N-56, N-59, N-62, N-65, N-68, N-71, N-74, N-77, N-80, N-83, N-86, N-89, N-91, N-94, N-97, N-100, N-103, N-106, N-109, N-112, N-115, N-118, N-121, N-124, N-127, N-131, N-134, N-139, N-142, N-144, N-149, N-152, N-155, N-158, N-161, N-164, N-166, N-170, N-173, N-176, N-178, N-179, N-180, N-181, N-182, N-183, N-184, N-185, N-186, N-187, N-188, N-189, N-190, N-191, N-192, N-193, N-194, N-195, N-196, N-197, N-198, N-199
 
 ### EXPERIENCE — "Beautiful enough to screenshot"
 - Rich terminal dashboard with tables, progress bars, color
@@ -953,6 +955,16 @@
 **Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
 **What**: Bundled detection + intelligence for mobile development frameworks. Detection: JS/TS (React Native, Expo, Ionic, Capacitor, NativeScript, Tauri, Quasar), Dart (Flutter), Kotlin (Kotlin Multiplatform), Java (Android Native), Swift (Swift Package, Xcode), .NET (MAUI, Xamarin), config files (app.json, capacitor.config, ionic.config.json, tauri.conf.json, pubspec.yaml). Intelligence: shared_mobile_framework (info), mobile_divergence cross-platform JS (React Native, Ionic, Capacitor) vs native/cross-native (Flutter, Kotlin Multiplatform, .NET MAUI) (warning). TechStack field `mobile_frameworks`, CONNECTION_CATEGORIES (mobile), display icons (📱), export/display type_labels, recommendations mapping. Capped at 10. 14 detection tests + 7 intelligence tests = 21 tests.
 **Shipped**: 2026-03-22. Total test count: 2932.
+
+### N-198: Workflow Engine Detection + Intelligence
+**Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Bundled detection + intelligence for workflow and orchestration engines. Detection: Python (Airflow, Prefect, Dagster, Temporal, Luigi, Mage, Apache Beam, dbt, Kedro, Flyte, APScheduler, Dramatiq, Huey), JS/TS (BullMQ, node-cron, Agenda, Bee Queue, Temporal, Inngest, Trigger.dev, n8n), Go (Temporal, Cadence, Asynq, Machinery), Java (Temporal, Camunda, Apache Camel, Quartz, Spring Batch, Activiti), config dirs (dags/, dbt_project.yml, prefect.yaml). Intelligence: shared_workflow_engine (info), workflow_divergence pipeline (Airflow, Dagster, dbt) vs task-oriented (Temporal, BullMQ, Dramatiq) (warning). TechStack field `workflow_engines`, CONNECTION_CATEGORIES (workflows), display icons (⚙️), export/display type_labels, recommendations mapping. Capped at 10. 16 detection tests + 7 intelligence tests = 23 tests.
+**Shipped**: 2026-03-23. Total test count: 2979.
+
+### N-199: Secrets Management Detection + Intelligence
+**Pillar**: DETECTION+INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1
+**What**: Bundled detection + intelligence for secrets management. Detection: Python (dotenv, HashiCorp Vault/hvac, Pydantic Settings, python-decouple, Environs), JS/TS (dotenv, HashiCorp Vault, AWS Secrets Manager, GCP Secret Manager, Azure Key Vault, Infisical, Doppler, env-cmd, T3 Env), Go (HashiCorp Vault, dotenv, Viper), Rust (dotenv), Java (HashiCorp Vault, Jasypt), config files (.env, .env.example, .sops.yaml, vault.hcl, .infisical.json, doppler.yaml). Intelligence: shared_secrets_tool (info), secrets_divergence env-file (dotenv, python-decouple, Viper) vs managed (HashiCorp Vault, AWS Secrets Manager, Doppler) (warning). TechStack field `secrets_management`, CONNECTION_CATEGORIES (secrets), display icons (🔐), export/display type_labels, recommendations mapping. Capped at 10. 17 detection tests + 7 intelligence tests = 24 tests.
+**Shipped**: 2026-03-23. Total test count: 2979.
 
 ### N-173: Compression Intelligence
 **Pillar**: INTELLIGENCE | **Status**: SHIPPED | **Priority**: P1

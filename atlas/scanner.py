@@ -84,6 +84,8 @@ from atlas.detector import (
     detect_static_site_generators,
     detect_analytics_tools,
     detect_mobile_frameworks,
+    detect_workflow_engines,
+    detect_secrets_management,
 )
 from atlas.health import compute_health
 from atlas.models import GitInfo, Project, TechStack
@@ -170,6 +172,8 @@ def scan_project(project_path: Path) -> Project:
     static_site_generators = detect_static_site_generators(path)
     analytics_tools = detect_analytics_tools(path)
     mobile_frameworks = detect_mobile_frameworks(path)
+    workflow_engines = detect_workflow_engines(path)
+    secrets_management = detect_secrets_management(path)
     source_files, total_files = count_files(path)
     test_files = count_test_files(path)
     loc = count_loc(path)
@@ -251,6 +255,8 @@ def scan_project(project_path: Path) -> Project:
         static_site_generators=static_site_generators,
         analytics_tools=analytics_tools,
         mobile_frameworks=mobile_frameworks,
+        workflow_engines=workflow_engines,
+        secrets_management=secrets_management,
     )
 
     project = Project(

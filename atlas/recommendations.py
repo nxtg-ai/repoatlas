@@ -300,6 +300,8 @@ def _cross_project_recommendations(portfolio: Portfolio) -> list[Recommendation]
         "ssg_divergence": "deps",
         "analytics_divergence": "deps",
         "mobile_divergence": "deps",
+        "workflow_divergence": "infra",
+        "secrets_divergence": "security",
     }
 
     for conn in connections:

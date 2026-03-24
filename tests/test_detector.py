@@ -80,6 +80,8 @@ from atlas.detector import (
     detect_static_site_generators,
     detect_analytics_tools,
     detect_mobile_frameworks,
+    detect_workflow_engines,
+    detect_secrets_management,
     walk_files,
 )
 
@@ -8413,4 +8415,173 @@ class TestDetectMobileFrameworks:
     def test_sorted_output(self, tmp_path):
         (tmp_path / "package.json").write_text('{"dependencies":{"react-native":"^0.73","@ionic/react":"^7"}}')
         result = detect_mobile_frameworks(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectWorkflowEngines:
+    def test_empty_dir(self, tmp_path):
+        assert detect_workflow_engines(tmp_path) == []
+
+    def test_python_airflow(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("apache-airflow==2.8\n")
+        result = detect_workflow_engines(tmp_path)
+        assert "Airflow" in result
+
+    def test_python_prefect(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("prefect>=2.0\n")
+        result = detect_workflow_engines(tmp_path)
+        assert "Prefect" in result
+
+    def test_python_dagster(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("dagster\ndagit\n")
+        result = detect_workflow_engines(tmp_path)
+        assert "Dagster" in result
+
+    def test_python_temporal(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("temporalio>=1.0\n")
+        result = detect_workflow_engines(tmp_path)
+        assert "Temporal" in result
+
+    def test_python_luigi(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("luigi\n")
+        result = detect_workflow_engines(tmp_path)
+        assert "Luigi" in result
+
+    def test_python_dbt(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("dbt-core\n")
+        result = detect_workflow_engines(tmp_path)
+        assert "dbt" in result
+
+    def test_js_bullmq(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"bullmq":"^4"}}')
+        result = detect_workflow_engines(tmp_path)
+        assert "BullMQ" in result
+
+    def test_js_temporal(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@temporalio/client":"^1"}}')
+        result = detect_workflow_engines(tmp_path)
+        assert "Temporal" in result
+
+    def test_js_inngest(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"inngest":"^3"}}')
+        result = detect_workflow_engines(tmp_path)
+        assert "Inngest" in result
+
+    def test_go_temporal(self, tmp_path):
+        (tmp_path / "go.sum").write_text("go.temporal.io/sdk v1.25.0 h1:abc\n")
+        result = detect_workflow_engines(tmp_path)
+        assert "Temporal" in result
+
+    def test_go_asynq(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/hibiken/asynq v0.24.0 h1:abc\n")
+        result = detect_workflow_engines(tmp_path)
+        assert "Asynq" in result
+
+    def test_dags_dir(self, tmp_path):
+        (tmp_path / "dags").mkdir()
+        result = detect_workflow_engines(tmp_path)
+        assert "Airflow" in result
+
+    def test_dbt_project(self, tmp_path):
+        (tmp_path / "dbt_project.yml").write_text("name: my_project\n")
+        result = detect_workflow_engines(tmp_path)
+        assert "dbt" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("apache-airflow\nprefect\n")
+        result = detect_workflow_engines(tmp_path)
+        assert "Airflow" in result
+        assert "Prefect" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("prefect\napache-airflow\ntemporalio\n")
+        result = detect_workflow_engines(tmp_path)
+        assert result == sorted(result)
+
+
+class TestDetectSecretsManagement:
+    def test_empty_dir(self, tmp_path):
+        assert detect_secrets_management(tmp_path) == []
+
+    def test_python_dotenv(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("python-dotenv\n")
+        result = detect_secrets_management(tmp_path)
+        assert "dotenv" in result
+
+    def test_python_vault(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("hvac\n")
+        result = detect_secrets_management(tmp_path)
+        assert "HashiCorp Vault" in result
+
+    def test_python_pydantic_settings(self, tmp_path):
+        (tmp_path / "requirements.txt").write_text("pydantic-settings\n")
+        result = detect_secrets_management(tmp_path)
+        assert "Pydantic Settings" in result
+
+    def test_js_dotenv(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"dotenv":"^16"}}')
+        result = detect_secrets_management(tmp_path)
+        assert "dotenv" in result
+
+    def test_js_vault(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"node-vault":"^0.10"}}')
+        result = detect_secrets_management(tmp_path)
+        assert "HashiCorp Vault" in result
+
+    def test_js_infisical(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@infisical/sdk":"^2"}}')
+        result = detect_secrets_management(tmp_path)
+        assert "Infisical" in result
+
+    def test_js_doppler(self, tmp_path):
+        (tmp_path / "package.json").write_text('{"dependencies":{"@doppler/sdk":"^1"}}')
+        result = detect_secrets_management(tmp_path)
+        assert "Doppler" in result
+
+    def test_go_vault(self, tmp_path):
+        (tmp_path / "go.sum").write_text("github.com/hashicorp/vault/api v1.12.0 h1:abc\n")
+        result = detect_secrets_management(tmp_path)
+        assert "HashiCorp Vault" in result
+
+    def test_env_file(self, tmp_path):
+        (tmp_path / ".env").write_text("SECRET=abc\n")
+        result = detect_secrets_management(tmp_path)
+        assert "dotenv" in result
+
+    def test_env_example(self, tmp_path):
+        (tmp_path / ".env.example").write_text("SECRET=\n")
+        result = detect_secrets_management(tmp_path)
+        assert "dotenv" in result
+
+    def test_sops_yaml(self, tmp_path):
+        (tmp_path / ".sops.yaml").write_text("creation_rules:\n")
+        result = detect_secrets_management(tmp_path)
+        assert "SOPS" in result
+
+    def test_vault_hcl(self, tmp_path):
+        (tmp_path / "vault.hcl").write_text("storage {}\n")
+        result = detect_secrets_management(tmp_path)
+        assert "HashiCorp Vault" in result
+
+    def test_infisical_json(self, tmp_path):
+        (tmp_path / ".infisical.json").write_text("{}")
+        result = detect_secrets_management(tmp_path)
+        assert "Infisical" in result
+
+    def test_doppler_yaml(self, tmp_path):
+        (tmp_path / "doppler.yaml").write_text("setup:\n")
+        result = detect_secrets_management(tmp_path)
+        assert "Doppler" in result
+
+    def test_multiple(self, tmp_path):
+        (tmp_path / ".env").write_text("X=1\n")
+        (tmp_path / "requirements.txt").write_text("hvac\n")
+        result = detect_secrets_management(tmp_path)
+        assert "dotenv" in result
+        assert "HashiCorp Vault" in result
+
+    def test_sorted_output(self, tmp_path):
+        (tmp_path / ".env").write_text("X=1\n")
+        (tmp_path / "requirements.txt").write_text("hvac\npython-dotenv\n")
+        result = detect_secrets_management(tmp_path)
         assert result == sorted(result)

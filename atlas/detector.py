@@ -8379,3 +8379,227 @@ def detect_mobile_frameworks(project_path: Path) -> list[str]:
         _add("Tauri")
 
     return sorted(tools)
+
+
+def detect_workflow_engines(project_path: Path) -> list[str]:
+    """Detect workflow and orchestration engines."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str):
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Python
+    req = project_path / "requirements.txt"
+    if req.exists():
+        try:
+            content_py_wf = req.read_text().lower()
+            if "apache-airflow" in content_py_wf or "airflow" in content_py_wf:
+                _add("Airflow")
+            if "prefect" in content_py_wf:
+                _add("Prefect")
+            if "dagster" in content_py_wf:
+                _add("Dagster")
+            if "temporalio" in content_py_wf or "temporal" in content_py_wf:
+                _add("Temporal")
+            if "luigi" in content_py_wf:
+                _add("Luigi")
+            if "mage-ai" in content_py_wf:
+                _add("Mage")
+            if "apache-beam" in content_py_wf:
+                _add("Apache Beam")
+            if "dbt-core" in content_py_wf or "dbt==" in content_py_wf:
+                _add("dbt")
+            if "kedro" in content_py_wf:
+                _add("Kedro")
+            if "flytekit" in content_py_wf:
+                _add("Flyte")
+            if "apscheduler" in content_py_wf:
+                _add("APScheduler")
+            if "dramatiq" in content_py_wf:
+                _add("Dramatiq")
+            if "huey" in content_py_wf:
+                _add("Huey")
+        except OSError:
+            pass
+
+    # JS/TS
+    pkg = project_path / "package.json"
+    if pkg.exists():
+        try:
+            content_js_wf = pkg.read_text().lower()
+            if "bullmq" in content_js_wf or '"bull"' in content_js_wf:
+                _add("BullMQ")
+            if "node-cron" in content_js_wf:
+                _add("node-cron")
+            if "agenda" in content_js_wf:
+                _add("Agenda")
+            if "bee-queue" in content_js_wf:
+                _add("Bee Queue")
+            if "@temporalio/" in content_js_wf:
+                _add("Temporal")
+            if "inngest" in content_js_wf:
+                _add("Inngest")
+            if "@trigger.dev/" in content_js_wf:
+                _add("Trigger.dev")
+            if "n8n" in content_js_wf:
+                _add("n8n")
+        except OSError:
+            pass
+
+    # Go
+    for go_dep in ("go.sum", "go.mod"):
+        go_file = project_path / go_dep
+        if go_file.exists():
+            try:
+                content_go_wf = go_file.read_text().lower()
+                if "temporalio" in content_go_wf or "temporal" in content_go_wf:
+                    _add("Temporal")
+                if "cadence" in content_go_wf:
+                    _add("Cadence")
+                if "asynq" in content_go_wf:
+                    _add("Asynq")
+                if "machinery" in content_go_wf:
+                    _add("Machinery")
+            except OSError:
+                pass
+
+    # Java
+    for java_build in ("pom.xml", "build.gradle"):
+        jf = project_path / java_build
+        if jf.exists():
+            try:
+                content_java_wf = jf.read_text().lower()
+                if "temporal" in content_java_wf:
+                    _add("Temporal")
+                if "camunda" in content_java_wf:
+                    _add("Camunda")
+                if "camel-core" in content_java_wf:
+                    _add("Apache Camel")
+                if "quartz" in content_java_wf:
+                    _add("Quartz")
+                if "spring-batch" in content_java_wf:
+                    _add("Spring Batch")
+                if "activiti" in content_java_wf:
+                    _add("Activiti")
+            except OSError:
+                pass
+
+    # Config files
+    if (project_path / "dags").is_dir():
+        _add("Airflow")
+    if (project_path / "dbt_project.yml").exists():
+        _add("dbt")
+    if (project_path / "prefect.yaml").exists():
+        _add("Prefect")
+
+    return sorted(tools)
+
+
+def detect_secrets_management(project_path: Path) -> list[str]:
+    """Detect secrets management tools."""
+    tools: list[str] = []
+    seen: set[str] = set()
+
+    def _add(name: str):
+        if name not in seen:
+            seen.add(name)
+            tools.append(name)
+
+    # Python
+    req = project_path / "requirements.txt"
+    if req.exists():
+        try:
+            content_py_sm = req.read_text().lower()
+            if "python-dotenv" in content_py_sm or "dotenv" in content_py_sm:
+                _add("dotenv")
+            if "hvac" in content_py_sm:
+                _add("HashiCorp Vault")
+            if "pydantic-settings" in content_py_sm:
+                _add("Pydantic Settings")
+            if "python-decouple" in content_py_sm:
+                _add("python-decouple")
+            if "environs" in content_py_sm:
+                _add("Environs")
+        except OSError:
+            pass
+
+    # JS/TS
+    pkg = project_path / "package.json"
+    if pkg.exists():
+        try:
+            content_js_sm = pkg.read_text().lower()
+            if "dotenv" in content_js_sm:
+                _add("dotenv")
+            if "node-vault" in content_js_sm:
+                _add("HashiCorp Vault")
+            if "@aws-sdk/client-secrets-manager" in content_js_sm:
+                _add("AWS Secrets Manager")
+            if "@google-cloud/secret-manager" in content_js_sm:
+                _add("GCP Secret Manager")
+            if "@azure/keyvault-secrets" in content_js_sm:
+                _add("Azure Key Vault")
+            if "infisical" in content_js_sm:
+                _add("Infisical")
+            if "@doppler/" in content_js_sm or "doppler-sdk" in content_js_sm:
+                _add("Doppler")
+            if "env-cmd" in content_js_sm:
+                _add("env-cmd")
+            if "@t3-oss/env" in content_js_sm:
+                _add("T3 Env")
+        except OSError:
+            pass
+
+    # Go
+    for go_dep in ("go.sum", "go.mod"):
+        go_file = project_path / go_dep
+        if go_file.exists():
+            try:
+                content_go_sm = go_file.read_text().lower()
+                if "hashicorp/vault" in content_go_sm:
+                    _add("HashiCorp Vault")
+                if "joho/godotenv" in content_go_sm:
+                    _add("dotenv")
+                if "viper" in content_go_sm:
+                    _add("Viper")
+            except OSError:
+                pass
+
+    # Rust
+    cargo = project_path / "Cargo.toml"
+    if cargo.exists():
+        try:
+            content_rs_sm = cargo.read_text().lower()
+            if "dotenvy" in content_rs_sm or "dotenv" in content_rs_sm:
+                _add("dotenv")
+        except OSError:
+            pass
+
+    # Java
+    for java_build in ("pom.xml", "build.gradle"):
+        jf = project_path / java_build
+        if jf.exists():
+            try:
+                content_java_sm = jf.read_text().lower()
+                if "vault" in content_java_sm and "spring" in content_java_sm:
+                    _add("HashiCorp Vault")
+                if "jasypt" in content_java_sm:
+                    _add("Jasypt")
+            except OSError:
+                pass
+
+    # Config files
+    if (project_path / ".env").exists() or (project_path / ".env.example").exists():
+        _add("dotenv")
+    if (project_path / ".sops.yaml").exists():
+        _add("SOPS")
+    if (project_path / "vault.hcl").exists():
+        _add("HashiCorp Vault")
+    if (project_path / ".infisical.json").exists():
+        _add("Infisical")
+    if (project_path / "doppler.yaml").exists():
+        _add("Doppler")
+
+    return sorted(tools)

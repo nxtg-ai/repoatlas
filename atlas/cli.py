@@ -467,6 +467,8 @@ CONNECTION_CATEGORIES = {
     "ssg": {"shared_ssg", "ssg_divergence"},
     "analytics": {"shared_analytics_tool", "analytics_divergence"},
     "mobile": {"shared_mobile_framework", "mobile_divergence"},
+    "workflows": {"shared_workflow_engine", "workflow_divergence"},
+    "secrets": {"shared_secrets_tool", "secrets_divergence"},
 }
 
 

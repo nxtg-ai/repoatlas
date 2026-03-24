@@ -223,6 +223,10 @@ CONNECTION_ICONS = {
     "analytics_divergence": "[yellow]📊[/yellow]",
     "shared_mobile_framework": "[green]📱[/green]",
     "mobile_divergence": "[yellow]📱[/yellow]",
+    "shared_workflow_engine": "[green]⚙️[/green]",
+    "workflow_divergence": "[yellow]⚙️[/yellow]",
+    "shared_secrets_tool": "[green]🔐[/green]",
+    "secrets_divergence": "[yellow]🔐[/yellow]",
 }
 
 
@@ -1160,6 +1164,28 @@ def _show_portfolio_summary(portfolio: Portfolio):
         mob_parts = [f"{m} ({count})" for m, count in top_mob]
         lines.append(f"  [bold]Mobile:[/bold]    {has_mob}/{n} projects · {', '.join(mob_parts)}")
 
+    # Workflow engines
+    has_wf = sum(1 for p in projects if p.tech_stack.workflow_engines)
+    if has_wf:
+        wf_counter: Counter[str] = Counter()
+        for p in projects:
+            for w in p.tech_stack.workflow_engines:
+                wf_counter[w] += 1
+        top_wf = wf_counter.most_common(6)
+        wf_parts = [f"{w} ({count})" for w, count in top_wf]
+        lines.append(f"  [bold]Workflows:[/bold] {has_wf}/{n} projects · {', '.join(wf_parts)}")
+
+    # Secrets management
+    has_sec = sum(1 for p in projects if p.tech_stack.secrets_management)
+    if has_sec:
+        sec_counter: Counter[str] = Counter()
+        for p in projects:
+            for s in p.tech_stack.secrets_management:
+                sec_counter[s] += 1
+        top_sec = sec_counter.most_common(6)
+        sec_parts = [f"{s} ({count})" for s, count in top_sec]
+        lines.append(f"  [bold]Secrets:[/bold]   {has_sec}/{n} projects · {', '.join(sec_parts)}")
+
     # API specs
     has_api = sum(1 for p in projects if p.tech_stack.api_specs)
     if has_api:
@@ -1386,6 +1412,10 @@ def show_connections(connections: list[Connection]):
         "analytics_divergence": "Analytics Approach Divergence",
         "shared_mobile_framework": "Shared Mobile Framework",
         "mobile_divergence": "Mobile Approach Divergence",
+        "shared_workflow_engine": "Shared Workflow Engine",
+        "workflow_divergence": "Workflow Approach Divergence",
+        "shared_secrets_tool": "Shared Secrets Tool",
+        "secrets_divergence": "Secrets Approach Divergence",
     }
 
     lines = []
@@ -1499,6 +1529,8 @@ def _show_connection_stats(connections: list[Connection]):
         "shared_ssg": "ssg", "ssg_divergence": "ssg",
         "shared_analytics_tool": "analytics", "analytics_divergence": "analytics",
         "shared_mobile_framework": "mobile", "mobile_divergence": "mobile",
+        "shared_workflow_engine": "workflows", "workflow_divergence": "workflows",
+        "shared_secrets_tool": "secrets", "secrets_divergence": "secrets",
     }
 
     for conn in connections:
@@ -1841,6 +1873,14 @@ def show_project_card(project: Project):
     if project.tech_stack.mobile_frameworks:
         mob = ", ".join(project.tech_stack.mobile_frameworks[:8])
         lines.append(f"  [bold]Mobile:[/bold]    {mob}")
+
+    if project.tech_stack.workflow_engines:
+        wfe = ", ".join(project.tech_stack.workflow_engines[:8])
+        lines.append(f"  [bold]Workflows:[/bold] {wfe}")
+
+    if project.tech_stack.secrets_management:
+        sms = ", ".join(project.tech_stack.secrets_management[:8])
+        lines.append(f"  [bold]Secrets:[/bold]   {sms}")
 
     if project.license:
         lines.append(f"  [bold]License:[/bold]    {project.license}")

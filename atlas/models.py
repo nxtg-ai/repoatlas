@@ -82,6 +82,8 @@ class TechStack:
     static_site_generators: list[str] = field(default_factory=list)
     analytics_tools: list[str] = field(default_factory=list)
     mobile_frameworks: list[str] = field(default_factory=list)
+    workflow_engines: list[str] = field(default_factory=list)
+    secrets_management: list[str] = field(default_factory=list)
 
     @property
     def primary_languages(self) -> list[str]:
@@ -245,6 +247,8 @@ class Project:
                 "static_site_generators": self.tech_stack.static_site_generators,
                 "analytics_tools": self.tech_stack.analytics_tools,
                 "mobile_frameworks": self.tech_stack.mobile_frameworks,
+                "workflow_engines": self.tech_stack.workflow_engines,
+                "secrets_management": self.tech_stack.secrets_management,
             },
             "git_info": {
                 "branch": self.git_info.branch,
@@ -353,6 +357,8 @@ class Project:
                 static_site_generators=ts.get("static_site_generators", []),
                 analytics_tools=ts.get("analytics_tools", []),
                 mobile_frameworks=ts.get("mobile_frameworks", []),
+                workflow_engines=ts.get("workflow_engines", []),
+                secrets_management=ts.get("secrets_management", []),
             ),
             git_info=GitInfo(
                 branch=gi.get("branch", ""),

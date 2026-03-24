@@ -86,6 +86,8 @@ def find_connections(projects: list[Project]) -> list[Connection]:
     connections.extend(_find_ssg_patterns(projects))
     connections.extend(_find_analytics_patterns(projects))
     connections.extend(_find_mobile_patterns(projects))
+    connections.extend(_find_workflow_patterns(projects))
+    connections.extend(_find_secrets_patterns(projects))
     return connections
 
 
@@ -4979,6 +4981,115 @@ def _find_compression_patterns(projects: list[Project]) -> list[Connection]:
         connections.append(Connection(
             type="compression_lib_divergence",
             detail=f"Mixed compression approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_workflow_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project workflow and orchestration engine patterns."""
+    connections: list[Connection] = []
+
+    # Shared workflow engines — same engine used by 2+ projects
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.workflow_engines:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_workflow_engine",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Workflow divergence — data-pipeline vs task-queue
+    pipeline = {"Airflow", "Prefect", "Dagster", "Luigi", "Mage", "Apache Beam",
+                "dbt", "Kedro", "Flyte"}
+    task_oriented = {"Temporal", "Cadence", "BullMQ", "Dramatiq", "Huey",
+                     "Asynq", "Machinery", "Bee Queue", "Agenda", "Inngest",
+                     "Trigger.dev", "APScheduler", "node-cron"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "pipeline": {}, "task-oriented": {},
+    }
+    cat_sets = [("pipeline", pipeline), ("task-oriented", task_oriented)]
+    for p in projects:
+        for lib in p.tech_stack.workflow_engines:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="workflow_divergence",
+            detail=f"Mixed workflow approaches: {'; '.join(parts)} — consider standardizing",
+            projects=sorted(all_projs),
+            severity="warning",
+        ))
+
+    return connections[:10]
+
+
+def _find_secrets_patterns(projects: list[Project]) -> list[Connection]:
+    """Find cross-project secrets management patterns."""
+    connections: list[Connection] = []
+
+    # Shared secrets tools — same tool used by 2+ projects
+    lib_to_projects: dict[str, list[str]] = defaultdict(list)
+    for p in projects:
+        for lib in p.tech_stack.secrets_management:
+            lib_to_projects[lib].append(p.name)
+
+    for lib, projs in sorted(lib_to_projects.items()):
+        if len(projs) >= 2:
+            connections.append(Connection(
+                type="shared_secrets_tool",
+                detail=f"{lib} used in {len(projs)} projects",
+                projects=sorted(projs),
+                severity="info",
+            ))
+
+    # Secrets divergence — env-file vs vault/managed
+    env_file = {"dotenv", "python-decouple", "Pydantic Settings", "Environs",
+                "env-cmd", "T3 Env", "Viper"}
+    managed = {"HashiCorp Vault", "AWS Secrets Manager", "GCP Secret Manager",
+               "Azure Key Vault", "Infisical", "Doppler", "SOPS"}
+
+    cat_found: dict[str, dict[str, set[str]]] = {
+        "env-file": {}, "managed": {},
+    }
+    cat_sets = [("env-file", env_file), ("managed", managed)]
+    for p in projects:
+        for lib in p.tech_stack.secrets_management:
+            for cat_name, cat_set in cat_sets:
+                if lib in cat_set:
+                    cat_found[cat_name].setdefault(lib, set()).add(p.name)
+
+    active_cats = {k: v for k, v in cat_found.items() if v}
+    if len(active_cats) >= 2:
+        parts = []
+        all_projs: set[str] = set()
+        for cat_name, tools in active_cats.items():
+            tool_names = ", ".join(sorted(tools.keys())[:3])
+            parts.append(f"{cat_name} ({tool_names})")
+            for ps in tools.values():
+                all_projs.update(ps)
+        connections.append(Connection(
+            type="secrets_divergence",
+            detail=f"Mixed secrets approaches: {'; '.join(parts)} — consider standardizing",
             projects=sorted(all_projs),
             severity="warning",
         ))

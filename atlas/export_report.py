@@ -784,6 +784,24 @@ def _portfolio_summary(portfolio: Portfolio) -> list[str]:
         mob_names = ", ".join(f"{t} ({c})" for t, c in mob_counter_md.most_common(8))
         lines.append(f"**Mobile Frameworks**: {has_mob_md}/{n} projects · {mob_names}")
 
+    has_wf_md = sum(1 for p in projects if p.tech_stack.workflow_engines)
+    if has_wf_md:
+        wf_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for w in p.tech_stack.workflow_engines:
+                wf_counter_md[w] += 1
+        wf_names = ", ".join(f"{t} ({c})" for t, c in wf_counter_md.most_common(8))
+        lines.append(f"**Workflow Engines**: {has_wf_md}/{n} projects · {wf_names}")
+
+    has_sm_md = sum(1 for p in projects if p.tech_stack.secrets_management)
+    if has_sm_md:
+        sm_counter_md: Counter[str] = Counter()
+        for p in projects:
+            for s in p.tech_stack.secrets_management:
+                sm_counter_md[s] += 1
+        sm_names = ", ".join(f"{t} ({c})" for t, c in sm_counter_md.most_common(8))
+        lines.append(f"**Secrets Management**: {has_sm_md}/{n} projects · {sm_names}")
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1020,6 +1038,12 @@ def _project_details(projects: list[Project]) -> list[str]:
         if p.tech_stack.mobile_frameworks:
             lines.append(f"- **Mobile**: {', '.join(p.tech_stack.mobile_frameworks[:8])}")
 
+        if p.tech_stack.workflow_engines:
+            lines.append(f"- **Workflows**: {', '.join(p.tech_stack.workflow_engines[:8])}")
+
+        if p.tech_stack.secrets_management:
+            lines.append(f"- **Secrets**: {', '.join(p.tech_stack.secrets_management[:8])}")
+
         if p.license:
             lines.append(f"- **License**: {p.license}")
 
@@ -1239,6 +1263,10 @@ def _connections_section(conns: list) -> list[str]:
         "analytics_divergence": "Analytics Approach Divergence",
         "shared_mobile_framework": "Shared Mobile Framework",
         "mobile_divergence": "Mobile Approach Divergence",
+        "shared_workflow_engine": "Shared Workflow Engine",
+        "workflow_divergence": "Workflow Approach Divergence",
+        "shared_secrets_tool": "Shared Secrets Tool",
+        "secrets_divergence": "Secrets Approach Divergence",
     }
 
     severity_icons = {"info": "ℹ️", "warning": "⚠️", "critical": "❌"}
@@ -1826,6 +1854,20 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
             mob_counter_j[m] += 1
     has_mob_j = sum(1 for p in projects if p.tech_stack.mobile_frameworks)
 
+    # Workflow engines
+    wf_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for w in p.tech_stack.workflow_engines:
+            wf_counter_j[w] += 1
+    has_wf_j = sum(1 for p in projects if p.tech_stack.workflow_engines)
+
+    # Secrets management
+    sm_counter_j: Counter[str] = Counter()
+    for p in projects:
+        for s in p.tech_stack.secrets_management:
+            sm_counter_j[s] += 1
+    has_sm_j = sum(1 for p in projects if p.tech_stack.secrets_management)
+
     # Licenses
     lic_counter: Counter[str] = Counter()
     for p in projects:
@@ -1912,6 +1954,8 @@ def _json_portfolio_summary(projects: list[Project]) -> dict:
         "static_site_generators": {"coverage": f"{has_ssg_j}/{n}", "tools": dict(ssg_counter_j.most_common(10))},
         "analytics_tools": {"coverage": f"{has_ana_j}/{n}", "tools": dict(ana_counter_j.most_common(10))},
         "mobile_frameworks": {"coverage": f"{has_mob_j}/{n}", "frameworks": dict(mob_counter_j.most_common(10))},
+        "workflow_engines": {"coverage": f"{has_wf_j}/{n}", "engines": dict(wf_counter_j.most_common(10))},
+        "secrets_management": {"coverage": f"{has_sm_j}/{n}", "tools": dict(sm_counter_j.most_common(10))},
         "licenses": {"coverage": f"{has_license}/{n}", "licenses": dict(lic_counter.most_common(10))},
     }
 
@@ -1932,7 +1976,7 @@ def build_csv_report(portfolio: Portfolio) -> str:
         "Monitoring Tools", "Auth Tools", "Messaging Tools", "Deploy Targets", "State Management",
         "CSS Frameworks", "Bundlers", "ORM/DB Clients", "i18n", "Validation", "Logging",
         "Container Orchestration", "Cloud Providers", "Task Queues", "Search Engines", "Feature Flags",
-        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "Animation Libs", "Routing Libs", "Game Frameworks", "CMS Tools", "Rate Limiters", "DB Migration Tools", "gRPC/RPC Libs", "Code Gen Tools", "Mocking Libs", "Release Tools", "E2E Testing", "Monorepo Tools", "Error Tracking", "Static Site Generators", "Analytics Tools", "Mobile Frameworks", "License", "Branch", "Last Commit", "Commits",
+        "HTTP Clients", "Doc Generators", "CLI Frameworks", "Config Tools", "Caching Tools", "Template Engines", "Serialization Formats", "DI Frameworks", "WebSocket Libs", "GraphQL Libs", "Event Streaming", "Payment Tools", "Date/Time Libs", "Image Libs", "Crypto Libs", "PDF/Doc Libs", "Data Viz Libs", "Geo/Map Libs", "Media Libs", "Math/Sci Libs", "Async Libs", "Compression Libs", "Email Libs", "A11y Tools", "Scraping Libs", "Desktop Frameworks", "File Storage", "Form Libs", "Animation Libs", "Routing Libs", "Game Frameworks", "CMS Tools", "Rate Limiters", "DB Migration Tools", "gRPC/RPC Libs", "Code Gen Tools", "Mocking Libs", "Release Tools", "E2E Testing", "Monorepo Tools", "Error Tracking", "Static Site Generators", "Analytics Tools", "Mobile Frameworks", "Workflow Engines", "Secrets Management", "License", "Branch", "Last Commit", "Commits",
     ]
     writer.writerow(headers)
 
@@ -2027,6 +2071,8 @@ def build_csv_report(portfolio: Portfolio) -> str:
             "; ".join(ts.static_site_generators),
             "; ".join(ts.analytics_tools),
             "; ".join(ts.mobile_frameworks),
+            "; ".join(ts.workflow_engines),
+            "; ".join(ts.secrets_management),
             p.license,
             gi.branch if gi else "",
             gi.last_commit_date if gi else "",
