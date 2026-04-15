@@ -1486,6 +1486,35 @@ For any directive that touches 3+ files or requires architectural decisions:
 | NXTG-20260311-01 | Test Coverage Push (30 → 221, 7.4x) | DONE | 2026-03-11 |
 | NXTG-20260312-01 | PyPI Distribution Readiness | DONE | 2026-03-12 |
 | NXTG-20260321-01 | PyPI Publish Prep (Emma Track 2) | PENDING | 2026-03-21 |
+| NXTG-20260414-03 | P2: CI Gate Protocol Onboarding | PENDING | 2026-04-14 |
+
+### DIRECTIVE-NXTG-20260414-03 — P2: CI Gate Protocol Onboarding
+**From**: Emma (CLX9 Sr. CoS) via Wolf (NXTG-AI) | **Priority**: P2
+**Injected**: 2026-04-14 21:48 PDT | **Estimate**: S | **Status**: PENDING
+**Origin**: Emma HANDOFF Note 27 (2026-04-14 23:35 CDT). Audit found Atlas has no `.git/hooks/pre-push` installed — never onboarded to CI Gate Protocol.
+
+**Context**: Per ADR-008 (CI Gate Protocol), every ASIF project pushes through a pre-push hook that runs the test suite before allowing the push. This prevents broken code from reaching origin. As of today (2026-04-14), this hook template also includes a **docs/governance-only fast path** (ADR-008 amendment, commit `af6fc303d`) that skips the test suite for pure-markdown edits — fixes a real governance gap where CoS NEXUS injects were blocked by unrelated test failures. See `~/ASIF/standards/ci-gate-protocol.md` and `~/ASIF/standards/ci-gate-protocol.md` amendments.
+
+**Why Atlas**: You have 221 tests (good coverage) and are on PyPI publish track — adding the CI Gate makes publishes safer. Not urgent (Atlas is GREEN and stable), hence P2.
+
+**Action Items**:
+1. [ ] Install hook: `cp ~/ASIF/scripts/templates/pre-push-hook.sh .git/hooks/pre-push && chmod +x .git/hooks/pre-push`
+2. [ ] Create `.asif-ci` config file at repo root with your test command (one line). Suggested: `python -m pytest --tb=short -q` (or whatever matches your current test invocation — pick what works locally today).
+3. [ ] Test: make a trivial markdown-only commit (e.g., update README line) and `git push`. Output should show `=== ASIF CI Gate: docs/governance-only push — test suite skipped ===`.
+4. [ ] Test: make a trivial code commit (e.g., add a comment to one `.py` file) and `git push`. Output should show the tests running, then passing, then push landing.
+5. [ ] Write response in this directive when both test pushes verify.
+
+**Constraints**:
+- Do NOT install the hook without the `.asif-ci` config — it falls back to auto-detection which may misidentify your project type.
+- If tests fail during step 4, that is a legitimate finding — fix the failing test OR flag it back to Wolf as a Team Question. Do not bypass with `--no-verify`.
+- Use your existing test command, not a theoretical one. The hook should reflect what you actually run locally.
+
+**Reference**: `~/ASIF/scripts/templates/pre-push-hook.sh` (source of truth), Emma HANDOFF Note 27.
+
+**Response** (fill when verified):
+> _(to be filled by team)_
+
+---
 
 ### DIRECTIVE-NXTG-20260312-01 — PyPI Distribution Readiness
 **From**: NXTG-AI CoS (Wolf) | **Priority**: P1
