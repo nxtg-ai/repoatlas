@@ -16,7 +16,7 @@
 | N-03 | [Cross-Project Patterns](#n-03-cross-project-patterns) | INTELLIGENCE | SHIPPED | P0 | 2026-03-04 |
 | N-04 | [Terminal Dashboard](#n-04-terminal-dashboard) | EXPERIENCE | SHIPPED | P0 | 2026-03-04 |
 | N-05 | [GitHub CI](#n-05-github-ci) | DISTRIBUTION | SHIPPED | P1 | 2026-03-04 |
-| N-06 | [PyPI Publishing](#n-06-pypi-publishing) | DISTRIBUTION | DECIDED | P0 | 2026-03-13 |
+| N-06 | [PyPI Publishing](#n-06-pypi-publishing) | DISTRIBUTION | SHIPPED | P0 | 2026-03-04 |
 | N-07 | [README + GIF Demo](#n-07-readme-gif-demo) | DISTRIBUTION | SHIPPED | P1 | 2026-03-13 |
 | N-08 | [Show HN Launch](#n-08-show-hn-launch) | DISTRIBUTION | DECIDED | P1 | 2026-03-13 |
 | N-09 | [Pro Tier / Monetization](#n-09-pro-tier-monetization) | DISTRIBUTION | DECIDED | P2 | 2026-03-13 |
@@ -1462,6 +1462,41 @@ IDEA --> RESEARCHED --> DECIDED --> BUILDING --> SHIPPED
 
 This project is governed by the ASIF portfolio. On every session:
 1. Read `.asif/NEXUS.md` — check for `## CoS Directives` section
+
+### DIRECTIVE-NXTG-20260418-03 — P2: Voice Identity Adoption
+**From**: NXTG-AI CoS (Wolf) — Asif-initiated | **Priority**: P2
+**Injected**: 2026-04-18 13:48 PDT | **Estimate**: S (under 30 min) | **Status**: PENDING
+
+**Context**: PP (P-04) just shipped the portfolio voice service (`http://100.123.83.34:8880`). Asif directive: every team picks its own voice, owns it, and uses it always — no duplicates, no silent completion, no generic TTS fallback. Voice is team identity.
+
+**Your voice**: `am_adam`
+**Rationale**: Architect-vibe — portfolio intelligence / repo atlas
+
+**Direction**:
+1. Add a `## Voice Identity` section to your project's CLAUDE.md:
+   ```markdown
+   ## Voice Identity
+   **Voice**: `am_adam`
+   **Service**: http://100.123.83.34:8880/v1/audio/speech
+   **Registry**: ~/ASIF/standards/portfolio-voice-registry.md
+   **Use**: every cycle-complete, every P0/P1 completion, every directive response.
+   ```
+2. Update your `cos-speak` wrapper (or equivalent) to default to `am_adam` on your surfaces.
+3. On every directive DONE / ship complete / cycle complete, speak a one-sentence summary using your voice.
+4. Sample call:
+   ```bash
+   curl -sS -X POST http://100.123.83.34:8880/v1/audio/speech \
+     -H "Content-Type: application/json" \
+     -d '{"model":"kokoro","input":"Your message here.","voice":"am_adam","response_format":"wav"}' \
+     -o /tmp/voice.wav && aplay /tmp/voice.wav  # or pipe to PowerShell on WSL2
+   ```
+
+**Push back allowed**: If you want a different voice, write a response in this NEXUS with the requested voice ID and reason. Registry file authoritative: `~/ASIF/standards/portfolio-voice-registry.md` — no duplicates portfolio-wide.
+
+**Not required**: don't build a new service. Use PP's endpoint as-is. If you need streaming (long narrations, live dialogue), use `/v1/audio/speech/stream` — see PP's `docs/voice-service/user-guide.md`.
+
+**Why P2 Saturday**: low-stakes identity work, immediate quality-of-life improvement. Won't block anything. Pick up at your next session-start.
+
 2. Execute any PENDING directives before other work (unless Asif overrides)
 3. Write your response inline under each directive
 4. Update initiative statuses in NEXUS if your work changes them
