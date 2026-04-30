@@ -306,8 +306,8 @@ class TestStatus:
                 runner.invoke(app, ["add", str(d)])
         result = runner.invoke(app, ["status", "--format", "csv", "--sort", "name"])
         assert result.exit_code == 0
-        lines = [l for l in result.output.strip().split("\n") if l and not l.startswith("Name")]
-        names = [l.split(",")[0] for l in lines]
+        lines = [line for line in result.output.strip().split("\n") if line and not line.startswith("Name")]
+        names = [line.split(",")[0] for line in lines]
         assert names == sorted(names, key=str.lower)
 
     def test_status_sort_health_csv(self, portfolio_dir, tmp_path):
@@ -569,7 +569,7 @@ class TestConnections:
         data = json.loads(result.output)
         assert isinstance(data["total"], int)
         # All connections should be in deps category
-        dep_types = CONNECTION_CATEGORIES["deps"] if "CONNECTION_CATEGORIES" in dir() else {"shared_dep", "shared_framework", "version_mismatch", "reuse_candidate"}
+        dep_types = {"shared_dep", "shared_framework", "version_mismatch", "reuse_candidate"}
         for conn in data["connections"]:
             assert conn["type"] in dep_types
 

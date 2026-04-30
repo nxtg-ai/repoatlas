@@ -15,7 +15,7 @@ from atlas.display import console, show_comparison, show_connections, show_proje
 from atlas.export_report import build_csv_report, build_json_report, build_markdown_report
 from atlas.history import build_scan_entry, compute_trends, load_history, save_scan
 from atlas.license_manager import activate as activate_license, get_status as get_license_status
-from atlas.models import Portfolio
+from atlas.models import Portfolio, Project
 from atlas.recommendations import generate_recommendations
 from atlas.scanner import scan_project
 

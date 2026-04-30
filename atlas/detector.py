@@ -6305,16 +6305,6 @@ def detect_desktop_frameworks(project_path: Path) -> list[str]:
         except OSError:
             go_content = ""
 
-        desktop_go_map = {
-            "fyne.io/fyne": "Fyne",
-            "github.com/nicoria/wails": "Wails",
-            "github.com/nicoria/wails/v2": "Wails",
-            "github.com/nicoria/wails/v3": "Wails",
-            "github.com/nicoria/wails/": "Wails",
-            "github.com/nicoria/go-gtk": "go-gtk",
-            "gioui.org": "Gio",
-            "github.com/nicoria/lorca": "Lorca",
-        }
         # Wails uses github.com/wailsapp/wails
         if "github.com/wailsapp/wails" in go_content:
             _add("Wails")
