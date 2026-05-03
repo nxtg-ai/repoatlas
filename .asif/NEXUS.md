@@ -1627,3 +1627,24 @@ _(No pending questions)_
 |------|--------|
 | 2026-03-06 | Formalized as P-15. NEXUS created by CLX9 Sr. CoS (Emma). |
 | 2026-03-04 | Product built by Wolf (NXTG-AI CoS). 1,814 LOC, 30 tests, CI GREEN. |
+
+### DIRECTIVE-NXTG-20260503-04 — P1: Draft 3 scope candidates with effort estimates for Asif decision
+**From**: NXTG-AI CoS (Wolf) | **Priority**: P1
+**Injected**: 2026-05-03 14:30 PDT | **Estimate**: S=hours | **Status**: PENDING
+**Origin**: Sense script flags "Atlas CLI: Scope definition pending — needs Asif decision". NEXUS has no scope candidates drafted. Pattern from DAI Sprint 15 candidate prep — give Asif structured options, not blank.
+
+**Action Items**:
+1. Draft three scope candidate options for Atlas v0.x. Each candidate must include:
+   - One-line summary
+   - Target user / use case
+   - Effort estimate (S/M/L = hours / 1-2d / 3+d for the slice that ships first)
+   - First measurable outcome (what does "done" look like for the first slice)
+2. Anchor candidates to existing portfolio entry framing — "tech stack detection, health scoring, cross-project patterns" — but allow narrowing to a single wedge if that's the strongest move.
+3. Surface the three candidates via `~/ASIF/governance/asif-decisions.md` as a single decision item (queue entry, dashboard agenda patch). Not via /alignment broadcast — Asif reads the queue.
+
+**DoD**: 3 candidates with effort + outcome each, queued in `governance/asif-decisions.md` and `dashboard/agenda.json`. PASS when Asif can pick one in <5 minutes of reading.
+
+**Constraints**: No premature scope-locking. No code changes yet. Don't invent users — anchor to NXTG portfolio teams as the initial audience if uncertain.
+
+**Response** (filled by team): inline below.
+
