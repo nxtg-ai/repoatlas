@@ -1646,5 +1646,20 @@ _(No pending questions)_
 
 **Constraints**: No premature scope-locking. No code changes yet. Don't invent users — anchor to NXTG portfolio teams as the initial audience if uncertain.
 
-**Response** (filled by team): inline below.
+**Response** (filled by team):
+**Started**: 2026-05-03 | **Completed**: 2026-05-03 | **Actual**: ~30min | **Status**: DONE
+
+Three v0.x scope candidates drafted and queued in `~/ASIF/governance/asif-decisions.md` (top of Open / 2026-05-03 review section) and `~/ASIF/dashboard/agenda.json` § ASIF Decisions (item id `atlas-v0x-scope-20260503`). Single decision item, three options A/B/C — not a broadcast.
+
+**A — AI/ML wedge (Intelligence)**: `atlas ai-audit` subcommand layering on shipped N-21/N-27 detection. Per-project provider/model/SDK-version table + prompt-cache + batch-API flags + cross-project model-version drift. Target: AI eng teams running multi-repo LLM apps; NXTG portfolio first (8 AI-bearing projects: P-08b/P-01/P-11/P-14/P-05). Effort M (1–2d). First outcome: ≥1 actionable drift/gap finding across the 8 projects.
+
+**B — GitHub Action wedge (Distribution)**: Publish `nxtg-ai/atlas-action@v1` to Marketplace. Wraps `atlas ci` (N-14) + posts PR-comment health report via `gh`. Effort S (hours). First outcome: installed on ≥3 NXTG repos, one PR-comment rendered per PR. Cheapest distribution unlock.
+
+**C — Pro Tier activation (Monetization)**: Flip license gates on shipped cross-project intel (N-03/N-15/N-20/N-46) + ship Polar.sh checkout against shipped N-09 infra. Effort M (1–2d). First outcome: first non-Asif sale OR ≥10 unique Pro-page hits during a Show HN/X push.
+
+**Recommendation (non-binding)**: B for cheapest distribution win this week; A for strongest AI-engineering positioning (matches portfolio gravity and NXTG dogfood surface); C only paired with a Show HN push behind it. PASS check: each candidate has 1-line summary, target user, S/M/L estimate, first measurable outcome — Asif can pick in <5min from the queue entry.
+
+**Constraint compliance**: No code changes. NXTG portfolio teams are the anchored initial audience for A and B. C names buyer profile but defers external-validation effort to whichever push Asif funds.
+
+**Commit**: pending (this update + governance/agenda patches).
 
