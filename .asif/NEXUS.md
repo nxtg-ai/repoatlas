@@ -1659,7 +1659,7 @@ _(No pending questions)_
 
 ### DIRECTIVE-NXTG-20260503-04 — P1: Draft 3 scope candidates with effort estimates for Asif decision
 **From**: NXTG-AI CoS (Wolf) | **Priority**: P1
-**Injected**: 2026-05-03 14:30 PDT | **Estimate**: S=hours | **Status**: PENDING
+**Injected**: 2026-05-03 14:30 PDT | **Estimate**: S=hours | **Status**: DONE (header sync 2026-05-04 — Response section already shows DONE, Asif decided "all 3" → DIRECTIVE-NXTG-20260504-01 supersedes for sequence/feasibility)
 **Origin**: Sense script flags "Atlas CLI: Scope definition pending — needs Asif decision". NEXUS has no scope candidates drafted. Pattern from DAI Sprint 15 candidate prep — give Asif structured options, not blank.
 
 **Action Items**:
