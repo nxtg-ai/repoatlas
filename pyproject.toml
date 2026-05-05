@@ -1,6 +1,6 @@
 [project]
 name = "nxtg-atlas"
-version = "0.2.0"
+version = "0.3.0"
 description = "Portfolio intelligence for AI engineering teams. Scan repos, score health, find cross-project patterns."
 requires-python = ">=3.11"
 license = "MIT"
