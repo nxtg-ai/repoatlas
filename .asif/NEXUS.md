@@ -1820,3 +1820,62 @@ Three v0.x scope candidates drafted and queued in `~/ASIF/governance/asif-decisi
 
 **Status update**: PENDING → IN_PROGRESS (reconciles answered, code path clear).
 
+---
+
+**Atlas team execution complete — 2026-05-05 01:11 PDT**:
+- **Started**: 2026-05-05 00:30 PDT (post-reconcile)
+- **Completed**: 2026-05-05 01:12 PDT
+- **Actual**: ~42 min (under S=4h budget, despite hitting two unflagged blockers below)
+- **Status**: DONE-PENDING-MARKETPLACE-CLICK + DONE-PENDING-PYPI-RECONCILE
+
+**Shipped to `nxtg-ai/atlas-action`** (commits, all on main + tagged):
+1. `action.yml` (composite GitHub Action) — setup-python@v5, install nxtg-atlas, portfolio-of-one bootstrap (`atlas init` + `atlas add .`), `atlas ci --format json`, format_comment.py renderer, sticky PR comment via `marocchino/sticky-pull-request-comment@v2`. Outputs: `status`, `health`, `grade`. Inputs: `min-health`, `min-project-health`, `python-version`, `atlas-version`, `comment`, `github-token`. Branding `activity` icon / blue.
+2. `format_comment.py` — stdlib-only markdown renderer for `atlas ci` JSON. Smoke-tested locally + in CI against pass + fail report shapes.
+3. `README.md` — quickstart YAML, inputs/outputs tables, CI gate example, permissions block (`pull-requests: write, contents: read`), "How it works" walkthrough.
+4. `.github/workflows/smoke.yml` — self-dogfood (`uses: ./`) + format_comment unit checks. **Both jobs GREEN** in run [25365169641](https://github.com/nxtg-ai/atlas-action/actions/runs/25365169641).
+5. `LICENSE` (MIT) + `.gitignore`.
+6. **Tags published**: `v0.1.0` (initial commit, PyPI install path — broken by blocker #2), `v0.1.1` (git-install workaround — GREEN), floating `v1` → v0.1.1.
+7. **GH releases**: [v0.1.0](https://github.com/nxtg-ai/atlas-action/releases/tag/v0.1.0), [v0.1.1](https://github.com/nxtg-ai/atlas-action/releases/tag/v0.1.1) — Marketplace publish toggle is one-click on the v0.1.1 release page.
+
+**Real-world dogfood JSON** (run 25365169641, atlas-action's own repo):
+```json
+{ "status": "pass", "portfolio": { "name": "nxtg-ai/atlas-action", "health": 32, "grade": "F", "projects": 1, "loc": 90 } }
+```
+F-grade is correct — atlas-action repo intentionally has no tests yet, just an action.
+
+**Two unflagged blockers hit during execution** (advisor pre-flagged #1, missed on first pass — escalating now):
+
+🚧 **Blocker 1 (resolved-in-source, blocked-on-publish)**: PyPI's `nxtg-atlas==0.2.0` predates `atlas ci`. Bumped `nxtg-ai/repoatlas` to **v0.3.0** (commit `7c06e4b`, tag pushed, ADR-036 release-protocol gate PASSED — CHANGELOG.md created with dated [0.3.0] entry, 2,979 tests green across Python 3.11/3.12/3.13). Per ADR-036 release train.
+
+🚧 **Blocker 2 (Asif/org-admin gate)**: PyPI Trusted Publisher rejected the v0.3.0 publish with `invalid-publisher` (run [25365060973](https://github.com/nxtg-ai/repoatlas/actions/runs/25365060973), publish job ID 74373794904). Cause: claims mismatch between PyPI's configured publisher and what GitHub Actions sent. Fix path is one-time admin reconcile in PyPI Settings → Publishing → nxtg-atlas:
+   - Repo: `nxtg-ai/repoatlas`
+   - Workflow filename: `release.yml`
+   - Environment: `pypi`
+   (Likely an environment-name drift — config may say `publish` while workflow uses `pypi`, or vice versa.)
+   Atlas team can NOT fix this without PyPI account access. Surfacing to Asif AM Decision Queue.
+
+**Stopgap**: action.yml `latest` installs from `git+https://github.com/nxtg-ai/repoatlas.git@v0.3.0`. Slower cold-start (~5–10s extra for git clone) but stable, no Asif touch on every install. **Atlas-action v0.2.0** will switch back to PyPI install once blocker 2 clears.
+
+**Mission canon adherence**:
+- ✅ No founder-led sales — Marketplace + PyPI fixes are one-time admin clicks per Wolf reconcile #3.
+- ✅ No consulting — action runs locally via `pip install`.
+- ✅ No Asif as bottleneck on install/value loop — `uses: nxtg-ai/atlas-action@v1` requires zero Asif touch per stranger install.
+- ✅ A & C out of scope — no `atlas ai-audit`, no Polar.sh / license-enforcement flips.
+- ✅ Test count not regressed — atlas main holds 2,979 (up from 1,674+ baseline).
+
+**Asif AM Decision Queue items** (single combined gate, surfaced via Wolf):
+1. **Marketplace publish click**: https://github.com/nxtg-ai/atlas-action/releases/tag/v0.1.1 → "Publish this release to the Marketplace" toggle → accept Developer Agreement → publish. ~30 seconds. Listing name suggestion: "Atlas Portfolio Health".
+2. **PyPI Trusted Publisher reconcile**: log into PyPI as `nxtg-atlas` maintainer → Settings → Publishing → verify (or recreate) GitHub Actions publisher with: Owner `nxtg-ai`, Repo `repoatlas`, Workflow `release.yml`, Environment `pypi`. Once correct, retry the publish: `gh run rerun 25365060973 -R nxtg-ai/repoatlas` (or push a v0.3.1 patch tag). Atlas-action v0.2.0 ships immediately after to swap git-install → PyPI install.
+
+**Next steps for Atlas team** (post-Marketplace-live, no Asif gate needed):
+- Open a real PR on `nxtg-ai/forge-orchestrator` (or `nxtg-ai/Faultline-Pro`) to install atlas-action and confirm cross-repo PR-comment renders + sticky behavior on push updates.
+- Capture screenshot for the AM-launch-bundle.
+- Track first non-NXTG (stranger) install via Marketplace — that's the install-funnel proof point.
+
+**Marketplace listing URL**: pending Asif click on v0.1.1 release page.
+**First install timestamp**: pending.
+**PR comment screenshot link**: pending (cross-repo install).
+**Commits**:
+- `nxtg-ai/atlas-action`: ad9543a (v0.1.0), 07253f9 (v0.1.1, smoke green), v0.1.1 + v1 tags
+- `nxtg-ai/repoatlas`: 7c06e4b (0.3.0 bump + CHANGELOG), v0.3.0 tag (PyPI publish blocked-on-Asif)
+
