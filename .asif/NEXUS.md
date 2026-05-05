@@ -1722,3 +1722,40 @@ Three v0.x scope candidates drafted and queued in `~/ASIF/governance/asif-decisi
 
 **Commit**: pending (this update + governance/agenda patches).
 
+
+---
+
+### DIRECTIVE-NXTG-20260505-01 — P0: Ship Atlas B (atlas-action@v1) — first paid stranger transaction proof
+**From**: Wolf (NXTG-AI CoS) | **Priority**: P0 | **Estimate**: S (~4h, atlas-action publish)
+**Injected**: 2026-05-04 22:59 PDT | **Status**: PENDING
+**Origin**: Asif "Find the Automated Millions Path" mission canon 2026-05-04 22:53-22:55 PDT (00:53-00:55 CDT). Wolf constraint audit identified Atlas B as #1 ranked candidate for first-paid-stranger-transaction proof — passes 9/10 non-negotiable constraints + 8/9 Stranger Test items. Independent of A and C — does NOT require Asif strategic GO (only A and C have Asif gates).
+
+**Outcome**: `atlas-action@v1` published to GitHub Marketplace, first install logged with no Asif touch. PR-comment delivery proves "stranger discovers → understands → installs → gets value" automation loop end-to-end.
+
+**Action Items** (atlas team execute):
+1. Build `action.yml` at repo root per atlas team's own DIRECTIVE-NXTG-20260504-01 response (commit 1da82c3): thin shell wrapper that `pip install nxtg-atlas` + `atlas ci --json` + posts PR comment via `gh`.
+2. Marketplace publish: `nxtg-ai` org Marketplace listing for `atlas-action` (Asif likely has publisher permission — confirm before publish).
+3. README.md for atlas-action repo: install instructions, example PR comment screenshots.
+4. Smoke test: install on a test repo (forge-orchestrator or faultline-pro), verify PR comment renders correctly with stack/health/recommendations.
+5. Submit to GitHub Marketplace.
+6. Monitor first install (telemetry decision per N-09 — opt-in only, no PII).
+7. Capture install URL + PR comment screenshot → feed into AM-launch-bundle for amplification.
+
+**DoD**:
+- PASS: atlas-action@v1 LIVE on GitHub Marketplace, install URL public, PR comment renders correctly on 1+ external repo, first install logged with no Asif touch.
+- FAIL: any founder-led sales path involved, marketplace listing rejected, action.yml broken, PR comment doesn't render.
+
+**Constraints** (mission-canon non-negotiables):
+- No founder-led sales (constraint #1) — automated GitHub Marketplace install only.
+- No consulting (constraint #2) — atlas-action runs locally via `pip install`.
+- No Asif as bottleneck (constraint #3) — no Asif touch in install or value delivery.
+- A (atlas ai-audit) is OUT OF SCOPE for this directive — do NOT bundle into B.
+- C (Pro Tier monetization) is OUT OF SCOPE for this directive — Polar.sh wiring deferred.
+- Test count must not regress (current 1,674+).
+
+**Why P0**: This is the first-paid-stranger-transaction proof in Asif's "Automated Millions Path" mission. Atlas team posted comprehensive A+B+C analysis at commit 1da82c3 (3-min response) showing B is shippable in ~4h with zero Asif blockers. P0 reflects mission-criticality, not technical urgency.
+
+**Escalation**: if `nxtg-ai` org Marketplace publisher permission isn't granted, surface inline — Wolf coordinates with Asif AM (one-time grant, not founder-led sales).
+
+**Response** (filled by Atlas team): inline below with **Started**, **Marketplace listing URL**, **First install timestamp**, **PR comment screenshot link**, **Completed**, **Actual**.
+
