@@ -1533,12 +1533,42 @@ For any directive that touches 3+ files or requires architectural decisions:
 **Escalation**: if any of the 3 wedges has changed since DIRECTIVE-NXTG-20260503-04 (2026-05-03) — flag in response.
 
 **Response** (filled by Atlas team):
-- **Started**: _pending_
-- **Completed**: _pending_
-- **Actual**: _pending_
-- **Analysis**: _pending_
-- **Recommended first ship**: _pending_
-- **Commit**: _pending_
+- **Started**: 2026-05-04 21:05 PDT
+- **Completed**: 2026-05-04 21:08 PDT
+- **Actual**: ~3 min (analysis only, no code)
+- **Status**: DONE
+
+**1. Can A+B+C all ship? YES.** No hard coupling. Each touches a different surface:
+- A = new CLI subcommand (`atlas ai-audit`) layering on shipped N-21/N-27 detector outputs. New code path; no rewrites.
+- B = `action.yml` + thin shell wrapper at repo root that `pip install nxtg-atlas` + `atlas ci --json` + posts PR comment via `gh`. Standalone artifact; doesn't touch CLI internals.
+- C = wire payment provider webhook → license_manager (already shipped, 27 tests under N-09) + flip the enforcement flag on existing cross-project features (N-03/N-15/N-20/N-46). Existing infra; activation work, not greenfield.
+No single-repo dependency that blocks parallel work — `action.yml` lives at repo root and references the published PyPI package, not local source, so it doesn't conflict with the Python package layout. Soft coupling only: A's "go free or go Pro" decision touches C's gate map (recommended: A stays free).
+
+**2. Recommended sequence: B → A → C.**
+- **B first** (cheapest distribution; hours): publishes Atlas into GitHub-native PR surface. Each install creates a feedback loop (real PR comments → real eyes) that informs A's first-slice ergonomics and C's pricing/copy.
+- **A second** (strategic moat; 1–2d): doubles down on the North Star ("AI Engineering Teams"). Once B is live, A extends the action's PR-comment surface (`atlas-action@v1.1` can carry ai-audit findings) — compounding distribution value.
+- **C last** (monetization; 1–2d): only meaningful after A+B drive non-Asif installs. Selling Pro before external usage = no buyers. C work can start in parallel for Asif-gated items (provider pick, account creation) but enforcement-flip ships last.
+
+**3. Coupling / risk:**
+- **No** cross-feature code coupling that blocks parallel work.
+- **Asif gates on C only**: payment provider pick (Polar.sh vs Lemon Squeezy — N-09 left open), provider account creation, and confirmation that gates land on cross-project intel (recommended) vs ai-audit (NOT recommended — kills A's distribution effect).
+- **Marketplace publish on B**: requires `nxtg-ai` org permission for GitHub Marketplace listing (Asif likely has this; one-time grant).
+- **Scope-creep risk on A**: bound v0.x slice to existing detector outputs (provider/model/SDK-version table + prompt-cache + batch-API flags + cross-project model-version drift). No "LLM observability platform" expansion.
+- **Test baseline**: current 1,674+ test count must hold or grow across A and C. B adds an Action workflow test (new repo or fixture), no Python test impact.
+
+**4. Total estimated agent-time end-to-end: M (~3 agent-days)** if B and A run in parallel streams (B: ~4h, A: ~12h, C: ~12h with Asif gate-wait inline). Sequential single-stream is L (~4 agent-days, ~28h).
+
+**5. Recommended FIRST ship: B (`atlas-action@v1`).** Rationale: smallest effort (hours), zero Asif blockers, fastest external surface, creates the feedback channel that de-risks A's first slice and C's pricing copy.
+
+**6. Flags for Asif input** (do not block start of B):
+- C requires Polar.sh vs Lemon Squeezy pick + provider account (N-09 carryover).
+- Confirm A stays **free** (recommended; preserves AI-eng distribution moat) — or gate under Pro (NOT recommended).
+- Confirm `nxtg-ai` org Marketplace publisher permission for B.
+- **Wedge changes since 2026-05-03**: none. A/B/C definitions unchanged.
+
+**Recommended next directive**: kick off B (S, hours) immediately on Asif's nod; queue A as M follow-up; queue C with Asif gate-decisions inline.
+
+**Commit**: pending (this NEXUS update only).
 
 ---
 
