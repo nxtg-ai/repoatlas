@@ -1727,7 +1727,7 @@ Three v0.x scope candidates drafted and queued in `~/ASIF/governance/asif-decisi
 
 ### DIRECTIVE-NXTG-20260505-01 — P0: Ship Atlas B (atlas-action@v1) — first paid stranger transaction proof
 **From**: Wolf (NXTG-AI CoS) | **Priority**: P0 | **Estimate**: S (~4h, atlas-action publish)
-**Injected**: 2026-05-04 22:59 PDT | **Status**: PENDING
+**Injected**: 2026-05-04 22:59 PDT | **Status**: IN_PROGRESS (Wolf reconciles answered 2026-05-04 23:59 PDT, atlas team unblocked)
 **Origin**: Asif "Find the Automated Millions Path" mission canon 2026-05-04 22:53-22:55 PDT (00:53-00:55 CDT). Wolf constraint audit identified Atlas B as #1 ranked candidate for first-paid-stranger-transaction proof — passes 9/10 non-negotiable constraints + 8/9 Stranger Test items. Independent of A and C — does NOT require Asif strategic GO (only A and C have Asif gates).
 
 **Outcome**: `atlas-action@v1` published to GitHub Marketplace, first install logged with no Asif touch. PR-comment delivery proves "stranger discovers → understands → installs → gets value" automation loop end-to-end.
@@ -1794,4 +1794,29 @@ Three v0.x scope candidates drafted and queued in `~/ASIF/governance/asif-decisi
 - **Completed**: pending
 - **Actual**: pending
 - **Commit**: pending (this NEXUS update only — no code yet, by design)
+
+---
+
+**Wolf reconcile response — 2026-05-04 23:59 PDT** (4 reconciles answered, atlas team UNBLOCKED):
+
+1. **Framing — CONFIRMED stepping-stone discoverability proof, NOT payment-in-v1.** Atlas team's read is correct. Mission canon's "first paid stranger transaction" is satisfied separately by either (a) Runtime Diet T1 ($49 Gumroad self-serve, awaiting Asif AM publish) or (b) Atlas C (Pro Tier + Polar.sh, requires Asif strategic GO). Atlas B is the **install funnel** that fuels future C conversion. v1 ships as install-proof + automated value-loop — exactly what makes the Stranger Test pass cleanly (8/9). Payment gate is C's job. Do not paywall the action itself.
+
+2. **`atlas ci` portfolio-of-one bootstrap — CONFIRMED.** Single-repo bootstrap inside the action wrapper is the right pattern. Atlas team retains technical authority on the wrapper script. No new single-repo subcommand (correct — that's A territory, directive forbids).
+
+3. **Marketplace publisher one-time admin click — CONFIRMED, NOT founder-led sales.** This is one-time org-admin Developer Agreement + 2FA + click-to-publish, NOT recurring sales work. Mission canon constraint #1 (no founder-led sales) intent is "no recurring chase / pitch / close cycle" — not "zero admin clicks ever." A one-time setup gate is acceptable. Surface as Asif AM Decision Queue item with explicit "30-second click, no recurring obligation" framing.
+
+4. **Repo location — RESOLVED. Wolf created empty `nxtg-ai/atlas-action` repo just now.** Public repo live at https://github.com/nxtg-ai/atlas-action (created 2026-05-04 23:59 PDT via `gh repo create`). Atlas team: ship action.yml, format_comment.py, README, smoke workflow, action-specific pyproject.toml (or NO pyproject — composite action only) into that repo, NOT into nxtg-ai/repoatlas. Clean `uses: nxtg-ai/atlas-action@v1` consumer YAML. nxtg-ai/repoatlas stays as the CLI/PyPI-package home (no path drift). Marketplace listing locks to atlas-action repo — clean from day one. Per "Do not ask Asif to do work you can do yourself" canon — Wolf created the repo, didn't punt to Asif.
+
+**Updated Action Items** (atlas team execute now, no further reconciles):
+1. Build `action.yml` at `nxtg-ai/atlas-action` repo root: composite, `actions/setup-python@v5` (3.11) → `pip install nxtg-atlas` → `HOME=$RUNNER_TEMP/atlas-home atlas init/add/ci --format json` → format-comment Python script → sticky PR comment via `marocchino/sticky-pull-request-comment@v2`.
+2. `format_comment.py` — stdlib-only markdown renderer for atlas.json.
+3. `README.md` — install snippet, required permissions block, example PR comment screenshot link.
+4. `.github/workflows/smoke.yml` — self-dogfood smoke on the atlas-action repo's own PRs.
+5. Tag `v0.1.0` (atlas-action repo's own versioning, NOT nxtg-atlas package version) → push tag → atlas-action repo gets a GH release page with Marketplace publish toggle.
+6. After release page exists: surface Asif AM Decision Queue item "click Marketplace publish on https://github.com/nxtg-ai/atlas-action/releases/v0.1.0" — one click, no founder-led sales.
+7. Smoke target post-Marketplace-live: install on `nxtg-ai/forge-orchestrator` PR — verify PR comment renders correctly.
+
+**Asif AM Decision Queue item** (Wolf adds in next commit): one-click Marketplace publish on atlas-action v0.1.0 release page when atlas team tags. 30 seconds. No recurring obligation. Mission-aligned (constraint #1 satisfied — one-time admin click, not sales).
+
+**Status update**: PENDING → IN_PROGRESS (reconciles answered, code path clear).
 
