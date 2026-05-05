@@ -1757,5 +1757,41 @@ Three v0.x scope candidates drafted and queued in `~/ASIF/governance/asif-decisi
 
 **Escalation**: if `nxtg-ai` org Marketplace publisher permission isn't granted, surface inline — Wolf coordinates with Asif AM (one-time grant, not founder-led sales).
 
-**Response** (filled by Atlas team): inline below with **Started**, **Marketplace listing URL**, **First install timestamp**, **PR comment screenshot link**, **Completed**, **Actual**.
+**Response** (filled by Atlas team):
+- **Started**: 2026-05-04 21:14 PDT
+- **Status**: BLOCKED-ON-RECONCILE (4 escalations to Wolf below — surfacing before any code writes per advisor pattern; reconciles cost minutes, wrong artifact costs the 4h budget)
+
+**4 reconciles before code ships** (none of these are scope creep — they are framing/architecture clarifications the directive does not pin down):
+
+1. **🔴 Install-proof vs payment-proof framing — this is the load-bearing one.**
+   Mission canon north star: *"first **paid** stranger transaction without founder-led sales."* Atlas B as scoped (free GitHub Marketplace action, atlas open-core CLI) delivers the *discoverability + automated value-loop* proof — stranger discovers → installs → gets PR-comment value, no Asif touch. It does **not** generate a paid transaction; payment proof is C's job (Pro Tier + Polar.sh checkout). The directive's own DoD says "first install logged with no Asif touch" (install-proof), but the Origin paragraph claims B is "first paid stranger transaction proof." These are not the same artifact.
+   **Question for Wolf**: Confirm B ships as a *stepping-stone discoverability proof* (the install loop), not a revenue gate. If Wolf intends payment-in-v1, scope changes materially — would require either a paywall on the action itself OR concurrent C wiring (Polar.sh + license_manager flip). Atlas team strongly recommends "stepping-stone" framing — keeps S=4h, preserves AI-eng distribution moat, and the install funnel is what feeds C's eventual conversion.
+
+2. **`atlas ci` is portfolio-scoped, not single-repo.** Currently reads `~/.atlas/portfolio.json` (`_load_portfolio()` at cli.py:33). For an action running on a stranger's PR in a single repo, the wrapper must bootstrap a portfolio-of-one each run: `atlas init --name "$GITHUB_REPOSITORY" && atlas add . && atlas ci --format json`. Still S, but the prior "thin shell wrapper" framing (DIRECTIVE-NXTG-20260504-01 response) was lossy — calling it out for honesty. Atlas team will NOT add a new single-repo subcommand to dodge this (that's A territory and the directive forbids bundling A).
+
+3. **Marketplace publish requires Asif/org-admin UI touch (one-time).** GitHub Marketplace listing flow: org-admin → "Draft a release" → "Publish this release to the Marketplace" → accept Developer Agreement, verified-email check, 2FA gate. Atlas team can produce: action.yml, smoke test, README, version bump, tag, GH release — all automatable. The Marketplace toggle on the GH release page is one-click, by Asif (or whoever holds publisher permission on `nxtg-ai`). Not founder-led sales, but a real one-time gate. Per directive item #2 ("confirm before publish") — confirming explicitly: this gate exists, will surface as escalation when code is ready.
+
+4. **Repo location for the action — clean-uses-line vs no-new-repo.** Directive item #1 says "Build `action.yml` at repo root" → this implies the existing `nxtg-ai/repoatlas` repo. Consumer YAML then reads `uses: nxtg-ai/repoatlas@v1` (awkward — repoatlas, not atlas). A separate `nxtg-ai/atlas-action` repo gives clean `uses: nxtg-ai/atlas-action@v1`, but Asif (or Wolf) must create the empty repo first. Atlas team default: ship in this repo per directive's literal reading; flagging the ergonomics for Wolf's call. **Cost of switching after publish is high** (Marketplace listing locked to original repo path) — so reconcile this one before tagging.
+
+**Implementation plan once reconciled** (composite action, ADR-036-compliant release path):
+- `action.yml` at repo root: composite, `actions/setup-python@v5` (3.11) → `pip install nxtg-atlas==<release>` → `HOME=$RUNNER_TEMP/atlas-home atlas init/add/ci --format json` → format-comment Python script (stdlib-only) → sticky PR comment via `marocchino/sticky-pull-request-comment@v2` (or `gh pr comment --edit-last` fallback).
+- `action/format_comment.py` — stdlib-only markdown renderer for atlas.json.
+- `.github/workflows/atlas-action-smoke.yml` — self-dogfood on this repo's PRs.
+- README usage snippet with required `permissions: pull-requests: write, contents: read`.
+- pyproject.toml `version = "0.3.0"` + CHANGELOG `[0.3.0] — 2026-05-05` entry per ADR-036 release-protocol-check pre-push gate.
+- `git tag v0.3.0 && git push origin v0.3.0` → release.yml → PyPI republish + GH release. Asif then clicks Marketplace publish on the release page.
+- Smoke target: this repo's own PR for first-pass; cross-repo install on `nxtg-ai/forge-orchestrator` post-Marketplace-live.
+
+**Out of scope (do not drift)**: no `atlas ai-audit` (A), no Polar.sh / license-enforcement flip (C), no new single-repo CLI subcommand.
+
+**Test impact**: composite action adds smoke workflow + format_comment.py tests. Test count grows from 1,674+ baseline; no regressions to existing tests.
+
+**ETA on green light**: code-ready in ~3.5h once 4 reconciles return; Marketplace toggle in Asif's hands after that. Tag-to-Marketplace gap is whatever it takes Asif to click.
+
+- **Marketplace listing URL**: pending (post-Asif click)
+- **First install timestamp**: pending
+- **PR comment screenshot link**: pending
+- **Completed**: pending
+- **Actual**: pending
+- **Commit**: pending (this NEXUS update only — no code yet, by design)
 
