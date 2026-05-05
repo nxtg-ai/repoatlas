@@ -1514,6 +1514,34 @@ For any directive that touches 3+ files or requires architectural decisions:
 
 > 1 completed directive archived. Active directives below.
 
+### DIRECTIVE-NXTG-20260504-01 — P1: Atlas v0.x scope — A+B+C combo feasibility + sequence analysis
+**From**: Wolf (NXTG-AI CoS) | **Priority**: P1
+**Injected**: 2026-05-04 17:05 PDT (response time) | **Estimate**: S (≤4h analysis, no code) | **Status**: PENDING
+**Origin**: Asif response on DIRECTIVE-NXTG-20260503-04 (the 3-candidate scope draft) routed via dashboard at 17:05 PDT today: **"Can we do all three?"**
+**Reframe**: Per Kestrel + Emma /alignment 19:03 PDT — this is a **challenge/question to Atlas team**, not a B-default. Need feasibility + sequence answer, not single-wedge pick.
+
+**Action Items** (analysis only — no code, no commits, no PyPI changes):
+1. Confirm: can A (`atlas ai-audit` subcommand, M effort) + B (`atlas-action@v1` GitHub Marketplace publish, S effort) + C (Pro Tier activation with Polar.sh checkout, M effort) all ship in parallel/sequence?
+2. Sequence the work — which gates which? Recommended ordering with rationale (cheapest distribution first → strategic wedge → monetization is one valid path; team is closer to the code, may know better).
+3. Capacity / risk assessment if all three: any cross-feature coupling that creates risk? Any single repo dependency that means parallel work blocks?
+4. Total estimated agent-time end-to-end (S/M/L). Single number, not a range.
+5. Recommended FIRST ship (which of A/B/C goes first) with one-sentence rationale for the sequence.
+6. Post analysis as your directive response inline below + flag if you need Asif input on any sub-decision.
+
+**DoD**: Atlas team posts analysis covering all 6 items + Wolf relays to /alignment for Asif visibility within 4h agent-time.
+**Constraints**: NO code changes this directive — analysis only. Do NOT start any of A/B/C until analysis is reviewed.
+**Escalation**: if any of the 3 wedges has changed since DIRECTIVE-NXTG-20260503-04 (2026-05-03) — flag in response.
+
+**Response** (filled by Atlas team):
+- **Started**: _pending_
+- **Completed**: _pending_
+- **Actual**: _pending_
+- **Analysis**: _pending_
+- **Recommended first ship**: _pending_
+- **Commit**: _pending_
+
+---
+
 ### Directive Summary
 
 | ID | Title | Status | Date |
@@ -1612,6 +1640,7 @@ All items complete. Package name is `nxtg-atlas` (already set). Fixed version co
 - **Cognitive Bridge opportunity**: dx3-mcp (threedb P-05) Cognitive Memory Bridge could give Atlas persistent memory across scans.
 - **PI-05: Content pipeline ready** (2026-03-11, Wolf): P-14 (nxtg-content-engine) has a proven 5-dimension editorial pipeline with 8 successful runs. When Atlas reaches PyPI (N-06), launch content (comparison posts, HN launch support, tutorial) can route through P-14's pipeline. Coordinate with P-14 team on publish schedule.
 - **PI-06: Test coverage exemplary** (2026-03-11, Wolf): 221 tests from 30 in one session. This 7.4x increase is the fastest coverage push in portfolio history. Team quality is high — ready for distribution work (N-06, N-07, N-08).
+- **PI-07: Asif response — A+B+C combo for v0.x scope** (2026-05-04, Wolf): Asif response on DIRECTIVE-NXTG-20260503-04 (3-candidate v0.x scope draft) is **"Can we do all three?"** (routed via dashboard 17:05 PDT). Per Kestrel + Emma reframe: this is a **challenge/question**, not "Atlas=B" default. Asif is asking team to answer feasibility + sequence for combining all three wedges (A AI/ML wedge `atlas ai-audit` + B GitHub Action wedge `atlas-action@v1` + C Pro Tier monetization with Polar.sh checkout) — not collapse to one. Net effort if combined: A=M (1-2d) + B=S (hours) + C=M (1-2d) = ~3-5d agent-time total. See DIRECTIVE-NXTG-20260504-01 below for the team-side analysis ask.
 
 ---
 
