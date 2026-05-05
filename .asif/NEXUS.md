@@ -1727,7 +1727,7 @@ Three v0.x scope candidates drafted and queued in `~/ASIF/governance/asif-decisi
 
 ### DIRECTIVE-NXTG-20260505-01 — P0: Ship Atlas B (atlas-action@v1) — first paid stranger transaction proof
 **From**: Wolf (NXTG-AI CoS) | **Priority**: P0 | **Estimate**: S (~4h, atlas-action publish)
-**Injected**: 2026-05-04 22:59 PDT | **Status**: IN_PROGRESS (Wolf reconciles answered 2026-05-04 23:59 PDT, atlas team unblocked)
+**Injected**: 2026-05-04 22:59 PDT | **Status**: DONE-PENDING-ASIF-GATE (atlas team shipped v0.1.1 in ~42min, 2026-05-05 01:12 PDT; smoke GREEN run 25365169641; 2 one-time admin gates surfaced to Asif AM Decision Queue commit 4974e8890)
 **Origin**: Asif "Find the Automated Millions Path" mission canon 2026-05-04 22:53-22:55 PDT (00:53-00:55 CDT). Wolf constraint audit identified Atlas B as #1 ranked candidate for first-paid-stranger-transaction proof — passes 9/10 non-negotiable constraints + 8/9 Stranger Test items. Independent of A and C — does NOT require Asif strategic GO (only A and C have Asif gates).
 
 **Outcome**: `atlas-action@v1` published to GitHub Marketplace, first install logged with no Asif touch. PR-comment delivery proves "stranger discovers → understands → installs → gets value" automation loop end-to-end.
