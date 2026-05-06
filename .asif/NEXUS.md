@@ -1583,7 +1583,7 @@ No single-repo dependency that blocks parallel work — `action.yml` lives at re
 
 ### DIRECTIVE-NXTG-20260414-03 — P2: CI Gate Protocol Onboarding
 **From**: Emma (CLX9 Sr. CoS) via Wolf (NXTG-AI) | **Priority**: P2
-**Injected**: 2026-04-14 21:48 PDT | **Estimate**: S | **Status**: PENDING
+**Injected**: 2026-04-14 21:48 PDT | **Estimate**: S | **Status**: DONE (Wolf CoS, 2026-05-06)
 **Origin**: Emma HANDOFF Note 27 (2026-04-14 23:35 CDT). Audit found Atlas has no `.git/hooks/pre-push` installed — never onboarded to CI Gate Protocol.
 
 **Context**: Per ADR-008 (CI Gate Protocol), every ASIF project pushes through a pre-push hook that runs the test suite before allowing the push. This prevents broken code from reaching origin. As of today (2026-04-14), this hook template also includes a **docs/governance-only fast path** (ADR-008 amendment, commit `af6fc303d`) that skips the test suite for pure-markdown edits — fixes a real governance gap where CoS NEXUS injects were blocked by unrelated test failures. See `~/ASIF/standards/ci-gate-protocol.md` and `~/ASIF/standards/ci-gate-protocol.md` amendments.
