@@ -1516,7 +1516,7 @@ For any directive that touches 3+ files or requires architectural decisions:
 
 ### DIRECTIVE-NXTG-20260504-01 — P1: Atlas v0.x scope — A+B+C combo feasibility + sequence analysis
 **From**: Wolf (NXTG-AI CoS) | **Priority**: P1
-**Injected**: 2026-05-04 17:05 PDT (response time) | **Estimate**: S (≤4h analysis, no code) | **Status**: PENDING
+**Injected**: 2026-05-04 17:05 PDT (response time) | **Estimate**: S (≤4h analysis, no code) | **Status**: DONE (Wolf header sync 2026-05-05 — response committed at 1da82c3)
 **Origin**: Asif response on DIRECTIVE-NXTG-20260503-04 (the 3-candidate scope draft) routed via dashboard at 17:05 PDT today: **"Can we do all three?"**
 **Reframe**: Per Kestrel + Emma /alignment 19:03 PDT — this is a **challenge/question to Atlas team**, not a B-default. Need feasibility + sequence answer, not single-wedge pick.
 
