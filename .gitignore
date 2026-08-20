@@ -14,3 +14,7 @@ htmlcov/
 
 # Playwright MCP scratch
 .playwright-mcp/
+
+# Private NXTG operating context
+.asif/
+.claude/
